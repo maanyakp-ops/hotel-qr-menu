@@ -13,7 +13,7 @@ function App() {
   const [authChecked, setAuthChecked] = useState(false)
 
   const { hotelId, roomNumber } = useParams()
-  const resolvedHotelId = hotelId || "00000000-0000-0000-0000-000000000001"
+  const resolvedHotelId = hotelId || "a5b9bed4-9c40-4856-b4ed-371e800beaf0"
   const resolvedRoom = roomNumber || "101"
 
   useEffect(() => {
