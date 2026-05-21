@@ -1,21 +1,33 @@
 import { useEffect, useState } from "react"
 import { supabase } from "./supabase"
 
-const hotelId = "00000000-0000-0000-0000-000000000001"
-
 export default function Dashboard({ onBack }) {
   const [orders, setOrders] = useState([])
+  const [hotel, setHotel] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchOrders()
-    const sub = supabase.channel("orders-channel")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, fetchOrders)
-      .subscribe()
-    return () => supabase.removeChannel(sub)
+    loadHotelThenOrders()
   }, [])
 
-  async function fetchOrders() {
+  async function loadHotelThenOrders() {
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: hotelData } = await supabase
+      .from("hotels")
+      .select("*")
+      .eq("user_id", user.id)
+      .single()
+    setHotel(hotelData)
+    fetchOrders(hotelData.id)
+
+    const sub = supabase.channel("orders-channel")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" },
+        () => fetchOrders(hotelData.id))
+      .subscribe()
+    return () => supabase.removeChannel(sub)
+  }
+
+  async function fetchOrders(hotelId) {
     const { data, error } = await supabase
       .from("orders")
       .select(`*, order_items(quantity, price, menu_items(name))`)
@@ -28,7 +40,12 @@ export default function Dashboard({ onBack }) {
 
   async function updateStatus(id, status) {
     await supabase.from("orders").update({ status }).eq("id", id)
-    fetchOrders()
+    fetchOrders(hotel.id)
+  }
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    onBack()
   }
 
   const active = orders.filter(o => o.status !== "delivered")
@@ -42,8 +59,11 @@ export default function Dashboard({ onBack }) {
       {/* Top bar */}
       <div style={d.topbar}>
         <button onClick={onBack} style={d.backBtn}>← Back</button>
-        <span style={d.brand}>Hotel Dashboard</span>
-        <span style={d.live}><span style={d.dot} />Live</span>
+        <span style={d.brand}>{hotel?.name || "Dashboard"}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={d.live}><span style={d.dot} />Live</span>
+          <button onClick={handleLogout} style={d.logoutBtn}>Logout</button>
+        </div>
       </div>
 
       {/* Metrics */}
@@ -54,7 +74,6 @@ export default function Dashboard({ onBack }) {
       </div>
 
       <div style={d.body}>
-        {/* Active orders */}
         {active.length > 0 && (
           <>
             <p style={d.sectionLabel}>Active Orders</p>
@@ -95,7 +114,6 @@ export default function Dashboard({ onBack }) {
 
         {active.length === 0 && <p style={d.empty}>No active orders. Waiting...</p>}
 
-        {/* Delivered */}
         {done.length > 0 && (
           <>
             <p style={d.sectionLabel}>Delivered</p>
@@ -126,6 +144,7 @@ const d = {
   brand: { color: "#e8f0f8", fontSize: 15, fontWeight: 500 },
   live: { display: "flex", alignItems: "center", gap: 5, color: "#6fcf97", fontSize: 12 },
   dot: { width: 7, height: 7, borderRadius: "50%", background: "#6fcf97", display: "inline-block" },
+  logoutBtn: { background: "none", border: "0.5px solid #3a3a3c", color: "#6e6e73", borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer" },
   metrics: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, padding: 14 },
   metric: { background: "#fff", borderRadius: 12, padding: "12px 10px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
   metricVal: { fontSize: 20, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px" },

@@ -2,16 +2,27 @@ import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
 import Dashboard from "./Dashboard"
+import Auth from "./Auth"
 
 function App() {
   const [menuItems, setMenuItems] = useState([])
   const [cart, setCart] = useState([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState("menu")
+  const [session, setSession] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
 
   const { hotelId, roomNumber } = useParams()
   const resolvedHotelId = hotelId || "00000000-0000-0000-0000-000000000001"
   const resolvedRoom = roomNumber || "101"
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setAuthChecked(true)
+    })
+    supabase.auth.onAuthStateChange((_event, session) => setSession(session))
+  }, [])
 
   useEffect(() => { fetchMenu() }, [])
 
@@ -52,7 +63,13 @@ function App() {
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0)
   const categories = [...new Set(menuItems.map(i => i.category))]
 
-  if (view === "dashboard") return <Dashboard onBack={() => setView("menu")} />
+  if (!authChecked) return <div style={s.center}>Loading...</div>
+
+  if (view === "dashboard") {
+    if (!session) return <Auth onLogin={() => setView("dashboard")} />
+    return <Dashboard onBack={() => setView("menu")} />
+  }
+
   if (loading) return <div style={s.center}>Loading menu...</div>
 
   return (
