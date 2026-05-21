@@ -9,6 +9,8 @@ export default function Dashboard({ onBack }) {
   const [tab, setTab] = useState("orders")
   const [newItem, setNewItem] = useState({ name: "", category: "", price: "", photo_url: "" })
   const [adding, setAdding] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [allHotels, setAllHotels] = useState([])
 
   useEffect(() => { loadHotel() }, [])
 
@@ -20,8 +22,12 @@ export default function Dashboard({ onBack }) {
       .eq("user_id", user.id)
       .single()
     setHotel(hotelData)
+    setIsAdmin(hotelData?.is_admin || false)
+
     fetchOrders(hotelData.id)
     fetchMenu(hotelData.id)
+
+    if (hotelData?.is_admin) fetchAllHotels()
 
     const sub = supabase.channel("orders-channel")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" },
@@ -48,6 +54,19 @@ export default function Dashboard({ onBack }) {
       .eq("hotel_id", hotelId)
       .order("category")
     if (data) setMenuItems(data)
+  }
+
+  async function fetchAllHotels() {
+    const { data } = await supabase
+      .from("hotels")
+      .select("*")
+      .order("created_at", { ascending: false })
+    if (data) setAllHotels(data)
+  }
+
+  async function updateHotel(id, updates) {
+    await supabase.from("hotels").update(updates).eq("id", id)
+    fetchAllHotels()
   }
 
   async function updateStatus(id, status) {
@@ -98,7 +117,7 @@ export default function Dashboard({ onBack }) {
       {/* Topbar */}
       <div style={d.topbar}>
         <button onClick={onBack} style={d.backBtn}>← Back</button>
-        <span style={d.brand}>{hotel?.name || "Dashboard"}</span>
+        <span style={d.brand}>{isAdmin ? "⚡ Admin Panel" : hotel?.name || "Dashboard"}</span>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={d.live}><span style={d.dot} />Live</span>
           <button onClick={handleLogout} style={d.logoutBtn}>Logout</button>
@@ -116,6 +135,7 @@ export default function Dashboard({ onBack }) {
       <div style={d.tabs}>
         <button style={tab === "orders" ? d.tabActive : d.tab} onClick={() => setTab("orders")}>Orders</button>
         <button style={tab === "menu" ? d.tabActive : d.tab} onClick={() => setTab("menu")}>Menu</button>
+        {isAdmin && <button style={tab === "admin" ? d.tabActive : d.tab} onClick={() => setTab("admin")}>Hotels</button>}
       </div>
 
       <div style={d.body}>
@@ -184,7 +204,6 @@ export default function Dashboard({ onBack }) {
         {/* MENU TAB */}
         {tab === "menu" && (
           <>
-            {/* Add new item form */}
             <p style={d.sectionLabel}>Add New Item</p>
             <div style={d.form}>
               <input style={d.input} placeholder="Item name" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
@@ -195,8 +214,6 @@ export default function Dashboard({ onBack }) {
                 {adding ? "Adding..." : "+ Add Item"}
               </button>
             </div>
-
-            {/* Existing items */}
             <p style={d.sectionLabel}>Your Menu ({menuItems.length} items)</p>
             {menuItems.length === 0 && <p style={d.empty}>No items yet. Add one above.</p>}
             {menuItems.map(item => (
@@ -210,13 +227,66 @@ export default function Dashboard({ onBack }) {
                   <p style={d.menuMeta}>{item.category} · ₹{item.price}</p>
                 </div>
                 <div style={d.menuActions}>
-                  <button
-                    style={item.available ? d.btnOn : d.btnOff}
-                    onClick={() => toggleAvailable(item)}
-                  >
+                  <button style={item.available ? d.btnOn : d.btnOff} onClick={() => toggleAvailable(item)}>
                     {item.available ? "On" : "Off"}
                   </button>
                   <button style={d.btnDelete} onClick={() => deleteItem(item.id)}>🗑</button>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* ADMIN TAB */}
+        {tab === "admin" && isAdmin && (
+          <>
+            <p style={d.sectionLabel}>All Hotels ({allHotels.length})</p>
+            {allHotels.map(h => (
+              <div key={h.id} style={d.card}>
+                <div style={d.cardHeader}>
+                  <div>
+                    <p style={{ ...d.room, marginBottom: 2 }}>{h.name}</p>
+                    <p style={d.timeAgo}>{h.owner_email || "No email"}</p>
+                  </div>
+                  <span style={
+                    h.status === "active" ? d.badgeDone :
+                    h.status === "disabled" ? d.badgePending : d.badgePrep
+                  }>
+                    {h.status || "pending"}
+                  </span>
+                </div>
+
+                <div style={d.adminRow}>
+                  <span style={d.adminLabel}>Rooms allowed</span>
+                  <input
+                    style={d.roomInput}
+                    type="number"
+                    defaultValue={h.room_count || 0}
+                    onBlur={e => updateHotel(h.id, { room_count: parseInt(e.target.value) })}
+                  />
+                </div>
+
+                <div style={d.adminRow}>
+                  <span style={d.adminLabel}>Hotel ID (for QR)</span>
+                  <span style={d.hotelId}>{h.id}</span>
+                </div>
+
+                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                  {h.status !== "active" && (
+                    <button style={d.btnDeliver} onClick={() => updateHotel(h.id, { status: "active" })}>
+                      ✓ Approve
+                    </button>
+                  )}
+                  {h.status === "active" && !h.is_admin && (
+                    <button style={d.btnPrepare} onClick={() => updateHotel(h.id, { status: "disabled" })}>
+                      Disable
+                    </button>
+                  )}
+                  {h.status === "disabled" && (
+                    <button style={d.btnDeliver} onClick={() => updateHotel(h.id, { status: "active" })}>
+                      Re-enable
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -247,7 +317,7 @@ const d = {
   sectionLabel: { fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#8a9bb0", fontWeight: 500, margin: "16px 0 8px" },
   card: { background: "#fff", borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: "0 1px 6px rgba(0,0,0,0.07)" },
   cardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
-  room: { fontSize: 14, fontWeight: 600, color: "#1c2b3a" },
+  room: { fontSize: 14, fontWeight: 600, color: "#1c2b3a", margin: 0 },
   badgePending: { background: "#fff3e0", color: "#b45309", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
   badgePrep: { background: "#e0f2fe", color: "#0369a1", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
   badgeDone: { background: "#e8f5e9", color: "#2e7d32", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
@@ -257,7 +327,7 @@ const d = {
   actions: { display: "flex", alignItems: "center", gap: 10 },
   btnPrepare: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
   btnDeliver: { background: "#e0f2fe", color: "#0369a1", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
-  timeAgo: { fontSize: 11, color: "#8a9bb0" },
+  timeAgo: { fontSize: 11, color: "#8a9bb0", margin: 0 },
   empty: { textAlign: "center", color: "#8a9bb0", marginTop: 30, fontSize: 14 },
   form: { background: "#fff", borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: "0 1px 6px rgba(0,0,0,0.07)", display: "flex", flexDirection: "column", gap: 8 },
   input: { background: "#f4f6f9", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#1c2b3a", outline: "none" },
@@ -272,4 +342,8 @@ const d = {
   btnOn: { background: "#e8f5e9", color: "#2e7d32", border: "none", borderRadius: 8, padding: "5px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
   btnOff: { background: "#fce4e4", color: "#c0392b", border: "none", borderRadius: 8, padding: "5px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
   btnDelete: { background: "none", border: "none", fontSize: 16, cursor: "pointer" },
+  adminRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
+  adminLabel: { fontSize: 12, color: "#8a9bb0" },
+  roomInput: { width: 60, background: "#f4f6f9", border: "1px solid #e2e8f0", borderRadius: 6, padding: "4px 8px", fontSize: 13, textAlign: "center" },
+  hotelId: { fontSize: 10, color: "#8a9bb0", fontFamily: "monospace", background: "#f4f6f9", padding: "3px 8px", borderRadius: 6 },
 }
