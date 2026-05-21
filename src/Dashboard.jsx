@@ -9,138 +9,141 @@ export default function Dashboard({ onBack }) {
 
   useEffect(() => {
     fetchOrders()
-
-    const subscription = supabase
-      .channel("orders-channel")
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "orders"
-      }, () => {
-        fetchOrders()
-      })
+    const sub = supabase.channel("orders-channel")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, fetchOrders)
       .subscribe()
-
-    return () => supabase.removeChannel(subscription)
+    return () => supabase.removeChannel(sub)
   }, [])
 
   async function fetchOrders() {
     const { data, error } = await supabase
       .from("orders")
-      .select(`
-        *,
-        order_items (
-          quantity,
-          price,
-          menu_items (name)
-        )
-      `)
+      .select(`*, order_items(quantity, price, menu_items(name))`)
       .eq("hotel_id", hotelId)
       .order("created_at", { ascending: false })
-
     if (error) console.error(error)
     else setOrders(data)
     setLoading(false)
   }
 
-  async function updateStatus(orderId, status) {
-    await supabase
-      .from("orders")
-      .update({ status })
-      .eq("id", orderId)
+  async function updateStatus(id, status) {
+    await supabase.from("orders").update({ status }).eq("id", id)
     fetchOrders()
   }
 
-  const statusColor = {
-    pending: "#e76f51",
-    preparing: "#e9c46a",
-    delivered: "#2a9d5c"
-  }
+  const active = orders.filter(o => o.status !== "delivered")
+  const done = orders.filter(o => o.status === "delivered")
+  const revenue = orders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)
 
-  if (loading) return <div style={styles.center}>Loading orders...</div>
+  if (loading) return <div style={d.center}>Loading orders...</div>
 
   return (
-    <div style={styles.container}>
-     <button onClick={onBack} style={styles.backBtn}>← Back to Menu</button>
-     <h1 style={styles.title}>🏨 Hotel Dashboard</h1>
-      <p style={styles.subtitle}>Orders update automatically</p>
+    <div style={d.page}>
+      {/* Top bar */}
+      <div style={d.topbar}>
+        <button onClick={onBack} style={d.backBtn}>← Back</button>
+        <span style={d.brand}>Hotel Dashboard</span>
+        <span style={d.live}><span style={d.dot} />Live</span>
+      </div>
 
-      {orders.length === 0 && (
-        <p style={styles.empty}>No orders yet. Waiting...</p>
-      )}
+      {/* Metrics */}
+      <div style={d.metrics}>
+        <div style={d.metric}><p style={d.metricVal}>{orders.length}</p><p style={d.metricLabel}>Orders today</p></div>
+        <div style={d.metric}><p style={d.metricVal}>{active.length}</p><p style={d.metricLabel}>Active now</p></div>
+        <div style={d.metric}><p style={d.metricVal}>₹{(revenue/1000).toFixed(1)}k</p><p style={d.metricLabel}>Revenue</p></div>
+      </div>
 
-      {orders.map(order => (
-        <div key={order.id} style={styles.card}>
-          <div style={styles.cardHeader}>
-            <span style={styles.room}>Room {order.room_id.slice(-4)}</span>
-            <span style={{
-              ...styles.badge,
-              background: statusColor[order.status] || "#ccc"
-            }}>
-              {order.status.toUpperCase()}
-            </span>
-          </div>
+      <div style={d.body}>
+        {/* Active orders */}
+        {active.length > 0 && (
+          <>
+            <p style={d.sectionLabel}>Active Orders</p>
+            {active.map(order => {
+              const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+              const mins = Math.floor((Date.now() - new Date(order.created_at)) / 60000)
+              return (
+                <div key={order.id} style={d.card}>
+                  <div style={d.cardHeader}>
+                    <span style={d.room}>Room {order.room_id}</span>
+                    <span style={order.status === "pending" ? d.badgePending : d.badgePrep}>
+                      {order.status === "pending" ? "Pending" : "Preparing"}
+                    </span>
+                  </div>
+                  <div style={d.items}>
+                    {order.order_items.map((item, i) => (
+                      <div key={i} style={d.itemRow}>
+                        <span>{item.menu_items?.name} x{item.quantity}</span>
+                        <span>₹{item.price * item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
+                  <div style={d.actions}>
+                    {order.status === "pending" && (
+                      <button style={d.btnPrepare} onClick={() => updateStatus(order.id, "preparing")}>Mark as Preparing</button>
+                    )}
+                    {order.status === "preparing" && (
+                      <button style={d.btnDeliver} onClick={() => updateStatus(order.id, "delivered")}>Mark as Delivered</button>
+                    )}
+                    <span style={d.timeAgo}>{mins < 1 ? "Just now" : `${mins} min ago`}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </>
+        )}
 
-          <div style={styles.items}>
-            {order.order_items.map((item, i) => (
-              <div key={i} style={styles.itemRow}>
-                <span>{item.menu_items?.name} x{item.quantity}</span>
-                <span>₹{item.price * item.quantity}</span>
-              </div>
-            ))}
-          </div>
+        {active.length === 0 && <p style={d.empty}>No active orders. Waiting...</p>}
 
-          <div style={styles.total}>
-            Total: ₹{order.order_items.reduce((sum, i) => sum + i.price * i.quantity, 0)}
-          </div>
-
-          <div style={styles.time}>
-            {new Date(order.created_at).toLocaleTimeString()}
-          </div>
-
-          <div style={styles.actions}>
-            {order.status === "pending" && (
-              <button
-                style={{ ...styles.btn, background: "#e9c46a", color: "#000" }}
-                onClick={() => updateStatus(order.id, "preparing")}
-              >
-                Mark as Preparing
-              </button>
-            )}
-            {order.status === "preparing" && (
-              <button
-                style={{ ...styles.btn, background: "#2a9d5c" }}
-                onClick={() => updateStatus(order.id, "delivered")}
-              >
-                Mark as Delivered
-              </button>
-            )}
-            {order.status === "delivered" && (
-              <p style={styles.done}>✅ Delivered</p>
-            )}
-          </div>
-        </div>
-      ))}
+        {/* Delivered */}
+        {done.length > 0 && (
+          <>
+            <p style={d.sectionLabel}>Delivered</p>
+            {done.map(order => {
+              const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+              return (
+                <div key={order.id} style={{ ...d.card, opacity: 0.5 }}>
+                  <div style={d.cardHeader}>
+                    <span style={d.room}>Room {order.room_id}</span>
+                    <span style={d.badgeDone}>✓ Delivered</span>
+                  </div>
+                  <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
+                </div>
+              )
+            })}
+          </>
+        )}
+      </div>
     </div>
   )
 }
 
-const styles = {
-  container: { maxWidth: 600, margin: "0 auto", padding: 16, fontFamily: "sans-serif", background: "#f0f0f0", minHeight: "100vh" },
-  center: { textAlign: "center", marginTop: 100, fontSize: 18 },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 4 },
-  subtitle: { color: "#888", fontSize: 13, marginBottom: 20 },
-  empty: { textAlign: "center", color: "#888", marginTop: 60 },
-  card: { background: "#fff", borderRadius: 12, padding: 16, marginBottom: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
-  cardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
-  room: { fontWeight: "bold", fontSize: 16 },
-  badge: { color: "#fff", padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: "bold" },
-  items: { borderTop: "1px solid #eee", borderBottom: "1px solid #eee", padding: "10px 0", marginBottom: 10 },
-  itemRow: { display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 4 },
-  total: { fontWeight: "bold", fontSize: 15, marginBottom: 4 },
-  time: { fontSize: 12, color: "#aaa", marginBottom: 12 },
-  actions: { display: "flex", gap: 8 },
-  btn: { flex: 1, padding: "10px", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: "bold", color: "#fff", fontSize: 14 },
-  done: { color: "#2a9d5c", fontWeight: "bold", margin: 0 },
-backBtn: { background: "none", border: "1px solid #ccc", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12 },
+const d = {
+  page: { background: "#f4f6f9", minHeight: "100vh", fontFamily: "-apple-system, sans-serif" },
+  center: { textAlign: "center", marginTop: 100, color: "#333" },
+  topbar: { background: "#1c2b3a", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" },
+  backBtn: { background: "none", border: "none", color: "#7eb3f5", fontSize: 13, cursor: "pointer", padding: 0 },
+  brand: { color: "#e8f0f8", fontSize: 15, fontWeight: 500 },
+  live: { display: "flex", alignItems: "center", gap: 5, color: "#6fcf97", fontSize: 12 },
+  dot: { width: 7, height: 7, borderRadius: "50%", background: "#6fcf97", display: "inline-block" },
+  metrics: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, padding: 14 },
+  metric: { background: "#fff", borderRadius: 12, padding: "12px 10px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
+  metricVal: { fontSize: 20, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px" },
+  metricLabel: { fontSize: 10, color: "#8a9bb0", margin: 0 },
+  body: { padding: "0 14px 40px" },
+  sectionLabel: { fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#8a9bb0", fontWeight: 500, margin: "16px 0 8px" },
+  card: { background: "#fff", borderRadius: 14, padding: "14px", marginBottom: 10, boxShadow: "0 1px 6px rgba(0,0,0,0.07)" },
+  cardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  room: { fontSize: 14, fontWeight: 600, color: "#1c2b3a" },
+  badgePending: { background: "#fff3e0", color: "#b45309", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
+  badgePrep: { background: "#e0f2fe", color: "#0369a1", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
+  badgeDone: { background: "#e8f5e9", color: "#2e7d32", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
+  items: { marginBottom: 8 },
+  itemRow: { display: "flex", justifyContent: "space-between", fontSize: 13, color: "#555", marginBottom: 4 },
+  totalRow: { display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600, color: "#1c2b3a", borderTop: "0.5px solid #eee", paddingTop: 8, marginBottom: 10 },
+  actions: { display: "flex", alignItems: "center", gap: 10 },
+  btnPrepare: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
+  btnDeliver: { background: "#e0f2fe", color: "#0369a1", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
+  timeAgo: { fontSize: 11, color: "#8a9bb0" },
+  empty: { textAlign: "center", color: "#8a9bb0", marginTop: 50, fontSize: 14 },
 }
