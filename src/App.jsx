@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
 import Dashboard from "./Dashboard"
 
@@ -8,7 +9,9 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState("menu")
 
-  const hotelId = "00000000-0000-0000-0000-000000000001"
+  const { hotelId, roomNumber } = useParams()
+  const resolvedHotelId = hotelId || "00000000-0000-0000-0000-000000000001"
+  const resolvedRoom = roomNumber || "101"
 
   useEffect(() => {
     fetchMenu()
@@ -18,7 +21,7 @@ function App() {
     const { data, error } = await supabase
       .from("menu_items")
       .select("*")
-      .eq("hotel_id", hotelId)
+      .eq("hotel_id", resolvedHotelId)
       .eq("available", true)
 
     if (error) console.error(error)
@@ -32,8 +35,8 @@ function App() {
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
-        hotel_id: hotelId,
-        room_id: "00000000-0000-0000-0000-000000000002",
+        hotel_id: resolvedHotelId,
+        room_id: resolvedRoom,
         status: "pending",
         payment_method: "cash"
       })
@@ -90,6 +93,8 @@ function App() {
         </button>
       </div>
 
+      <p style={styles.roomTag}>Room {resolvedRoom}</p>
+
       {menuItems.length === 0 && (
         <p style={styles.empty}>No items on the menu yet.</p>
       )}
@@ -132,9 +137,10 @@ function App() {
 const styles = {
   container: { maxWidth: 480, margin: "0 auto", padding: 16, fontFamily: "sans-serif", background: "#f9f9f9", minHeight: "100vh" },
   center: { textAlign: "center", marginTop: 100, fontSize: 18 },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },
   title: { fontSize: 22, fontWeight: "bold", color: "#1a1a1a", margin: 0 },
   switchBtn: { background: "none", border: "1px solid #ccc", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13 },
+  roomTag: { fontSize: 13, color: "#888", marginBottom: 16 },
   empty: { color: "#888", textAlign: "center", marginTop: 40 },
   grid: { display: "flex", flexDirection: "column", gap: 12 },
   card: { background: "#fff", borderRadius: 12, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", display: "flex" },
