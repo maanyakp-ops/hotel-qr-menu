@@ -4,7 +4,10 @@ export default function Landing() {
         {/* Nav */}
         <div style={l.nav}>
           <span style={l.logo}>Hotel+</span>
-          <a href="/menu/demo" style={l.navBtn}>See Demo</a>
+          <div style={{ display: "flex", gap: 10 }}>
+  <a href="/auth" style={l.navBtnOutline}>Login</a>
+  <a href="/auth" style={l.navBtn}>Start Free Trial</a>
+</div>
         </div>
   
         {/* Hero */}
@@ -16,7 +19,7 @@ export default function Landing() {
             Your staff sees it live on their dashboard — no calls, no confusion.
           </p>
           <div style={l.heroButtons}>
-            <a href="/signup" style={l.primaryBtn}>Start Free Trial</a>
+          <a href="/auth" style={l.primaryBtn}>Start Free Trial</a>
             <a href="/menu/demo" style={l.secondaryBtn}>See Live Demo →</a>
           </div>
           <p style={l.heroNote}>No credit card required · Setup in 10 minutes</p>
@@ -102,7 +105,7 @@ export default function Landing() {
         <div style={l.cta}>
           <h2 style={l.ctaTitle}>Ready to modernise your hotel?</h2>
           <p style={l.ctaSub}>Join hotels across India already using Hotel+</p>
-          <a href="/signup" style={l.primaryBtn}>Get Started Free</a>
+          <a href="/auth" style={l.primaryBtn}>Get Started Free</a>
         </div>
   
         {/* Footer */}
@@ -159,4 +162,5 @@ export default function Landing() {
     footer: { padding: "24px", textAlign: "center", borderTop: "1px solid #2e2e30" },
     footerLogo: { fontSize: 18, fontWeight: 700, color: "#f2f2f2", display: "block", marginBottom: 8 },
     footerText: { fontSize: 12, color: "#6e6e73", margin: 0 },
+    navBtnOutline: { border: "1px solid #b8924a", color: "#b8924a", borderRadius: 8, padding: "8px 16px", fontSize: 13, fontWeight: 500, textDecoration: "none" },
   }
