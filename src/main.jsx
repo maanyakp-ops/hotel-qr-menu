@@ -5,10 +5,13 @@ import App from "./App"
 import Landing from "./Landing"
 import Auth from "./Auth"
 import Dashboard from "./Dashboard"
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom"
 
 function AuthPage() {
   const navigate = useNavigate()
-  return <Auth onLogin={() => navigate("/dashboard")} />
+  const location = useLocation()
+  const initialMode = location.pathname === "/signup" ? "signup" : "login"
+  return <Auth onLogin={() => navigate("/dashboard")} initialMode={initialMode} />
 }
 
 function DashboardPage() {
@@ -25,6 +28,7 @@ createRoot(document.getElementById("root")).render(
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/menu" element={<App />} />
         <Route path="/menu/:hotelId/:roomNumber" element={<App />} />
+        <Route path="/signup" element={<AuthPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

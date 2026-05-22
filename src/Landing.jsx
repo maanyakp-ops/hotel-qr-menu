@@ -105,7 +105,7 @@ export default function Landing() {
         <div style={l.cta}>
           <h2 style={l.ctaTitle}>Ready to modernise your hotel?</h2>
           <p style={l.ctaSub}>Join hotels across India already using Hotel+</p>
-          <a href="/auth" style={l.primaryBtn}>Get Started Free</a>
+          <a href="/auth" style={l.primaryBtn}>Get Started</a>
         </div>
   
         {/* Footer */}
