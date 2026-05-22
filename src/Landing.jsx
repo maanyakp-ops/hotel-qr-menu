@@ -6,7 +6,7 @@ export default function Landing() {
           <span style={l.logo}>Hotel+</span>
           <div style={{ display: "flex", gap: 10 }}>
   <a href="/auth" style={l.navBtnOutline}>Login</a>
-  <a href="/auth" style={l.navBtn}>Start Free Trial</a>
+  <a href="/auth" style={l.navBtn}>Get Started</a>
 </div>
         </div>
   
@@ -19,7 +19,7 @@ export default function Landing() {
             Your staff sees it live on their dashboard — no calls, no confusion.
           </p>
           <div style={l.heroButtons}>
-          <a href="/auth" style={l.primaryBtn}>Start Free Trial</a>
+          <a href="/auth" style={l.primaryBtn}>Get Started</a>
             <a href="/menu/demo" style={l.secondaryBtn}>See Live Demo →</a>
           </div>
           <p style={l.heroNote}>Apply today · Setup in 10 minutes once approved</p>
@@ -96,7 +96,7 @@ export default function Landing() {
                 <span style={l.checkText}>{feature}</span>
               </div>
             ))}
-            <a href="/signup" style={l.pricingBtn}>Start Free Trial</a>
+            <a href="/signup" style={l.pricingBtn}>Get Started</a>
             <p style={l.pricingNote}>Apply today and we'll get you set up within 24 hours.</p>
           </div>
         </div>
