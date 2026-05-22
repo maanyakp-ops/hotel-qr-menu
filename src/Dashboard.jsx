@@ -86,7 +86,12 @@ export default function Dashboard({ onBack }) {
     if (hotelData?.is_admin) fetchAllHotels()
 
       const sub = supabase.channel("orders-channel-" + hotelData.id)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" },
+      .on("postgres_changes", { 
+        event: "INSERT", 
+        schema: "public", 
+        table: "orders",
+        filter: `hotel_id=eq.${hotelData.id}`
+      },
         () => {
           fetchOrders(hotelData.id)
           playOrderSound()
