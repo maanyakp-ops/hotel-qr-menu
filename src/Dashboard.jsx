@@ -43,6 +43,30 @@ export default function Dashboard({ onBack }) {
 
   useEffect(() => { loadHotel() }, [])
 
+  function downloadQR(roomNumber) {
+    const canvas = document.getElementById(`qr-${roomNumber}`)
+      ?.closest("svg")
+    const svgEl = document.getElementById(`qr-${roomNumber}`)
+    if (!svgEl) return
+  
+    const svgData = new XMLSerializer().serializeToString(svgEl)
+    const canvas2 = document.createElement("canvas")
+    canvas2.width = 300
+    canvas2.height = 300
+    const ctx = canvas2.getContext("2d")
+    const img = new Image()
+    img.onload = () => {
+      ctx.fillStyle = "white"
+      ctx.fillRect(0, 0, 300, 300)
+      ctx.drawImage(img, 0, 0, 300, 300)
+      const a = document.createElement("a")
+      a.download = `Room-${roomNumber}-QR.png`
+      a.href = canvas2.toDataURL("image/png")
+      a.click()
+    }
+    img.src = "data:image/svg+xml;base64," + btoa(svgData)
+  }
+
   async function loadHotel() {
     document.addEventListener("click", () => {
       const ctx = new (window.AudioContext || window.webkitAudioContext)()
@@ -288,8 +312,9 @@ export default function Dashboard({ onBack }) {
                           <p style={d.qrUrl}>{url}</p>
                         </div>
                         <div style={d.qrBox}>
-                          <QRCode value={url} size={80} />
-                        </div>
+  <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
+  <button style={d.downloadBtn} onClick={() => downloadQR(roomNumber)}>Download</button>
+</div>
                       </div>
                     )
                   })}
@@ -403,4 +428,5 @@ const d = {
   qrRoom: { fontSize: 14, fontWeight: 600, color: "#1c2b3a", margin: "0 0 4px" },
   qrUrl: { fontSize: 10, color: "#8a9bb0", margin: 0, wordBreak: "break-all", maxWidth: 200 },
   qrBox: { flexShrink: 0, marginLeft: 12 },
+  downloadBtn: { display: "block", marginTop: 6, background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 10, cursor: "pointer", width: "100%" },
 }
