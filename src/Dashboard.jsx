@@ -1,5 +1,14 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { supabase } from "./supabase"
+import QRCode from "qrcode"
+
+function QRCanvas({ url }) {
+  const ref = useRef(null)
+  useEffect(() => {
+    if (ref.current) QRCode.toCanvas(ref.current, url, { width: 80, margin: 1 })
+  }, [url])
+  return <canvas ref={ref} />
+}
 
 export default function Dashboard({ onBack }) {
   const [orders, setOrders] = useState([])
@@ -23,12 +32,9 @@ export default function Dashboard({ onBack }) {
       .single()
     setHotel(hotelData)
     setIsAdmin(hotelData?.is_admin || false)
-
     fetchOrders(hotelData.id)
     fetchMenu(hotelData.id)
-
     if (hotelData?.is_admin) fetchAllHotels()
-
     const sub = supabase.channel("orders-channel")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" },
         () => fetchOrders(hotelData.id))
@@ -57,18 +63,18 @@ export default function Dashboard({ onBack }) {
   }
 
   async function fetchAllHotels() {
-    const { data } = await supabase
-      .from("hotels")
-      .select("*")
-      .order("created_at", { ascending: false })
+    const { data } = await supabase.rpc("get_all_hotels")
     if (data) setAllHotels(data)
   }
 
   async function updateHotel(id, updates) {
-    await supabase.from("hotels").update(updates).eq("id", id)
+    await supabase.rpc("update_hotel", {
+      hotel_id: id,
+      updates: updates
+    })
     fetchAllHotels()
   }
-
+  
   async function updateStatus(id, status) {
     await supabase.from("orders").update({ status }).eq("id", id)
     fetchOrders(hotel.id)
@@ -114,7 +120,6 @@ export default function Dashboard({ onBack }) {
 
   return (
     <div style={d.page}>
-      {/* Topbar */}
       <div style={d.topbar}>
         <button onClick={onBack} style={d.backBtn}>← Back</button>
         <span style={d.brand}>{isAdmin ? "⚡ Admin Panel" : hotel?.name || "Dashboard"}</span>
@@ -124,17 +129,16 @@ export default function Dashboard({ onBack }) {
         </div>
       </div>
 
-      {/* Metrics */}
       <div style={d.metrics}>
         <div style={d.metric}><p style={d.metricVal}>{orders.length}</p><p style={d.metricLabel}>Orders today</p></div>
         <div style={d.metric}><p style={d.metricVal}>{active.length}</p><p style={d.metricLabel}>Active now</p></div>
         <div style={d.metric}><p style={d.metricVal}>₹{(revenue / 1000).toFixed(1)}k</p><p style={d.metricLabel}>Revenue</p></div>
       </div>
 
-      {/* Tabs */}
       <div style={d.tabs}>
         <button style={tab === "orders" ? d.tabActive : d.tab} onClick={() => setTab("orders")}>Orders</button>
         <button style={tab === "menu" ? d.tabActive : d.tab} onClick={() => setTab("menu")}>Menu</button>
+        <button style={tab === "qr" ? d.tabActive : d.tab} onClick={() => setTab("qr")}>QR Codes</button>
         {isAdmin && <button style={tab === "admin" ? d.tabActive : d.tab} onClick={() => setTab("admin")}>Hotels</button>}
       </div>
 
@@ -237,6 +241,40 @@ export default function Dashboard({ onBack }) {
           </>
         )}
 
+        {/* QR CODES TAB */}
+        {tab === "qr" && (
+          <>
+            {hotel?.status !== "active"
+              ? <p style={d.empty}>Your account is pending approval. QR codes will appear once approved.</p>
+              : hotel?.room_count === 0
+              ? <p style={d.empty}>No rooms assigned yet. Contact support to get your rooms activated.</p>
+              : (
+                <>
+                  <p style={d.sectionLabel}>{hotel.room_count} rooms assigned</p>
+                  <p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 16px" }}>
+                    Download each QR and print it for the corresponding room.
+                  </p>
+                  {Array.from({ length: hotel.room_count }, (_, i) => {
+                    const roomNumber = i + 101
+                    const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
+                    return (
+                      <div key={roomNumber} style={d.qrCard}>
+                        <div style={d.qrInfo}>
+                          <p style={d.qrRoom}>Room {roomNumber}</p>
+                          <p style={d.qrUrl}>{url}</p>
+                        </div>
+                        <div style={d.qrBox}>
+  <QRCanvas url={url} />
+</div>
+                      </div>
+                    )
+                  })}
+                </>
+              )
+            }
+          </>
+        )}
+
         {/* ADMIN TAB */}
         {tab === "admin" && isAdmin && (
           <>
@@ -255,7 +293,6 @@ export default function Dashboard({ onBack }) {
                     {h.status || "pending"}
                   </span>
                 </div>
-
                 <div style={d.adminRow}>
                   <span style={d.adminLabel}>Rooms allowed</span>
                   <input
@@ -265,27 +302,19 @@ export default function Dashboard({ onBack }) {
                     onBlur={e => updateHotel(h.id, { room_count: parseInt(e.target.value) })}
                   />
                 </div>
-
                 <div style={d.adminRow}>
                   <span style={d.adminLabel}>Hotel ID (for QR)</span>
                   <span style={d.hotelId}>{h.id}</span>
                 </div>
-
                 <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
                   {h.status !== "active" && (
-                    <button style={d.btnDeliver} onClick={() => updateHotel(h.id, { status: "active" })}>
-                      ✓ Approve
-                    </button>
+                    <button style={d.btnDeliver} onClick={() => updateHotel(h.id, { status: "active" })}>✓ Approve</button>
                   )}
                   {h.status === "active" && !h.is_admin && (
-                    <button style={d.btnPrepare} onClick={() => updateHotel(h.id, { status: "disabled" })}>
-                      Disable
-                    </button>
+                    <button style={d.btnPrepare} onClick={() => updateHotel(h.id, { status: "disabled" })}>Disable</button>
                   )}
                   {h.status === "disabled" && (
-                    <button style={d.btnDeliver} onClick={() => updateHotel(h.id, { status: "active" })}>
-                      Re-enable
-                    </button>
+                    <button style={d.btnDeliver} onClick={() => updateHotel(h.id, { status: "active" })}>Re-enable</button>
                   )}
                 </div>
               </div>
@@ -346,4 +375,9 @@ const d = {
   adminLabel: { fontSize: 12, color: "#8a9bb0" },
   roomInput: { width: 60, background: "#f4f6f9", border: "1px solid #e2e8f0", borderRadius: 6, padding: "4px 8px", fontSize: 13, textAlign: "center" },
   hotelId: { fontSize: 10, color: "#8a9bb0", fontFamily: "monospace", background: "#f4f6f9", padding: "3px 8px", borderRadius: 6 },
+  qrCard: { background: "#fff", borderRadius: 14, padding: "12px 14px", marginBottom: 8, boxShadow: "0 1px 6px rgba(0,0,0,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" },
+  qrInfo: { flex: 1 },
+  qrRoom: { fontSize: 14, fontWeight: 600, color: "#1c2b3a", margin: "0 0 4px" },
+  qrUrl: { fontSize: 10, color: "#8a9bb0", margin: 0, wordBreak: "break-all", maxWidth: 200 },
+  qrBox: { flexShrink: 0, marginLeft: 12 },
 }

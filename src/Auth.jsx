@@ -20,7 +20,11 @@ export default function Auth({ onLogin }) {
 
       const { error: hotelError } = await supabase
         .from("hotels")
-        .insert({ user_id: data.user.id, name: hotelName })
+        .insert({
+            user_id: data.user.id,
+            name: hotelName,
+            owner_email: email
+          })
       if (hotelError) { setError(hotelError.message); setLoading(false); return }
 
       onLogin()
