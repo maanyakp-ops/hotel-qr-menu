@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
 import Dashboard from "./Dashboard"
 import Auth from "./Auth"
-import { useEffect, useState, useRef } from "react"
+
 
 function App() {
   const [orderPlaced, setOrderPlaced] = useState(false)
