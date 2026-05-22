@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
 import Dashboard from "./Dashboard"
 import Auth from "./Auth"
+import { useEffect, useState, useRef } from "react"
 
 function App() {
   const [orderPlaced, setOrderPlaced] = useState(false)
@@ -53,6 +54,19 @@ async function fetchHotelAndMenu() {
 }
 
   async function placeOrder() {
+    const lastOrderTime = useRef(0)
+
+async function placeOrder() {
+  if (cart.length === 0) return
+  
+  const now = Date.now()
+  if (now - lastOrderTime.current < 30000) {
+    alert("Please wait before placing another order.")
+    return
+  }
+  lastOrderTime.current = now
+
+  // ... rest of placeOrder code
     if (cart.length === 0) return
     const { data: order, error: orderError } = await supabase
       .from("orders")
@@ -65,6 +79,7 @@ async function fetchHotelAndMenu() {
     if (itemsError) { console.error(itemsError); return }
     setOrderPlaced(true)
     setCart([])
+    
   }
 
   function addToCart(item) {
@@ -113,7 +128,6 @@ async function fetchHotelAndMenu() {
           <p style={s.hotelName}>{hotelInfo?.name || "Hotel"}</p>
           <p style={s.roomTag}>Room {resolvedRoom} &nbsp;·&nbsp; Available 24/7</p>
         </div>
-        <button onClick={() => setView("dashboard")} style={s.staffBtn}>Staff</button>
       </div>
 
       {/* Menu */}
@@ -149,6 +163,9 @@ async function fetchHotelAndMenu() {
             <p style={s.cartCount}>{cart.reduce((s, i) => s + i.qty, 0)} items added</p>
             <p style={s.cartTotal}>₹{total} total</p>
           </div>
+          <div style={s.staffAccess}>
+  <a href="/auth" style={s.staffLink}>Staff Login</a>
+</div>
           <button style={s.placeBtn} onClick={placeOrder}>Place Order</button>
         </div>
       )}
@@ -184,6 +201,8 @@ confirmIcon: { fontSize: 64, marginBottom: 20 },
 confirmTitle: { color: "#f2f2f2", fontSize: 26, fontWeight: 600, margin: "0 0 10px" },
 confirmSub: { color: "#8a9bb0", fontSize: 15, margin: "0 0 32px", textAlign: "center" },
 confirmBtn: { background: "#b8924a", color: "#fff", border: "none", borderRadius: 12, padding: "12px 28px", fontSize: 15, fontWeight: 500, cursor: "pointer" },
+staffAccess: { textAlign: "center", padding: "20px 0 40px" },
+staffLink: { color: "#3a3a3c", fontSize: 11, textDecoration: "none" },
 }
 
 export default App
