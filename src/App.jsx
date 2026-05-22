@@ -5,6 +5,7 @@ import Dashboard from "./Dashboard"
 import Auth from "./Auth"
 
 function App() {
+  const [orderPlaced, setOrderPlaced] = useState(false)
   const [menuItems, setMenuItems] = useState([])
   const [cart, setCart] = useState([])
   const [loading, setLoading] = useState(true)
@@ -62,7 +63,7 @@ async function fetchHotelAndMenu() {
       .from("order_items")
       .insert(cart.map(item => ({ order_id: order.id, menu_item_id: item.id, quantity: item.qty, price: item.price })))
     if (itemsError) { console.error(itemsError); return }
-    alert("Order placed! We'll deliver to your room shortly.")
+    setOrderPlaced(true)
     setCart([])
   }
 
@@ -85,6 +86,17 @@ async function fetchHotelAndMenu() {
   }
 
   if (loading) return <div style={s.center}>Loading menu...</div>
+  if (orderPlaced) return (
+    <div style={s.confirmation}>
+      <div style={s.confirmIcon}>🎉</div>
+      <h2 style={s.confirmTitle}>Order Placed!</h2>
+      <p style={s.confirmSub}>We'll deliver to Room {resolvedRoom} shortly.</p>
+      <button style={s.confirmBtn} onClick={() => setOrderPlaced(false)}>
+        Back to Menu
+      </button>
+    </div>
+  )
+
   if (hotelInfo?.status === "disabled") return (
     <div style={s.center}>
       <p style={{ fontSize: 40, marginBottom: 16 }}>🚫</p>
@@ -167,6 +179,11 @@ const s = {
   cartCount: { color: "#f2f2f2", fontSize: 13, fontWeight: 500, margin: "0 0 2px" },
   cartTotal: { color: "#6e6e73", fontSize: 11, margin: 0 },
   placeBtn: { background: "#b8924a", color: "#fff", border: "none", borderRadius: 12, padding: "10px 22px", fontSize: 14, fontWeight: 500, cursor: "pointer" },
+  confirmation: { background: "#1c1c1e", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "-apple-system, sans-serif", padding: 24 },
+confirmIcon: { fontSize: 64, marginBottom: 20 },
+confirmTitle: { color: "#f2f2f2", fontSize: 26, fontWeight: 600, margin: "0 0 10px" },
+confirmSub: { color: "#8a9bb0", fontSize: 15, margin: "0 0 32px", textAlign: "center" },
+confirmBtn: { background: "#b8924a", color: "#fff", border: "none", borderRadius: 12, padding: "12px 28px", fontSize: 15, fontWeight: 500, cursor: "pointer" },
 }
 
 export default App
