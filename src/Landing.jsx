@@ -22,7 +22,7 @@ export default function Landing() {
           <a href="/auth" style={l.primaryBtn}>Start Free Trial</a>
             <a href="/menu/demo" style={l.secondaryBtn}>See Live Demo →</a>
           </div>
-          <p style={l.heroNote}>No credit card required · Setup in 10 minutes</p>
+          <p style={l.heroNote}>Apply today · Setup in 10 minutes once approved</p>
         </div>
   
         {/* How it works */}
@@ -97,7 +97,7 @@ export default function Landing() {
               </div>
             ))}
             <a href="/signup" style={l.pricingBtn}>Start Free Trial</a>
-            <p style={l.pricingNote}>First 14 days free. No credit card needed.</p>
+            <p style={l.pricingNote}>Apply today and we'll get you set up within 24 hours.</p>
           </div>
         </div>
   
