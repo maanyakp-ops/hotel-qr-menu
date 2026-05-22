@@ -6,7 +6,7 @@ export default function Landing() {
           <span style={l.logo}>Hotel+</span>
           <div style={{ display: "flex", gap: 10 }}>
   <a href="/auth" style={l.navBtnOutline}>Login</a>
-  <a href="/auth" style={l.navBtn}>Get Started</a>
+  <a href="/signup" style={l.navBtn}>Get Started</a>
 </div>
         </div>
   
@@ -19,7 +19,7 @@ export default function Landing() {
             Your staff sees it live on their dashboard — no calls, no confusion.
           </p>
           <div style={l.heroButtons}>
-          <a href="/auth" style={l.primaryBtn}>Get Started</a>
+          <a href="/signup" style={l.primaryBtn}>Get Started</a>
             <a href="/menu/demo" style={l.secondaryBtn}>See Live Demo →</a>
           </div>
           <p style={l.heroNote}>Apply today · Setup in 10 minutes once approved</p>
@@ -105,7 +105,7 @@ export default function Landing() {
         <div style={l.cta}>
           <h2 style={l.ctaTitle}>Ready to modernise your hotel?</h2>
           <p style={l.ctaSub}>Join hotels across India already using Hotel+</p>
-          <a href="/auth" style={l.primaryBtn}>Get Started</a>
+          <a href="/signup" style={l.primaryBtn}>Get Started</a>
         </div>
   
         {/* Footer */}
