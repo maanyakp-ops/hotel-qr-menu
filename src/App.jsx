@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
-import Dashboard from "./dashboard"
+import Dashboard from "./Dashboard"
 import Auth from "./Auth"
 
 function App() {
