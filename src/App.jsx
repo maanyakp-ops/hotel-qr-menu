@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
-import Dashboard from "./Dashboard"
+import Dashboard from "./dashboard"
 import Auth from "./Auth"
 
 function App() {
@@ -24,18 +24,32 @@ function App() {
     supabase.auth.onAuthStateChange((_event, session) => setSession(session))
   }, [])
 
-  useEffect(() => { fetchMenu() }, [])
+  const [hotelInfo, setHotelInfo] = useState(null)
 
-  async function fetchMenu() {
-    const { data, error } = await supabase
-      .from("menu_items")
-      .select("*")
-      .eq("hotel_id", resolvedHotelId)
-      .eq("available", true)
-    if (error) console.error(error)
-    else setMenuItems(data)
+useEffect(() => { fetchHotelAndMenu() }, [])
+
+async function fetchHotelAndMenu() {
+  const { data: hotelData } = await supabase
+    .from("hotels")
+    .select("*")
+    .eq("id", resolvedHotelId)
+    .single()
+  setHotelInfo(hotelData)
+
+  if (!hotelData || hotelData.status === "disabled") {
     setLoading(false)
+    return
   }
+
+  const { data, error } = await supabase
+    .from("menu_items")
+    .select("*")
+    .eq("hotel_id", resolvedHotelId)
+    .eq("available", true)
+  if (error) console.error(error)
+  else setMenuItems(data)
+  setLoading(false)
+}
 
   async function placeOrder() {
     if (cart.length === 0) return
@@ -71,6 +85,12 @@ function App() {
   }
 
   if (loading) return <div style={s.center}>Loading menu...</div>
+  if (hotelInfo?.status === "disabled") return (
+    <div style={s.center}>
+      <p style={{ fontSize: 40, marginBottom: 16 }}>🚫</p>
+      <p style={{ color: "#f2f2f2", fontSize: 16 }}>This menu is currently unavailable.</p>
+    </div>
+  )
 
   return (
     <div style={s.page}>
@@ -78,7 +98,7 @@ function App() {
       <div style={s.header}>
         <div>
           <p style={s.eyebrow}>Room Service</p>
-          <p style={s.hotelName}>The Grand Residency</p>
+          <p style={s.hotelName}>{hotelInfo?.name || "Hotel"}</p>
           <p style={s.roomTag}>Room {resolvedRoom} &nbsp;·&nbsp; Available 24/7</p>
         </div>
         <button onClick={() => setView("dashboard")} style={s.staffBtn}>Staff</button>
