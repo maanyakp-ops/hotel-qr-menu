@@ -186,7 +186,7 @@ const s = {
   itemPrice: { color: "#b8924a", fontSize: 13, fontWeight: 500, margin: "0 0 10px" },
   addBtn: { alignSelf: "flex-start", background: "#b8924a", color: "#fff", border: "none", borderRadius: 8, padding: "5px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
   empty: { color: "#6e6e73", textAlign: "center", marginTop: 60 },
-  staffAccess: { textAlign: "center", padding: "30px 0 60px" },
+  staffAccess: { position: "fixed", bottom: 12, left: 0, right: 0, textAlign: "center", zIndex: 10 },
   staffLink: { color: "#3a3a3c", fontSize: 11, textDecoration: "none" },
   cartBar: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 480, background: "#2c2c2e", borderTop: "0.5px solid #38383a", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" },
   cartCount: { color: "#f2f2f2", fontSize: 13, fontWeight: 500, margin: "0 0 2px" },
