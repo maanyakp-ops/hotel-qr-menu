@@ -1,14 +1,6 @@
 import { useEffect, useState, useRef } from "react"
 import { supabase } from "./supabase"
-import QRCode from "qrcode"
-
-function QRCanvas({ url }) {
-  const ref = useRef(null)
-  useEffect(() => {
-    if (ref.current) QRCode.toCanvas(ref.current, url, { width: 80, margin: 1 })
-  }, [url])
-  return <canvas ref={ref} />
-}
+import { QRCodeSVG as QRCode } from "qrcode.react"
 
 export default function Dashboard({ onBack }) {
   const [orders, setOrders] = useState([])
@@ -21,9 +13,42 @@ export default function Dashboard({ onBack }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [allHotels, setAllHotels] = useState([])
 
+  function playOrderSound() {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    const oscillator = ctx.createOscillator()
+    const gain = ctx.createGain()
+    oscillator.connect(gain)
+    gain.connect(ctx.destination)
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime)
+    oscillator.frequency.setValueAtTime(660, ctx.currentTime + 0.1)
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime + 0.2)
+    gain.gain.setValueAtTime(0.3, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5)
+    oscillator.start(ctx.currentTime)
+    oscillator.stop(ctx.currentTime + 0.5)
+  }
+
+  function showBadge() {
+    const original = document.title
+    let count = 0
+    const interval = setInterval(() => {
+      document.title = count % 2 === 0 ? "🔔 New Order!" : original
+      count++
+      if (count > 10) {
+        clearInterval(interval)
+        document.title = original
+      }
+    }, 500)
+  }
+
   useEffect(() => { loadHotel() }, [])
 
   async function loadHotel() {
+    document.addEventListener("click", () => {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+      ctx.resume()
+    }, { once: true })
+
     const { data: { user } } = await supabase.auth.getUser()
     const { data: hotelData } = await supabase
       .from("hotels")
@@ -35,9 +60,14 @@ export default function Dashboard({ onBack }) {
     fetchOrders(hotelData.id)
     fetchMenu(hotelData.id)
     if (hotelData?.is_admin) fetchAllHotels()
-    const sub = supabase.channel("orders-channel")
+
+      const sub = supabase.channel("orders-channel-" + hotelData.id)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" },
-        () => fetchOrders(hotelData.id))
+        () => {
+          fetchOrders(hotelData.id)
+          playOrderSound()
+          showBadge()
+        })
       .subscribe()
     return () => supabase.removeChannel(sub)
   }
@@ -68,13 +98,10 @@ export default function Dashboard({ onBack }) {
   }
 
   async function updateHotel(id, updates) {
-    await supabase.rpc("update_hotel", {
-      hotel_id: id,
-      updates: updates
-    })
+    await supabase.rpc("update_hotel", { hotel_id: id, updates: updates })
     fetchAllHotels()
   }
-  
+
   async function updateStatus(id, status) {
     await supabase.from("orders").update({ status }).eq("id", id)
     fetchOrders(hotel.id)
@@ -144,7 +171,6 @@ export default function Dashboard({ onBack }) {
 
       <div style={d.body}>
 
-        {/* ORDERS TAB */}
         {tab === "orders" && (
           <>
             {active.length > 0 && (
@@ -205,7 +231,6 @@ export default function Dashboard({ onBack }) {
           </>
         )}
 
-        {/* MENU TAB */}
         {tab === "menu" && (
           <>
             <p style={d.sectionLabel}>Add New Item</p>
@@ -241,7 +266,6 @@ export default function Dashboard({ onBack }) {
           </>
         )}
 
-        {/* QR CODES TAB */}
         {tab === "qr" && (
           <>
             {hotel?.status !== "active"
@@ -264,8 +288,8 @@ export default function Dashboard({ onBack }) {
                           <p style={d.qrUrl}>{url}</p>
                         </div>
                         <div style={d.qrBox}>
-  <QRCanvas url={url} />
-</div>
+                          <QRCode value={url} size={80} />
+                        </div>
                       </div>
                     )
                   })}
@@ -275,7 +299,6 @@ export default function Dashboard({ onBack }) {
           </>
         )}
 
-        {/* ADMIN TAB */}
         {tab === "admin" && isAdmin && (
           <>
             <p style={d.sectionLabel}>All Hotels ({allHotels.length})</p>
