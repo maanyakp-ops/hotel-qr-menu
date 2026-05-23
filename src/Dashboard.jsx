@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { supabase } from "./supabase"
 import { QRCodeSVG as QRCode } from "qrcode.react"
 
@@ -35,21 +35,13 @@ export default function Dashboard({ onBack }) {
     const interval = setInterval(() => {
       document.title = count % 2 === 0 ? "🔔 New Order!" : original
       count++
-      if (count > 10) {
-        clearInterval(interval)
-        document.title = original
-      }
+      if (count > 10) { clearInterval(interval); document.title = original }
     }, 500)
   }
 
-  useEffect(() => { loadHotel() }, [])
-
   function downloadQR(roomNumber) {
-    const canvas = document.getElementById(`qr-${roomNumber}`)
-      ?.closest("svg")
     const svgEl = document.getElementById(`qr-${roomNumber}`)
     if (!svgEl) return
-  
     const svgData = new XMLSerializer().serializeToString(svgEl)
     const canvas2 = document.createElement("canvas")
     canvas2.width = 300
@@ -67,6 +59,8 @@ export default function Dashboard({ onBack }) {
     }
     img.src = "data:image/svg+xml;base64," + btoa(svgData)
   }
+
+  useEffect(() => { loadHotel() }, [])
 
   async function loadHotel() {
     document.addEventListener("click", () => {
@@ -86,18 +80,17 @@ export default function Dashboard({ onBack }) {
     fetchMenu(hotelData.id)
     if (hotelData?.is_admin) fetchAllHotels()
 
-      const sub = supabase.channel("orders-channel-" + hotelData.id)
-      .on("postgres_changes", { 
-        event: "INSERT", 
-        schema: "public", 
+    const sub = supabase.channel("orders-channel-" + hotelData.id)
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
         table: "orders",
         filter: `hotel_id=eq.${hotelData.id}`
-      },
-        () => {
-          fetchOrders(hotelData.id)
-          playOrderSound()
-          showBadge()
-        })
+      }, () => {
+        fetchOrders(hotelData.id)
+        playOrderSound()
+        showBadge()
+      })
       .subscribe()
     return () => supabase.removeChannel(sub)
   }
@@ -105,7 +98,8 @@ export default function Dashboard({ onBack }) {
   async function fetchOrders(hotelId) {
     const { data, error } = await supabase
       .from("orders")
-      .select(`*, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)      .eq("hotel_id", hotelId)
+      .select(`*, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
+      .eq("hotel_id", hotelId)
       .order("created_at", { ascending: false })
     if (error) console.error(error)
     else setOrders(data)
@@ -140,6 +134,12 @@ export default function Dashboard({ onBack }) {
     await supabase.from("menu_items").update({ available: !item.available }).eq("id", item.id)
     fetchMenu(hotel.id)
   }
+
+  async function toggleStock(item) {
+    await supabase.from("menu_items").update({ out_of_stock: !item.out_of_stock }).eq("id", item.id)
+    fetchMenu(hotel.id)
+  }
+
   async function saveEdit() {
     await supabase.from("menu_items").update({
       name: editItem.name,
@@ -151,7 +151,6 @@ export default function Dashboard({ onBack }) {
     setEditItem(null)
     fetchMenu(hotel.id)
   }
-  
 
   async function deleteItem(id) {
     if (!confirm("Delete this item?")) return
@@ -171,7 +170,6 @@ export default function Dashboard({ onBack }) {
       prep_time: parseInt(newItem.prep_time) || 15,
       available: true
     })
-    
     setNewItem({ name: "", category: "", price: "", photo_url: "", prep_time: "15" })
     fetchMenu(hotel.id)
     setAdding(false)
@@ -182,8 +180,9 @@ export default function Dashboard({ onBack }) {
     onBack()
   }
 
-  const active = orders.filter(o => o.status !== "delivered")
+  const active = orders.filter(o => o.status !== "delivered" && o.status !== "cancelled" && o.status !== "rejected")
   const done = orders.filter(o => o.status === "delivered")
+  const cancelled = orders.filter(o => o.status === "cancelled" || o.status === "rejected")
   const revenue = orders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)
 
   if (loading) return <div style={d.center}>Loading...</div>
@@ -214,6 +213,7 @@ export default function Dashboard({ onBack }) {
 
       <div style={d.body}>
 
+        {/* ORDERS TAB */}
         {tab === "orders" && (
           <>
             {active.length > 0 && (
@@ -225,10 +225,10 @@ export default function Dashboard({ onBack }) {
                   return (
                     <div key={order.id} style={d.card}>
                       <div style={d.cardHeader}>
-                      <div>
-                        <span style={d.room}>Room {order.room_id}</span>
-                        {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name} {order.guest_phone ? `· ${order.guest_phone}` : ""}</p>}
-                      </div>  
+                        <div>
+                          <span style={d.room}>Room {order.room_id}</span>
+                          {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name} {order.guest_phone ? `· ${order.guest_phone}` : ""}</p>}
+                        </div>
                         <span style={order.status === "pending" ? d.badgePending : d.badgePrep}>
                           {order.status === "pending" ? "Pending" : "Preparing"}
                         </span>
@@ -241,7 +241,7 @@ export default function Dashboard({ onBack }) {
                           </div>
                         ))}
                         {order.special_instructions && (
-                          <div style={{ background: "#f4f6f9", borderRadius: 8, padding: "6px 10px", marginBottom: 8 }}>
+                          <div style={{ background: "#f4f6f9", borderRadius: 8, padding: "6px 10px", marginTop: 4 }}>
                             <p style={{ fontSize: 12, color: "#5a7184", margin: 0 }}>📝 {order.special_instructions}</p>
                           </div>
                         )}
@@ -249,7 +249,10 @@ export default function Dashboard({ onBack }) {
                       <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
                       <div style={d.actions}>
                         {order.status === "pending" && (
-                          <button style={d.btnPrepare} onClick={() => updateStatus(order.id, "preparing")}>Mark as Preparing</button>
+                          <>
+                            <button style={d.btnPrepare} onClick={() => updateStatus(order.id, "preparing")}>Mark as Preparing</button>
+                            <button style={d.btnReject} onClick={() => updateStatus(order.id, "rejected")}>Reject</button>
+                          </>
                         )}
                         {order.status === "preparing" && (
                           <button style={d.btnDeliver} onClick={() => updateStatus(order.id, "delivered")}>Mark as Delivered</button>
@@ -262,6 +265,7 @@ export default function Dashboard({ onBack }) {
               </>
             )}
             {active.length === 0 && <p style={d.empty}>No active orders. Waiting...</p>}
+
             {done.length > 0 && (
               <>
                 <p style={d.sectionLabel}>Delivered</p>
@@ -270,11 +274,32 @@ export default function Dashboard({ onBack }) {
                   return (
                     <div key={order.id} style={{ ...d.card, opacity: 0.5 }}>
                       <div style={d.cardHeader}>
-                      <div>
-                        <span style={d.room}>Room {order.room_id}</span>
-                        {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name} {order.guest_phone ? `· ${order.guest_phone}` : ""}</p>}
-                      </div>
+                        <div>
+                          <span style={d.room}>Room {order.room_id}</span>
+                          {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name}</p>}
+                        </div>
                         <span style={d.badgeDone}>✓ Delivered</span>
+                      </div>
+                      <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
+                    </div>
+                  )
+                })}
+              </>
+            )}
+
+            {cancelled.length > 0 && (
+              <>
+                <p style={d.sectionLabel}>Cancelled / Rejected</p>
+                {cancelled.map(order => {
+                  const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+                  return (
+                    <div key={order.id} style={{ ...d.card, opacity: 0.5 }}>
+                      <div style={d.cardHeader}>
+                        <div>
+                          <span style={d.room}>Room {order.room_id}</span>
+                          {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name}</p>}
+                        </div>
+                        <span style={d.badgeCancelled}>{order.status === "cancelled" ? "Cancelled" : "Rejected"}</span>
                       </div>
                       <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
                     </div>
@@ -285,6 +310,7 @@ export default function Dashboard({ onBack }) {
           </>
         )}
 
+        {/* MENU TAB */}
         {tab === "menu" && (
           <>
             <p style={d.sectionLabel}>Add New Item</p>
@@ -308,11 +334,14 @@ export default function Dashboard({ onBack }) {
                 }
                 <div style={d.menuInfo}>
                   <p style={d.menuName}>{item.name}</p>
-                  <p style={d.menuMeta}>{item.category} · ₹{item.price}</p>
+                  <p style={d.menuMeta}>{item.category} · ₹{item.price} · {item.prep_time}min</p>
                 </div>
                 <div style={d.menuActions}>
                   <button style={item.available ? d.btnOn : d.btnOff} onClick={() => toggleAvailable(item)}>
                     {item.available ? "On" : "Off"}
+                  </button>
+                  <button style={item.out_of_stock ? d.btnStock : d.btnNoStock} onClick={() => toggleStock(item)}>
+                    {item.out_of_stock ? "In Stock" : "Out"}
                   </button>
                   <button style={d.btnEdit} onClick={() => setEditItem(item)}>✏️</button>
                   <button style={d.btnDelete} onClick={() => deleteItem(item.id)}>🗑</button>
@@ -321,21 +350,24 @@ export default function Dashboard({ onBack }) {
             ))}
           </>
         )}
-        {editItem && (
-  <div style={d.modalOverlay}>
-    <div style={d.modal}>
-      <p style={d.modalTitle}>Edit Item</p>
-      <input style={d.input} placeholder="Item name" value={editItem.name} onChange={e => setEditItem({ ...editItem, name: e.target.value })} />
-      <input style={d.input} placeholder="Category" value={editItem.category} onChange={e => setEditItem({ ...editItem, category: e.target.value })} />
-      <input style={d.input} placeholder="Price (₹)" type="number" value={editItem.price} onChange={e => setEditItem({ ...editItem, price: e.target.value })} />
-      <input style={d.input} placeholder="Prep time (minutes)" type="number" value={editItem.prep_time} onChange={e => setEditItem({ ...editItem, prep_time: e.target.value })} />
-      <input style={d.input} placeholder="Photo URL (optional)" value={editItem.photo_url || ""} onChange={e => setEditItem({ ...editItem, photo_url: e.target.value })} />
-      <button style={d.saveBtn} onClick={() => saveEdit()}>Save Changes</button>
-      <button style={d.cancelBtn} onClick={() => setEditItem(null)}>Cancel</button>
-    </div>
-  </div>
-)}
 
+        {/* EDIT MODAL */}
+        {editItem && (
+          <div style={d.modalOverlay}>
+            <div style={d.modal}>
+              <p style={d.modalTitle}>Edit Item</p>
+              <input style={d.input} placeholder="Item name" value={editItem.name} onChange={e => setEditItem({ ...editItem, name: e.target.value })} />
+              <input style={d.input} placeholder="Category" value={editItem.category} onChange={e => setEditItem({ ...editItem, category: e.target.value })} />
+              <input style={d.input} placeholder="Price (₹)" type="number" value={editItem.price} onChange={e => setEditItem({ ...editItem, price: e.target.value })} />
+              <input style={d.input} placeholder="Prep time (minutes)" type="number" value={editItem.prep_time} onChange={e => setEditItem({ ...editItem, prep_time: e.target.value })} />
+              <input style={d.input} placeholder="Photo URL (optional)" value={editItem.photo_url || ""} onChange={e => setEditItem({ ...editItem, photo_url: e.target.value })} />
+              <button style={d.saveBtn} onClick={() => saveEdit()}>Save Changes</button>
+              <button style={d.cancelBtn} onClick={() => setEditItem(null)}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* QR CODES TAB */}
         {tab === "qr" && (
           <>
             {hotel?.status !== "active"
@@ -358,9 +390,9 @@ export default function Dashboard({ onBack }) {
                           <p style={d.qrUrl}>{url}</p>
                         </div>
                         <div style={d.qrBox}>
-  <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
-  <button style={d.downloadBtn} onClick={() => downloadQR(roomNumber)}>Download</button>
-</div>
+                          <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
+                          <button style={d.downloadBtn} onClick={() => downloadQR(roomNumber)}>Download</button>
+                        </div>
                       </div>
                     )
                   })}
@@ -370,6 +402,7 @@ export default function Dashboard({ onBack }) {
           </>
         )}
 
+        {/* ADMIN TAB */}
         {tab === "admin" && isAdmin && (
           <>
             <p style={d.sectionLabel}>All Hotels ({allHotels.length})</p>
@@ -444,12 +477,14 @@ const d = {
   badgePending: { background: "#fff3e0", color: "#b45309", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
   badgePrep: { background: "#e0f2fe", color: "#0369a1", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
   badgeDone: { background: "#e8f5e9", color: "#2e7d32", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
+  badgeCancelled: { background: "#fce4e4", color: "#c0392b", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
   items: { marginBottom: 8 },
   itemRow: { display: "flex", justifyContent: "space-between", fontSize: 13, color: "#555", marginBottom: 4 },
   totalRow: { display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600, color: "#1c2b3a", borderTop: "0.5px solid #eee", paddingTop: 8, marginBottom: 10 },
   actions: { display: "flex", alignItems: "center", gap: 10 },
   btnPrepare: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
   btnDeliver: { background: "#e0f2fe", color: "#0369a1", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
+  btnReject: { background: "#fce4e4", color: "#c0392b", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
   timeAgo: { fontSize: 11, color: "#8a9bb0", margin: 0 },
   empty: { textAlign: "center", color: "#8a9bb0", marginTop: 30, fontSize: 14 },
   form: { background: "#fff", borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: "0 1px 6px rgba(0,0,0,0.07)", display: "flex", flexDirection: "column", gap: 8 },
@@ -461,10 +496,13 @@ const d = {
   menuInfo: { flex: 1 },
   menuName: { fontSize: 13, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px" },
   menuMeta: { fontSize: 11, color: "#8a9bb0", margin: 0 },
-  menuActions: { display: "flex", alignItems: "center", gap: 8 },
-  btnOn: { background: "#e8f5e9", color: "#2e7d32", border: "none", borderRadius: 8, padding: "5px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
-  btnOff: { background: "#fce4e4", color: "#c0392b", border: "none", borderRadius: 8, padding: "5px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
+  menuActions: { display: "flex", alignItems: "center", gap: 6 },
+  btnOn: { background: "#e8f5e9", color: "#2e7d32", border: "none", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
+  btnOff: { background: "#fce4e4", color: "#c0392b", border: "none", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
+  btnStock: { background: "#e8f5e9", color: "#2e7d32", border: "none", borderRadius: 8, padding: "5px 10px", fontSize: 10, fontWeight: 600, cursor: "pointer" },
+  btnNoStock: { background: "#fff3e0", color: "#b45309", border: "none", borderRadius: 8, padding: "5px 10px", fontSize: 10, fontWeight: 600, cursor: "pointer" },
   btnDelete: { background: "none", border: "none", fontSize: 16, cursor: "pointer" },
+  btnEdit: { background: "none", border: "none", fontSize: 14, cursor: "pointer" },
   adminRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   adminLabel: { fontSize: 12, color: "#8a9bb0" },
   roomInput: { width: 60, background: "#f4f6f9", border: "1px solid #e2e8f0", borderRadius: 6, padding: "4px 8px", fontSize: 13, textAlign: "center" },
@@ -475,7 +513,6 @@ const d = {
   qrUrl: { fontSize: 10, color: "#8a9bb0", margin: 0, wordBreak: "break-all", maxWidth: 200 },
   qrBox: { flexShrink: 0, marginLeft: 12 },
   downloadBtn: { display: "block", marginTop: 6, background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 10, cursor: "pointer", width: "100%" },
-  btnEdit: { background: "none", border: "none", fontSize: 14, cursor: "pointer" },
   modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 100 },
   modal: { background: "#fff", borderRadius: "20px 20px 0 0", padding: "28px 24px 40px", width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", gap: 8 },
   modalTitle: { fontSize: 16, fontWeight: 600, color: "#1c2b3a", margin: "0 0 8px" },

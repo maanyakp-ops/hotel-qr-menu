@@ -75,6 +75,16 @@ function App() {
     }
   }
 
+  async function cancelOrder(orderId) {
+    if (!orderId) return
+    await supabase.from("orders").update({ 
+      status: "cancelled",
+      cancelled_at: new Date().toISOString()
+    }).eq("id", orderId)
+    setOrderStatus("cancelled")
+    localStorage.removeItem("lastOrder")
+  }
+
   async function placeOrder() {
     if (cart.length === 0) return
     if (!guestName.trim()) { alert("Please enter your name."); return }
@@ -157,55 +167,75 @@ watchOrderStatus(order.id)
     </div>
   )
 
-  if (orderPlaced && placedOrder) return (
-    <div style={s.confirmation}>
-      <div style={s.confirmIcon}>🎉</div>
-      <h2 style={s.confirmTitle}>Order Placed!</h2>
-      <p style={s.confirmSub}>We'll deliver to Room {resolvedRoom} shortly.</p>
-
-      {/* Status */}
-      <div style={s.statusContainer}>
-  <div style={s.statusStep}>
-    <div style={s.statusDotActive} />
-    <p style={s.statusLabel}>Received</p>
-  </div>
-  <div style={orderStatus === "preparing" || orderStatus === "delivered" ? s.statusLineActive : s.statusLine} />
-  <div style={s.statusStep}>
-    <div style={orderStatus === "preparing" || orderStatus === "delivered" ? s.statusDotActive : s.statusDotInactive} />
-    <p style={s.statusLabel}>Preparing</p>
-  </div>
-  <div style={orderStatus === "delivered" ? s.statusLineActive : s.statusLine} />
-  <div style={s.statusStep}>
-    <div style={orderStatus === "delivered" ? s.statusDotDone : s.statusDotInactive} />
-    <p style={s.statusLabel}>Delivered</p>
-  </div>
-</div>
-
-      {/* Prep time */}
-      <div style={s.prepTimeBox}>
-        <p style={s.prepTimeText}>⏱ Estimated time: {maxPrepTime} minutes</p>
-      </div>
-
-      {/* Order summary */}
-      <div style={s.orderSummary}>
-        <p style={s.summaryTitle}>Your Order</p>
-        {placedOrder.items.map((item, i) => (
-          <div key={i} style={s.summaryRow}>
-            <span style={s.summaryItem}>{item.name} x{item.qty}</span>
-            <span style={s.summaryPrice}>₹{item.price * item.qty}</span>
-          </div>
-        ))}
-        <div style={s.summaryTotal}>
-          <span>Total</span>
-          <span>₹{placedOrder.items.reduce((sum, i) => sum + i.price * i.qty, 0)}</span>
+  if (orderPlaced && placedOrder) {
+    const orderAge = Date.now() - new Date(placedOrder.created_at).getTime()
+    const canCancel = orderAge < 60000 && orderStatus === "pending"
+  
+    return (
+      <div style={s.confirmation}>
+        <div style={s.confirmIcon}>
+          {orderStatus === "cancelled" ? "❌" : orderStatus === "rejected" ? "🚫" : "🎉"}
         </div>
+        <h2 style={s.confirmTitle}>
+          {orderStatus === "cancelled" ? "Order Cancelled" : orderStatus === "rejected" ? "Order Rejected" : "Order Placed!"}
+        </h2>
+        <p style={s.confirmSub}>
+          {orderStatus === "cancelled" ? "Your order has been cancelled." :
+           orderStatus === "rejected" ? "Sorry, the hotel couldn't accept your order. Please call reception." :
+           `We'll deliver to Room ${resolvedRoom} shortly.`}
+        </p>
+  
+        {orderStatus !== "cancelled" && orderStatus !== "rejected" && (
+          <>
+            <div style={s.statusContainer}>
+              <div style={s.statusStep}>
+                <div style={s.statusDotActive} />
+                <p style={s.statusLabel}>Received</p>
+              </div>
+              <div style={orderStatus === "preparing" || orderStatus === "delivered" ? s.statusLineActive : s.statusLine} />
+              <div style={s.statusStep}>
+                <div style={orderStatus === "preparing" || orderStatus === "delivered" ? s.statusDotActive : s.statusDotInactive} />
+                <p style={s.statusLabel}>Preparing</p>
+              </div>
+              <div style={orderStatus === "delivered" ? s.statusLineActive : s.statusLine} />
+              <div style={s.statusStep}>
+                <div style={orderStatus === "delivered" ? s.statusDotDone : s.statusDotInactive} />
+                <p style={s.statusLabel}>Delivered</p>
+              </div>
+            </div>
+  
+            <div style={s.prepTimeBox}>
+              <p style={s.prepTimeText}>⏱ Estimated time: {placedOrder.prepTime || maxPrepTime} minutes</p>
+            </div>
+          </>
+        )}
+  
+        <div style={s.orderSummary}>
+          <p style={s.summaryTitle}>Your Order</p>
+          {placedOrder.items.map((item, i) => (
+            <div key={i} style={s.summaryRow}>
+              <span style={s.summaryItem}>{item.name} x{item.qty}</span>
+              <span style={s.summaryPrice}>₹{item.price * item.qty}</span>
+            </div>
+          ))}
+          <div style={s.summaryTotal}>
+            <span>Total</span>
+            <span>₹{placedOrder.items.reduce((sum, i) => sum + i.price * i.qty, 0)}</span>
+          </div>
+        </div>
+  
+        {canCancel && (
+          <button style={s.cancelOrderBtn} onClick={() => cancelOrder(placedOrder.id)}>
+            Cancel Order
+          </button>
+        )}
+  
+        <button style={s.confirmBtn} onClick={() => { setOrderPlaced(false); setPlacedOrder(null); localStorage.removeItem("lastOrder") }}>
+          Back to Menu
+        </button>
       </div>
-
-      <button style={s.confirmBtn} onClick={() => { setOrderPlaced(false); setPlacedOrder(null) }}>
-        Back to Menu
-      </button>
-    </div>
-  )
+    )
+  }
 
   return (
     <div style={s.page}>
@@ -275,15 +305,17 @@ watchOrderStatus(order.id)
                       <p style={s.itemName}>{item.name}</p>
                       <p style={s.itemPrep}>⏱ {item.prep_time || 15} min</p>
                       <p style={s.itemPrice}>₹{item.price}</p>
-                      {cartItem ? (
-                        <div style={s.qtyRow}>
-                          <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
-                          <span style={s.qtyNum}>{cartItem.qty}</span>
-                          <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
-                        </div>
-                      ) : (
-                        <button style={s.addBtn} onClick={() => addToCart(item)}>+ Add</button>
-                      )}
+                      {item.out_of_stock ? (
+  <span style={s.outOfStock}>Out of Stock</span>
+) : cartItem ? (
+  <div style={s.qtyRow}>
+    <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
+    <span style={s.qtyNum}>{cartItem.qty}</span>
+    <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
+  </div>
+) : (
+  <button style={s.addBtn} onClick={() => addToCart(item)}>+ Add</button>
+)}
                     </div>
                   </div>
                 )
@@ -390,6 +422,8 @@ const s = {
 emptyIcon: { fontSize: 48, marginBottom: 12 },
 emptyTitle: { color: "#f2f2f2", fontSize: 18, fontWeight: 600, margin: "0 0 8px" },
 emptyText: { color: "#6e6e73", fontSize: 14, lineHeight: 1.6, margin: 0 },
+cancelOrderBtn: { background: "none", border: "1.5px solid #ff6b6b", color: "#ff6b6b", borderRadius: 12, padding: "10px 28px", fontSize: 14, fontWeight: 500, cursor: "pointer", marginBottom: 10 },
+outOfStock: { color: "#6e6e73", fontSize: 11, fontStyle: "italic" },
 }
 
 export default App
