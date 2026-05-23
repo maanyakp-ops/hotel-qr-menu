@@ -156,13 +156,22 @@ function App() {
       <p style={s.confirmSub}>We'll deliver to Room {resolvedRoom} shortly.</p>
 
       {/* Status */}
-      <div style={s.statusBar}>
-        <div style={orderStatus === "pending" ? s.statusActive : s.statusDone}>📋 Received</div>
-        <div style={s.statusLine} />
-        <div style={orderStatus === "preparing" ? s.statusActive : orderStatus === "delivered" ? s.statusDone : s.statusWaiting}>👨‍🍳 Preparing</div>
-        <div style={s.statusLine} />
-        <div style={orderStatus === "delivered" ? s.statusActive : s.statusWaiting}>✅ Delivered</div>
-      </div>
+      <div style={s.statusContainer}>
+  <div style={s.statusStep}>
+    <div style={s.statusDotActive} />
+    <p style={s.statusLabel}>Received</p>
+  </div>
+  <div style={orderStatus === "preparing" || orderStatus === "delivered" ? s.statusLineActive : s.statusLine} />
+  <div style={s.statusStep}>
+    <div style={orderStatus === "preparing" || orderStatus === "delivered" ? s.statusDotActive : s.statusDotInactive} />
+    <p style={s.statusLabel}>Preparing</p>
+  </div>
+  <div style={orderStatus === "delivered" ? s.statusLineActive : s.statusLine} />
+  <div style={s.statusStep}>
+    <div style={orderStatus === "delivered" ? s.statusDotDone : s.statusDotInactive} />
+    <p style={s.statusLabel}>Delivered</p>
+  </div>
+</div>
 
       {/* Prep time */}
       <div style={s.prepTimeBox}>
@@ -321,11 +330,14 @@ const s = {
   confirmIcon: { fontSize: 64, marginBottom: 20 },
   confirmTitle: { color: "#f2f2f2", fontSize: 26, fontWeight: 600, margin: "0 0 10px" },
   confirmSub: { color: "#8a9bb0", fontSize: 15, margin: "0 0 24px", textAlign: "center" },
-  statusBar: { display: "flex", alignItems: "center", marginBottom: 20, width: "100%", maxWidth: 340 },
-  statusActive: { fontSize: 12, color: "#b8924a", fontWeight: 600, textAlign: "center", flex: 1 },
-  statusDone: { fontSize: 12, color: "#6fcf97", fontWeight: 600, textAlign: "center", flex: 1 },
-  statusWaiting: { fontSize: 12, color: "#3a3a3c", fontWeight: 500, textAlign: "center", flex: 1 },
-  statusLine: { height: 1, background: "#3a3a3c", flex: 0.5 },
+  statusContainer: { display: "flex", alignItems: "center", width: "100%", maxWidth: 320, marginBottom: 24, padding: "0 8px" },
+  statusStep: { display: "flex", flexDirection: "column", alignItems: "center", gap: 6 },
+  statusDotActive: { width: 14, height: 14, borderRadius: "50%", background: "#b8924a", boxShadow: "0 0 0 3px rgba(184,146,74,0.2)" },
+  statusDotInactive: { width: 14, height: 14, borderRadius: "50%", background: "#3a3a3c", border: "1.5px solid #48484a" },
+  statusDotDone: { width: 14, height: 14, borderRadius: "50%", background: "#6fcf97", boxShadow: "0 0 0 3px rgba(111,207,151,0.2)" },
+  statusLine: { flex: 1, height: 1.5, background: "#3a3a3c", marginBottom: 20 },
+  statusLineActive: { flex: 1, height: 1.5, background: "#b8924a", marginBottom: 20 },
+  statusLabel: { fontSize: 10, color: "#8a9bb0", margin: 0, whiteSpace: "nowrap" },
   prepTimeBox: { background: "#2c2c2e", borderRadius: 10, padding: "10px 20px", marginBottom: 20 },
   prepTimeText: { color: "#b8924a", fontSize: 13, fontWeight: 500, margin: 0 },
   orderSummary: { background: "#2c2c2e", borderRadius: 14, padding: 16, width: "100%", maxWidth: 340, marginBottom: 24 },
