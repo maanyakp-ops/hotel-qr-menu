@@ -59,17 +59,20 @@ function App() {
   }
 
   async function watchOrderStatus(orderId) {
-    const sub = supabase.channel("order-status-" + orderId)
-      .on("postgres_changes", {
-        event: "UPDATE",
-        schema: "public",
-        table: "orders",
-        filter: `id=eq.${orderId}`
-      }, payload => {
-        setOrderStatus(payload.new.status)
-      })
-      .subscribe()
-    return () => supabase.removeChannel(sub)
+    try {
+      const sub = supabase.channel("order-status-" + orderId)
+        .on("postgres_changes", {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `id=eq.${orderId}`
+        }, payload => {
+          setOrderStatus(payload.new.status)
+        })
+        .subscribe()
+    } catch (e) {
+      console.log("Realtime not available", e)
+    }
   }
 
   async function placeOrder() {
