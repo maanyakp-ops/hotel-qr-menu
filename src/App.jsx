@@ -105,12 +105,14 @@ function App() {
       })))
     if (itemsError) { console.error(itemsError); return }
 
-    setPlacedOrder({ ...order, items: cart })
+    const orderData = { ...order, items: cart }
+    setPlacedOrder(orderData)
     setOrderStatus("pending")
     setOrderPlaced(true)
     setShowGuestForm(false)
     setCart([])
-    watchOrderStatus(order.id)
+    localStorage.setItem("lastOrder", JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
+watchOrderStatus(order.id)
   }
 
   function addToCart(item) {
@@ -274,6 +276,15 @@ function App() {
 
       {/* Staff login */}
       <div style={s.staffAccess}>
+        {localStorage.getItem("lastOrder") && (
+          <button style={s.viewOrderBtn} onClick={() => {
+            const last = JSON.parse(localStorage.getItem("lastOrder"))
+            setPlacedOrder({ items: last.items, room_id: last.room })
+            setOrderStatus(null)
+            setOrderPlaced(true)
+            watchOrderStatus(last.orderId)
+          }}>View My Last Order</button>
+        )}
         <a href="/auth" style={s.staffLink}>Staff Login</a>
       </div>
 
@@ -347,6 +358,7 @@ const s = {
   summaryPrice: { color: "#f2f2f2", fontSize: 13 },
   summaryTotal: { display: "flex", justifyContent: "space-between", borderTop: "0.5px solid #3a3a3c", paddingTop: 10, marginTop: 8, color: "#f2f2f2", fontSize: 14, fontWeight: 600 },
   confirmBtn: { background: "#b8924a", color: "#fff", border: "none", borderRadius: 12, padding: "12px 28px", fontSize: 15, fontWeight: 500, cursor: "pointer" },
+  viewOrderBtn: { background: "none", border: "0.5px solid #3a3a3c", color: "#8a9bb0", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer", marginBottom: 8, display: "block", margin: "0 auto 8px" },
 }
 
 export default App
