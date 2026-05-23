@@ -252,7 +252,13 @@ watchOrderStatus(order.id)
 
       {/* Menu */}
       <div style={s.body}>
-        {menuItems.length === 0 && <p style={s.empty}>No items on the menu yet.</p>}
+      {menuItems.length === 0 && (
+        <div style={s.emptyState}>
+          <p style={s.emptyIcon}>🍽️</p>
+          <p style={s.emptyTitle}>Menu coming soon</p>
+          <p style={s.emptyText}>We're still setting up our menu. Please check back shortly or call reception for assistance.</p>
+        </div>
+      )}
         {categories.map(cat => (
           <div key={cat}>
             <p style={s.catLabel}>{cat}</p>
@@ -380,6 +386,10 @@ const s = {
   summaryTotal: { display: "flex", justifyContent: "space-between", borderTop: "0.5px solid #3a3a3c", paddingTop: 10, marginTop: 8, color: "#f2f2f2", fontSize: 14, fontWeight: 600 },
   confirmBtn: { background: "#b8924a", color: "#fff", border: "none", borderRadius: 12, padding: "12px 28px", fontSize: 15, fontWeight: 500, cursor: "pointer" },
   viewOrderBtn: { background: "none", border: "0.5px solid #3a3a3c", color: "#8a9bb0", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer", marginBottom: 8, display: "block", margin: "0 auto 8px" },
+  emptyState: { textAlign: "center", padding: "60px 24px" },
+emptyIcon: { fontSize: 48, marginBottom: 12 },
+emptyTitle: { color: "#f2f2f2", fontSize: 18, fontWeight: 600, margin: "0 0 8px" },
+emptyText: { color: "#6e6e73", fontSize: 14, lineHeight: 1.6, margin: 0 },
 }
 
 export default App
