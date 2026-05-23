@@ -78,6 +78,7 @@ function App() {
   async function placeOrder() {
     if (cart.length === 0) return
     if (!guestName.trim()) { alert("Please enter your name."); return }
+    if (!guestPhone.trim()) { alert("Please enter your phone number."); return }
 
     const now = Date.now()
     if (now - lastOrderTime.current < 30000) {
@@ -219,6 +220,13 @@ watchOrderStatus(order.id)
               placeholder="Your name *"
               value={guestName}
               onChange={e => setGuestName(e.target.value)}
+              />
+            <input
+              style={s.modalInput}
+              placeholder="Phone number *"
+              type="tel"
+              value={guestPhone}
+              onChange={e => setGuestPhone(e.target.value)}
             />
             <textarea
               style={{ ...s.modalInput, height: 80, resize: "none" }}
