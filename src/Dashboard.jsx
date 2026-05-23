@@ -8,7 +8,7 @@ export default function Dashboard({ onBack }) {
   const [hotel, setHotel] = useState(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState("orders")
-  const [newItem, setNewItem] = useState({ name: "", category: "", price: "", photo_url: "" })
+  const [newItem, setNewItem] = useState({ name: "", category: "", price: "", photo_url: "", prep_time: "15" })
   const [adding, setAdding] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [allHotels, setAllHotels] = useState([])
@@ -156,8 +156,10 @@ export default function Dashboard({ onBack }) {
       category: newItem.category,
       price: parseFloat(newItem.price),
       photo_url: newItem.photo_url || null,
+      prep_time: parseInt(newItem.prep_time) || 15,
       available: true
     })
+    
     setNewItem({ name: "", category: "", price: "", photo_url: "" })
     fetchMenu(hotel.id)
     setAdding(false)
@@ -211,7 +213,10 @@ export default function Dashboard({ onBack }) {
                   return (
                     <div key={order.id} style={d.card}>
                       <div style={d.cardHeader}>
+                      <div>
                         <span style={d.room}>Room {order.room_id}</span>
+                        {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name} {order.guest_phone ? `· ${order.guest_phone}` : ""}</p>}
+                      </div>  
                         <span style={order.status === "pending" ? d.badgePending : d.badgePrep}>
                           {order.status === "pending" ? "Pending" : "Preparing"}
                         </span>
@@ -248,7 +253,10 @@ export default function Dashboard({ onBack }) {
                   return (
                     <div key={order.id} style={{ ...d.card, opacity: 0.5 }}>
                       <div style={d.cardHeader}>
+                      <div>
                         <span style={d.room}>Room {order.room_id}</span>
+                        {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name} {order.guest_phone ? `· ${order.guest_phone}` : ""}</p>}
+                      </div>
                         <span style={d.badgeDone}>✓ Delivered</span>
                       </div>
                       <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
@@ -267,6 +275,7 @@ export default function Dashboard({ onBack }) {
               <input style={d.input} placeholder="Item name" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
               <input style={d.input} placeholder="Category (e.g. Starter, Main Course)" value={newItem.category} onChange={e => setNewItem({ ...newItem, category: e.target.value })} />
               <input style={d.input} placeholder="Price (₹)" type="number" value={newItem.price} onChange={e => setNewItem({ ...newItem, price: e.target.value })} />
+              <input style={d.input} placeholder="Prep time in minutes (e.g. 15)" type="number" value={newItem.prep_time} onChange={e => setNewItem({ ...newItem, prep_time: e.target.value })} />
               <input style={d.input} placeholder="Photo URL (optional)" value={newItem.photo_url} onChange={e => setNewItem({ ...newItem, photo_url: e.target.value })} />
               <button style={d.addBtn} onClick={addItem} disabled={adding}>
                 {adding ? "Adding..." : "+ Add Item"}
