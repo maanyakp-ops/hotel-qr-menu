@@ -160,7 +160,7 @@ export default function Dashboard({ onBack }) {
       available: true
     })
     
-    setNewItem({ name: "", category: "", price: "", photo_url: "" })
+    setNewItem({ name: "", category: "", price: "", photo_url: "", prep_time: "15" })
     fetchMenu(hotel.id)
     setAdding(false)
   }
