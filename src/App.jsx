@@ -290,10 +290,18 @@ watchOrderStatus(order.id)
       {/* Staff login */}
       <div style={s.staffAccess}>
         {localStorage.getItem("lastOrder") && (
-          <button style={s.viewOrderBtn} onClick={() => {
+          <button style={s.viewOrderBtn} onClick={async () => {
             const last = JSON.parse(localStorage.getItem("lastOrder"))
+            
+            // fetch current status from db
+            const { data } = await supabase
+              .from("orders")
+              .select("status")
+              .eq("id", last.orderId)
+              .single()
+            
             setPlacedOrder({ items: last.items, room_id: last.room })
-            setOrderStatus(null)
+            setOrderStatus(data?.status || "pending")
             setOrderPlaced(true)
             watchOrderStatus(last.orderId)
           }}>View My Last Order</button>
