@@ -153,7 +153,6 @@ export default function Dashboard({ onBack }) {
     fetchMenu(hotel.id)
   }
   
-  async function deleteItem(id) {
 
   async function deleteItem(id) {
     if (!confirm("Delete this item?")) return
