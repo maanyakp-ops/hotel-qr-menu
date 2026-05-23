@@ -105,8 +105,7 @@ export default function Dashboard({ onBack }) {
   async function fetchOrders(hotelId) {
     const { data, error } = await supabase
       .from("orders")
-      .select(`*, order_items(quantity, price, menu_items(name))`)
-      .eq("hotel_id", hotelId)
+      .select(`*, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)      .eq("hotel_id", hotelId)
       .order("created_at", { ascending: false })
     if (error) console.error(error)
     else setOrders(data)
