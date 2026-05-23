@@ -12,6 +12,7 @@ export default function Dashboard({ onBack }) {
   const [adding, setAdding] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [allHotels, setAllHotels] = useState([])
+  const [editItem, setEditItem] = useState(null)
 
   function playOrderSound() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)()
@@ -140,6 +141,19 @@ export default function Dashboard({ onBack }) {
     await supabase.from("menu_items").update({ available: !item.available }).eq("id", item.id)
     fetchMenu(hotel.id)
   }
+  async function saveEdit() {
+    await supabase.from("menu_items").update({
+      name: editItem.name,
+      category: editItem.category,
+      price: parseFloat(editItem.price),
+      prep_time: parseInt(editItem.prep_time) || 15,
+      photo_url: editItem.photo_url || null
+    }).eq("id", editItem.id)
+    setEditItem(null)
+    fetchMenu(hotel.id)
+  }
+  
+  async function deleteItem(id) {
 
   async function deleteItem(id) {
     if (!confirm("Delete this item?")) return
@@ -302,12 +316,27 @@ export default function Dashboard({ onBack }) {
                   <button style={item.available ? d.btnOn : d.btnOff} onClick={() => toggleAvailable(item)}>
                     {item.available ? "On" : "Off"}
                   </button>
+                  <button style={d.btnEdit} onClick={() => setEditItem(item)}>✏️</button>
                   <button style={d.btnDelete} onClick={() => deleteItem(item.id)}>🗑</button>
                 </div>
               </div>
             ))}
           </>
         )}
+        {editItem && (
+  <div style={d.modalOverlay}>
+    <div style={d.modal}>
+      <p style={d.modalTitle}>Edit Item</p>
+      <input style={d.input} placeholder="Item name" value={editItem.name} onChange={e => setEditItem({ ...editItem, name: e.target.value })} />
+      <input style={d.input} placeholder="Category" value={editItem.category} onChange={e => setEditItem({ ...editItem, category: e.target.value })} />
+      <input style={d.input} placeholder="Price (₹)" type="number" value={editItem.price} onChange={e => setEditItem({ ...editItem, price: e.target.value })} />
+      <input style={d.input} placeholder="Prep time (minutes)" type="number" value={editItem.prep_time} onChange={e => setEditItem({ ...editItem, prep_time: e.target.value })} />
+      <input style={d.input} placeholder="Photo URL (optional)" value={editItem.photo_url || ""} onChange={e => setEditItem({ ...editItem, photo_url: e.target.value })} />
+      <button style={d.saveBtn} onClick={() => saveEdit()}>Save Changes</button>
+      <button style={d.cancelBtn} onClick={() => setEditItem(null)}>Cancel</button>
+    </div>
+  </div>
+)}
 
         {tab === "qr" && (
           <>
@@ -448,4 +477,10 @@ const d = {
   qrUrl: { fontSize: 10, color: "#8a9bb0", margin: 0, wordBreak: "break-all", maxWidth: 200 },
   qrBox: { flexShrink: 0, marginLeft: 12 },
   downloadBtn: { display: "block", marginTop: 6, background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 6, padding: "4px 10px", fontSize: 10, cursor: "pointer", width: "100%" },
+  btnEdit: { background: "none", border: "none", fontSize: 14, cursor: "pointer" },
+modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 100 },
+modal: { background: "#fff", borderRadius: "20px 20px 0 0", padding: "28px 24px 40px", width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", gap: 8 },
+modalTitle: { fontSize: 16, fontWeight: 600, color: "#1c2b3a", margin: "0 0 8px" },
+saveBtn: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 500, cursor: "pointer" },
+cancelBtn: { background: "none", color: "#8a9bb0", border: "none", borderRadius: 8, padding: "8px", fontSize: 13, cursor: "pointer" },
 }
