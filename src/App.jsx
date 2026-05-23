@@ -329,7 +329,7 @@ const s = {
   qtyBtn: { background: "#3a3a3c", color: "#f2f2f2", border: "none", borderRadius: 6, width: 28, height: 28, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
   qtyNum: { color: "#f2f2f2", fontSize: 14, fontWeight: 600, minWidth: 20, textAlign: "center" },
   empty: { color: "#6e6e73", textAlign: "center", marginTop: 60 },
-  staffAccess: { position: "fixed", bottom: 12, left: 0, right: 0, textAlign: "center", zIndex: 10 },
+  staffAccess: { textAlign: "center", padding: "12px 0", marginBottom: 80 },
   staffLink: { color: "#3a3a3c", fontSize: 11, textDecoration: "none" },
   cartBar: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 480, background: "#2c2c2e", borderTop: "0.5px solid #38383a", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" },
   cartCount: { color: "#f2f2f2", fontSize: 13, fontWeight: 500, margin: "0 0 2px" },
