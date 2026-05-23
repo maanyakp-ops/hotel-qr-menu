@@ -228,6 +228,11 @@ export default function Dashboard({ onBack }) {
                             <span>₹{item.price * item.quantity}</span>
                           </div>
                         ))}
+                        {order.special_instructions && (
+                          <div style={{ background: "#f4f6f9", borderRadius: 8, padding: "6px 10px", marginBottom: 8 }}>
+                            <p style={{ fontSize: 12, color: "#5a7184", margin: 0 }}>📝 {order.special_instructions}</p>
+                          </div>
+                        )}
                       </div>
                       <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
                       <div style={d.actions}>

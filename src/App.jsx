@@ -17,6 +17,7 @@ function App() {
   const [showGuestForm, setShowGuestForm] = useState(false)
   const [guestName, setGuestName] = useState("")
   const [guestPhone, setGuestPhone] = useState("")
+  const [guestInstructions, setGuestInstructions] = useState("")
   const [orderStatus, setOrderStatus] = useState(null)
   const lastOrderTime = useRef(0)
 
@@ -90,7 +91,8 @@ function App() {
         status: "pending",
         payment_method: "cash",
         guest_name: guestName,
-        guest_phone: guestPhone
+        guest_phone: guestPhone,
+        special_instructions: guestInstructions || null
       })
       .select().single()
     if (orderError) { console.error(orderError); alert("Something went wrong."); return }
@@ -215,13 +217,13 @@ watchOrderStatus(order.id)
               value={guestName}
               onChange={e => setGuestName(e.target.value)}
             />
-            <input
-              style={s.modalInput}
-              placeholder="Phone number (optional)"
-              type="tel"
-              value={guestPhone}
-              onChange={e => setGuestPhone(e.target.value)}
+            <textarea
+              style={{ ...s.modalInput, height: 80, resize: "none" }}
+              placeholder="Special instructions (optional) — e.g. less spicy, no onion"
+              value={guestInstructions}
+              onChange={e => setGuestInstructions(e.target.value)}
             />
+
             <button style={s.modalBtn} onClick={placeOrder}>Confirm Order</button>
             <button style={s.modalCancel} onClick={() => setShowGuestForm(false)}>Cancel</button>
           </div>
