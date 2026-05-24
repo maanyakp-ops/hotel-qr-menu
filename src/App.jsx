@@ -19,8 +19,9 @@ function App() {
   const [guestPhone, setGuestPhone] = useState("")
   const [guestInstructions, setGuestInstructions] = useState("")
   const [orderStatus, setOrderStatus] = useState(null)
-  const lastOrderTime = useRef(0)
   const [hasLastOrder, setHasLastOrder] = useState(false)
+  const lastOrderTime = useRef(0)
+
   const { hotelId, roomNumber } = useParams()
   const resolvedHotelId = hotelId || "a5b9bed4-9c40-4856-b4ed-371e800beaf0"
   const resolvedRoom = roomNumber || "101"
@@ -34,6 +35,7 @@ function App() {
   }, [])
 
   useEffect(() => { fetchHotelAndMenu() }, [])
+
   useEffect(() => {
     setHasLastOrder(!!localStorage.getItem("lastOrder"))
   }, [])
@@ -80,7 +82,7 @@ function App() {
 
   async function cancelOrder(orderId) {
     if (!orderId) return
-    await supabase.from("orders").update({ 
+    await supabase.from("orders").update({
       status: "cancelled",
       cancelled_at: new Date().toISOString()
     }).eq("id", orderId)
@@ -93,9 +95,6 @@ function App() {
     if (cart.length === 0) return
     if (!guestName.trim()) { alert("Please enter your name."); return }
     if (!guestPhone.trim()) { alert("Please enter your phone number."); return }
-    
-    localStorage.setItem("lastOrder", JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
-    setHasLastOrder(true)
 
     const now = Date.now()
     if (now - lastOrderTime.current < 30000) {
@@ -128,14 +127,15 @@ function App() {
       })))
     if (itemsError) { console.error(itemsError); return }
 
-    const orderData = { ...order, items: cart }
+    const orderData = { ...order, items: cart, prepTime: maxPrepTime }
     setPlacedOrder(orderData)
     setOrderStatus("pending")
     setOrderPlaced(true)
     setShowGuestForm(false)
     setCart([])
     localStorage.setItem("lastOrder", JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
-watchOrderStatus(order.id)
+    setHasLastOrder(true)
+    watchOrderStatus(order.id)
   }
 
   function addToCart(item) {
@@ -177,7 +177,7 @@ watchOrderStatus(order.id)
   if (orderPlaced && placedOrder) {
     const orderAge = Date.now() - new Date(placedOrder.created_at).getTime()
     const canCancel = orderAge < 60000 && orderStatus === "pending"
-  
+
     return (
       <div style={s.confirmation}>
         <div style={s.confirmIcon}>
@@ -191,7 +191,7 @@ watchOrderStatus(order.id)
            orderStatus === "rejected" ? "Sorry, the hotel couldn't accept your order. Please call reception." :
            `We'll deliver to Room ${resolvedRoom} shortly.`}
         </p>
-  
+
         {orderStatus !== "cancelled" && orderStatus !== "rejected" && (
           <>
             <div style={s.statusContainer}>
@@ -210,13 +210,13 @@ watchOrderStatus(order.id)
                 <p style={s.statusLabel}>Delivered</p>
               </div>
             </div>
-  
+
             <div style={s.prepTimeBox}>
               <p style={s.prepTimeText}>⏱ Estimated time: {placedOrder.prepTime || maxPrepTime} minutes</p>
             </div>
           </>
         )}
-  
+
         <div style={s.orderSummary}>
           <p style={s.summaryTitle}>Your Order</p>
           {placedOrder.items.map((item, i) => (
@@ -230,15 +230,19 @@ watchOrderStatus(order.id)
             <span>₹{placedOrder.items.reduce((sum, i) => sum + i.price * i.qty, 0)}</span>
           </div>
         </div>
-  
+
         {canCancel && (
           <button style={s.cancelOrderBtn} onClick={() => cancelOrder(placedOrder.id)}>
             Cancel Order
           </button>
         )}
-  
-        <button style={s.confirmBtn} onClick={() => { setOrderPlaced(false); setPlacedOrder(null); localStorage.removeItem("lastOrder") }}>
-        setHasLastOrder(false)
+
+        <button style={s.confirmBtn} onClick={() => {
+          setOrderPlaced(false)
+          setPlacedOrder(null)
+          localStorage.removeItem("lastOrder")
+          setHasLastOrder(false)
+        }}>
           Back to Menu
         </button>
       </div>
@@ -247,7 +251,6 @@ watchOrderStatus(order.id)
 
   return (
     <div style={s.page}>
-      {/* Guest form modal */}
       {showGuestForm && (
         <div style={s.modalOverlay}>
           <div style={s.modal}>
@@ -258,7 +261,7 @@ watchOrderStatus(order.id)
               placeholder="Your name *"
               value={guestName}
               onChange={e => setGuestName(e.target.value)}
-              />
+            />
             <input
               style={s.modalInput}
               placeholder="Phone number *"
@@ -268,18 +271,16 @@ watchOrderStatus(order.id)
             />
             <textarea
               style={{ ...s.modalInput, height: 80, resize: "none" }}
-              placeholder="Special instructions (optional) — e.g. less spicy, no onion"
+              placeholder="Special instructions — e.g. less spicy, no onion"
               value={guestInstructions}
               onChange={e => setGuestInstructions(e.target.value)}
             />
-
             <button style={s.modalBtn} onClick={placeOrder}>Confirm Order</button>
             <button style={s.modalCancel} onClick={() => setShowGuestForm(false)}>Cancel</button>
           </div>
         </div>
       )}
 
-      {/* Header */}
       <div style={s.header}>
         <div>
           <p style={s.eyebrow}>Room Service</p>
@@ -288,15 +289,14 @@ watchOrderStatus(order.id)
         </div>
       </div>
 
-      {/* Menu */}
       <div style={s.body}>
-      {menuItems.length === 0 && (
-        <div style={s.emptyState}>
-          <p style={s.emptyIcon}>🍽️</p>
-          <p style={s.emptyTitle}>Menu coming soon</p>
-          <p style={s.emptyText}>We're still setting up our menu. Please check back shortly or call reception for assistance.</p>
-        </div>
-      )}
+        {menuItems.length === 0 && (
+          <div style={s.emptyState}>
+            <p style={s.emptyIcon}>🍽️</p>
+            <p style={s.emptyTitle}>Menu coming soon</p>
+            <p style={s.emptyText}>We're still setting up our menu. Please check back shortly or call reception for assistance.</p>
+          </div>
+        )}
         {categories.map(cat => (
           <div key={cat}>
             <p style={s.catLabel}>{cat}</p>
@@ -314,16 +314,16 @@ watchOrderStatus(order.id)
                       <p style={s.itemPrep}>⏱ {item.prep_time || 15} min</p>
                       <p style={s.itemPrice}>₹{item.price}</p>
                       {item.out_of_stock ? (
-  <span style={s.outOfStock}>Out of Stock</span>
-) : cartItem ? (
-  <div style={s.qtyRow}>
-    <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
-    <span style={s.qtyNum}>{cartItem.qty}</span>
-    <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
-  </div>
-) : (
-  <button style={s.addBtn} onClick={() => addToCart(item)}>+ Add</button>
-)}
+                        <span style={s.outOfStock}>Out of Stock</span>
+                      ) : cartItem ? (
+                        <div style={s.qtyRow}>
+                          <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
+                          <span style={s.qtyNum}>{cartItem.qty}</span>
+                          <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
+                        </div>
+                      ) : (
+                        <button style={s.addBtn} onClick={() => addToCart(item)}>+ Add</button>
+                      )}
                     </div>
                   </div>
                 )
@@ -333,20 +333,16 @@ watchOrderStatus(order.id)
         ))}
       </div>
 
-      {/* Staff login */}
       <div style={s.staffAccess}>
         {hasLastOrder && (
           <button style={s.viewOrderBtn} onClick={async () => {
             const last = JSON.parse(localStorage.getItem("lastOrder"))
-            
-            // fetch current status from db
             const { data } = await supabase
               .from("orders")
               .select("status")
               .eq("id", last.orderId)
               .single()
-            
-            setPlacedOrder({ items: last.items, room_id: last.room })
+            setPlacedOrder({ items: last.items, room_id: last.room, prepTime: last.prepTime })
             setOrderStatus(data?.status || "pending")
             setOrderPlaced(true)
             watchOrderStatus(last.orderId)
@@ -355,7 +351,6 @@ watchOrderStatus(order.id)
         <a href="/auth" style={s.staffLink}>Staff Login</a>
       </div>
 
-      {/* Cart bar */}
       {cart.length > 0 && (
         <div style={s.cartBar}>
           <div>
@@ -425,13 +420,13 @@ const s = {
   summaryPrice: { color: "#f2f2f2", fontSize: 13 },
   summaryTotal: { display: "flex", justifyContent: "space-between", borderTop: "0.5px solid #3a3a3c", paddingTop: 10, marginTop: 8, color: "#f2f2f2", fontSize: 14, fontWeight: 600 },
   confirmBtn: { background: "#b8924a", color: "#fff", border: "none", borderRadius: 12, padding: "12px 28px", fontSize: 15, fontWeight: 500, cursor: "pointer" },
+  cancelOrderBtn: { background: "none", border: "1.5px solid #ff6b6b", color: "#ff6b6b", borderRadius: 12, padding: "10px 28px", fontSize: 14, fontWeight: 500, cursor: "pointer", marginBottom: 10 },
   viewOrderBtn: { background: "none", border: "0.5px solid #3a3a3c", color: "#8a9bb0", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer", marginBottom: 8, display: "block", margin: "0 auto 8px" },
   emptyState: { textAlign: "center", padding: "60px 24px" },
-emptyIcon: { fontSize: 48, marginBottom: 12 },
-emptyTitle: { color: "#f2f2f2", fontSize: 18, fontWeight: 600, margin: "0 0 8px" },
-emptyText: { color: "#6e6e73", fontSize: 14, lineHeight: 1.6, margin: 0 },
-cancelOrderBtn: { background: "none", border: "1.5px solid #ff6b6b", color: "#ff6b6b", borderRadius: 12, padding: "10px 28px", fontSize: 14, fontWeight: 500, cursor: "pointer", marginBottom: 10 },
-outOfStock: { color: "#6e6e73", fontSize: 11, fontStyle: "italic" },
+  emptyIcon: { fontSize: 48, marginBottom: 12 },
+  emptyTitle: { color: "#f2f2f2", fontSize: 18, fontWeight: 600, margin: "0 0 8px" },
+  emptyText: { color: "#6e6e73", fontSize: 14, lineHeight: 1.6, margin: 0 },
+  outOfStock: { color: "#6e6e73", fontSize: 11, fontStyle: "italic" },
 }
 
 export default App
