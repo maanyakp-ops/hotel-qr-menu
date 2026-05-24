@@ -20,7 +20,7 @@ function App() {
   const [guestInstructions, setGuestInstructions] = useState("")
   const [orderStatus, setOrderStatus] = useState(null)
   const lastOrderTime = useRef(0)
-
+  const [hasLastOrder, setHasLastOrder] = useState(!!localStorage.getItem("lastOrder"))
   const { hotelId, roomNumber } = useParams()
   const resolvedHotelId = hotelId || "a5b9bed4-9c40-4856-b4ed-371e800beaf0"
   const resolvedRoom = roomNumber || "101"
@@ -83,12 +83,16 @@ function App() {
     }).eq("id", orderId)
     setOrderStatus("cancelled")
     localStorage.removeItem("lastOrder")
+    setHasLastOrder(false)
   }
 
   async function placeOrder() {
     if (cart.length === 0) return
     if (!guestName.trim()) { alert("Please enter your name."); return }
     if (!guestPhone.trim()) { alert("Please enter your phone number."); return }
+    
+    localStorage.setItem("lastOrder", JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
+    setHasLastOrder(true)
 
     const now = Date.now()
     if (now - lastOrderTime.current < 30000) {
@@ -231,6 +235,7 @@ watchOrderStatus(order.id)
         )}
   
         <button style={s.confirmBtn} onClick={() => { setOrderPlaced(false); setPlacedOrder(null); localStorage.removeItem("lastOrder") }}>
+        setHasLastOrder(false)
           Back to Menu
         </button>
       </div>
@@ -327,7 +332,7 @@ watchOrderStatus(order.id)
 
       {/* Staff login */}
       <div style={s.staffAccess}>
-        {localStorage.getItem("lastOrder") && (
+        {hasLastOrder && (
           <button style={s.viewOrderBtn} onClick={async () => {
             const last = JSON.parse(localStorage.getItem("lastOrder"))
             
