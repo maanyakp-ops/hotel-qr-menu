@@ -86,7 +86,6 @@ function App() {
     }).eq("id", orderId)
     setOrderStatus("cancelled")
     localStorage.removeItem("lastOrder")
-    setHasLastOrder(false)
   }
 
   async function placeOrder() {
@@ -132,7 +131,6 @@ function App() {
     setShowGuestForm(false)
     setCart([])
     localStorage.setItem("lastOrder", JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
-    setHasLastOrder(true)
     watchOrderStatus(order.id)
   }
 
@@ -239,7 +237,6 @@ function App() {
           setOrderPlaced(false)
           setPlacedOrder(null)
           localStorage.removeItem("lastOrder")
-          setHasLastOrder(false)
         }}>
           Back to Menu
         </button>
