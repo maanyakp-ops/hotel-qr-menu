@@ -8,7 +8,7 @@ export default function Dashboard({ onBack }) {
   const [hotel, setHotel] = useState(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState("orders")
-  const [newItem, setNewItem] = useState({ name: "", category: "", price: "", photo_url: "", prep_time: "15", description: "" })
+  const [newItem, setNewItem] = useState({ name: "", category: "", price: "", prep_time: "15", description: "" })
   const [adding, setAdding] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [allHotels, setAllHotels] = useState([])
@@ -160,8 +160,8 @@ export default function Dashboard({ onBack }) {
       category: editItem.category,
       price: parseFloat(editItem.price),
       prep_time: parseInt(editItem.prep_time) || 15,
-      photo_url: editItem.photo_url || null,
-      description: editItem.description || null
+      description: editItem.description || null,
+      is_special: editItem.is_special || false,
     }).eq("id", editItem.id)
     setEditItem(null)
     fetchMenu(hotel.id)
@@ -181,12 +181,12 @@ export default function Dashboard({ onBack }) {
       name: newItem.name,
       category: newItem.category,
       price: parseFloat(newItem.price),
-      photo_url: newItem.photo_url || null,
       prep_time: parseInt(newItem.prep_time) || 15,
       description: newItem.description || null,
+      is_special: newItem.is_special || false,
       available: true
     })
-    setNewItem({ name: "", category: "", price: "", photo_url: "", prep_time: "15", description: "" })
+    setNewItem({ name: "", category: "", price: "", prep_time: "15", description: "", is_special: false })
     fetchMenu(hotel.id)
     setAdding(false)
   }
@@ -345,7 +345,13 @@ export default function Dashboard({ onBack }) {
               <input style={d.input} placeholder="Price (₹)" type="number" value={newItem.price} onChange={e => setNewItem({ ...newItem, price: e.target.value })} />
               <input style={d.input} placeholder="Prep time in minutes (e.g. 15)" type="number" value={newItem.prep_time} onChange={e => setNewItem({ ...newItem, prep_time: e.target.value })} />
               <input style={d.input} placeholder="Item description (optional)" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
-              <input style={d.input} placeholder="Photo URL (optional)" value={newItem.photo_url} onChange={e => setNewItem({ ...newItem, photo_url: e.target.value })} />
+              <button
+                type="button"
+                style={newItem.is_special ? d.btnSpecialOn : d.btnSpecialOff}
+                onClick={() => setNewItem({ ...newItem, is_special: !newItem.is_special })}
+              >
+                {newItem.is_special ? "⭐ Marked as Special" : "☆ Mark as Special"}
+              </button>
               <button style={d.addBtn} onClick={addItem} disabled={adding}>
                 {adding ? "Adding..." : "+ Add Item"}
               </button>
@@ -354,24 +360,30 @@ export default function Dashboard({ onBack }) {
             {menuItems.length === 0 && <p style={d.empty}>No items yet. Add one above.</p>}
             {menuItems.map(item => (
               <div key={item.id} style={d.menuCard}>
-                {item.photo_url
-                  ? <img src={item.photo_url} alt={item.name} style={d.menuImg} />
-                  : <div style={d.menuImgPlaceholder}>🍽️</div>
-                }
+                <div style={d.menuImgPlaceholder}>🍽️</div>
                 <div style={d.menuInfo}>
                   <p style={d.menuName}>{item.name}</p>
                   <p style={d.menuMeta}>{item.category} · ₹{item.price} · {item.prep_time}min</p>
                 </div>
                 <div style={d.menuActions}>
-                  <button style={item.available ? d.btnOn : d.btnOff} onClick={() => toggleAvailable(item)}>
-                    {item.available ? "On" : "Off"}
-                  </button>
-                  <button style={item.out_of_stock ? d.btnStock : d.btnNoStock} onClick={() => toggleStock(item)}>
-                    {item.out_of_stock ? "In Stock" : "Out"}
-                  </button>
-                  <button style={d.btnEdit} onClick={() => setEditItem(item)}>✏️</button>
-                  <button style={d.btnDelete} onClick={() => deleteItem(item.id)}>🗑</button>
-                </div>
+  <button style={item.available ? d.btnOn : d.btnOff} onClick={() => toggleAvailable(item)}>
+    {item.available ? "On" : "Off"}
+  </button>
+  <button style={item.out_of_stock ? d.btnStock : d.btnNoStock} onClick={() => toggleStock(item)}>
+    {item.out_of_stock ? "In Stock" : "Out"}
+  </button>
+  <button
+    style={item.is_special ? d.btnSpecialOn : d.btnSpecialOff}
+    onClick={async () => {
+      await supabase.from("menu_items").update({ is_special: !item.is_special }).eq("id", item.id)
+      fetchMenu(hotel.id)
+    }}
+  >
+    {item.is_special ? "⭐" : "☆"}
+  </button>
+  <button style={d.btnEdit} onClick={() => setEditItem(item)}>✏️</button>
+  <button style={d.btnDelete} onClick={() => deleteItem(item.id)}>🗑</button>
+</div>
               </div>
             ))}
           </>
@@ -386,8 +398,15 @@ export default function Dashboard({ onBack }) {
               <input style={d.input} placeholder="Category" value={editItem.category} onChange={e => setEditItem({ ...editItem, category: e.target.value })} />
               <input style={d.input} placeholder="Price (₹)" type="number" value={editItem.price} onChange={e => setEditItem({ ...editItem, price: e.target.value })} />
               <input style={d.input} placeholder="Prep time (minutes)" type="number" value={editItem.prep_time} onChange={e => setEditItem({ ...editItem, prep_time: e.target.value })} />
-              <input style={d.input} placeholder="Photo URL (optional)" value={editItem.photo_url || ""} onChange={e => setEditItem({ ...editItem, photo_url: e.target.value })} />
+              
               <input style={d.input} placeholder="Description (optional)" value={editItem.description || ""} onChange={e => setEditItem({ ...editItem, description: e.target.value })} />
+              <button
+                type="button"
+                style={editItem.is_special ? d.btnSpecialOn : d.btnSpecialOff}
+                onClick={() => setEditItem({ ...editItem, is_special: !editItem.is_special })}
+              >
+                {editItem.is_special ? "⭐ Marked as Special" : "☆ Mark as Special"}
+              </button>
               <button style={d.saveBtn} onClick={() => saveEdit()}>Save Changes</button>
               <button style={d.cancelBtn} onClick={() => setEditItem(null)}>Cancel</button>
             </div>
@@ -546,4 +565,6 @@ const d = {
   saveBtn: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 500, cursor: "pointer" },
   cancelBtn: { background: "none", color: "#8a9bb0", border: "none", borderRadius: 8, padding: "8px", fontSize: 13, cursor: "pointer" },
   toggleBtn: { background: "none", border: "1px solid #e2e8f0", color: "#8a9bb0", borderRadius: 8, padding: "4px 10px", fontSize: 11, cursor: "pointer" },
+  btnSpecialOn: { background: "#fffbeb", color: "#b45309", border: "1px solid #fcd34d", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
+  btnSpecialOff: { background: "#f4f6f9", color: "#8a9bb0", border: "1px solid #e2e8f0", borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer" },
 }

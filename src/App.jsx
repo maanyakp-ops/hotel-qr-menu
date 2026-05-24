@@ -299,6 +299,44 @@ function App() {
           </div>
         )}
 
+{menuItems.filter(i => i.is_special).length > 0 && (
+  <div>
+    <div style={s.specialsHeader}>
+      <span style={s.specialsGold}>✦</span>
+      <span style={s.specialsTitle}>Our Specials</span>
+      <span style={s.specialsGold}>✦</span>
+    </div>
+    {menuItems.filter(i => i.is_special).map(item => {
+      const cartItem = cart.find(i => i.id === item.id)
+      return (
+        <div key={item.id} style={s.specialItem}>
+          <div style={s.specialBadge}>Chef's Special</div>
+          <div style={s.itemLeft}>
+            <div style={s.itemName}>{item.name}</div>
+            {item.description && <div style={s.itemDesc}>{item.description}</div>}
+            <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
+          </div>
+          <div style={s.itemRight}>
+            <div style={s.itemPrice}>₹ {item.price}</div>
+            {item.out_of_stock ? (
+              <span style={s.outOfStock}>Out of Stock</span>
+            ) : cartItem ? (
+              <div style={s.qtyRow}>
+                <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
+                <span style={s.qtyNum}>{cartItem.qty}</span>
+                <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
+              </div>
+            ) : (
+              <button style={s.addBtn} onClick={() => addToCart(item)}>+ Add</button>
+            )}
+          </div>
+        </div>
+      )
+    })}
+    <div style={s.specialsDivider} />
+  </div>
+)}
+
         {menuItems.filter(i => i.category === activeTab).map(item => {
           const cartItem = cart.find(i => i.id === item.id)
           return (
@@ -439,6 +477,12 @@ const s = {
   summaryTotal: { display: "flex", justifyContent: "space-between", borderTop: "1px solid #2E2B22", paddingTop: 12, marginTop: 8, color: "#EDE8DC", fontFamily: "'Cormorant Garamond', serif", fontSize: 18 },
   confirmBtn: { background: "#C9A84C", color: "#0D0C0A", border: "none", padding: "12px 32px", fontSize: 11, fontWeight: 500, cursor: "pointer", letterSpacing: 2, textTransform: "uppercase", fontFamily: "'Jost', sans-serif" },
   cancelOrderBtn: { background: "none", border: "1px solid #8B2020", color: "#E07070", padding: "10px 28px", fontSize: 11, cursor: "pointer", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase", fontFamily: "'Jost', sans-serif" },
+  specialsHeader: { display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "1.5rem 2rem 1rem" },
+  specialsGold: { color: "#C9A84C", fontSize: 10, opacity: 0.6 },
+  specialsTitle: { fontFamily: "'Cormorant Garamond', serif", fontSize: 13, letterSpacing: 4, textTransform: "uppercase", color: "#C9A84C" },
+  specialItem: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "1.6rem 2rem 1.1rem", borderBottom: "1px solid #2E2B22", gap: "1rem", background: "#141310", position: "relative" },
+  specialBadge: { position: "absolute", top: 10, left: 20, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: "#C9A84C", opacity: 0.7 },
+  specialsDivider: { height: 1, background: "linear-gradient(90deg, transparent, #C9A84C, transparent)", margin: "0.5rem 2rem 1.5rem", opacity: 0.3 },
 }
 
 export default App
