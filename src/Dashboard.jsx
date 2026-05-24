@@ -629,7 +629,7 @@ export default function Dashboard({ onBack }) {
                     Download each QR and print it for the corresponding room.
                   </p>
                   {Array.from({ length: hotel.room_count }, (_, i) => {
-                    const roomNumber = i + 101
+                    const roomNumber = i + (hotel.room_start || 101)
                     const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
                     return (
                       <div key={roomNumber} style={d.qrCard}>
@@ -687,6 +687,45 @@ export default function Dashboard({ onBack }) {
                 ✓ Theme saved! Guests will see it immediately.
               </p>
             )}
+
+<p style={{ ...d.sectionLabel, marginTop: 28 }}>Room Range</p>
+<p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
+  Set the starting room number. Rooms will go from this number up to {" "}
+  <strong>{(hotel?.room_start || 101) + (hotel?.room_count || 0) - 1}</strong>.
+</p>
+<div style={d.form}>
+  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+    <div style={{ flex: 1 }}>
+      <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 6px" }}>Start room</p>
+      <input
+        style={d.input}
+        type="number"
+        value={hotel?.room_start || 101}
+        onChange={e => setHotel(prev => ({ ...prev, room_start: parseInt(e.target.value) || 101 }))}
+      />
+    </div>
+    <div style={{ flex: 1 }}>
+      <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 6px" }}>End room</p>
+      <input
+        style={{ ...d.input, background: "#f0f0f0", color: "#aaa" }}
+        type="number"
+        value={(hotel?.room_start || 101) + (hotel?.room_count || 0) - 1}
+        disabled
+      />
+    </div>
+  </div>
+  <button
+    style={d.saveBtn}
+    onClick={async () => {
+      await supabase.from("hotels").update({ room_start: hotel.room_start }).eq("id", hotel.id)
+      setThemeSaved(true)
+      setTimeout(() => setThemeSaved(false), 2500)
+    }}
+  >
+    Save Room Range
+  </button>
+</div>
+
           </>
         )}
 
