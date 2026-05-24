@@ -12,8 +12,6 @@ export default function Dashboard({ onBack }) {
   const [adding, setAdding] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [allHotels, setAllHotels] = useState([])
-  const [suggestingDesc, setSuggestingDesc] = useState(false)
-  const [suggestingEditDesc, setSuggestingEditDesc] = useState(false)
   const [editItem, setEditItem] = useState(null)
   const [showAll, setShowAll] = useState(false)
   function playOrderSound() {
@@ -68,31 +66,58 @@ export default function Dashboard({ onBack }) {
     if (hotel) fetchOrders(hotel.id, showAll)
   }, [showAll])
 
-  async function suggestDescription(name, category, target) {
+  function suggestDescription(name, category, target) {
     if (!name) return
-    const setter = target === "new" ? setSuggestingDesc : setSuggestingEditDesc
-    setter(true)
-    try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 100,
-          messages: [{
-            role: "user",
-            content: `Write a short, appetizing menu description (max 15 words) for a dish called "${name}"${category ? ` in the ${category} category` : ""}. Return only the description, nothing else.`
-          }]
-        })
-      })
-      const data = await res.json()
-      const desc = data.content?.[0]?.text?.trim()
-      if (desc) {
-        if (target === "new") setNewItem(prev => ({ ...prev, description: desc }))
-        else setEditItem(prev => ({ ...prev, description: desc }))
-      }
-    } catch (e) { console.error(e) }
-    setter(false)
+    const n = name.toLowerCase()
+    const c = (category || "").toLowerCase()
+  
+    const templates = {
+      starter: `Light and flavourful ${name}, the perfect way to begin your meal.`,
+      soup: `Rich, slow-cooked ${name} served piping hot with fresh garnish.`,
+      salad: `Crisp, fresh ${name} tossed in a house dressing.`,
+      "main course": `A hearty serving of ${name}, cooked to perfection.`,
+      main: `A hearty serving of ${name}, cooked to perfection.`,
+      biryani: `Fragrant basmati rice slow-cooked with tender meat and aromatic spices.`,
+      dessert: `Indulgent ${name} to end your meal on a sweet note.`,
+      beverage: `Chilled and refreshing ${name}, served fresh.`,
+      drink: `Chilled and refreshing ${name}, served fresh.`,
+      breakfast: `A wholesome ${name} to start your day right.`,
+      snack: `Light and crispy ${name}, perfect for any time of day.`,
+    }
+  
+    const keywords = {
+      chicken: `Tender, juicy chicken ${name} cooked in rich spices.`,
+      paneer: `Soft paneer ${name} in a creamy, flavourful gravy.`,
+      dal: `Slow-simmered lentils with a smoky tadka finish.`,
+      rice: `Steamed, fluffy ${name} served hot.`,
+      noodle: `Stir-fried ${name} tossed with vegetables and sauces.`,
+      pasta: `${name} in a rich, creamy sauce with fresh herbs.`,
+      pizza: `Stone-baked ${name} with a crispy crust and fresh toppings.`,
+      burger: `Juicy ${name} stacked high with fresh toppings.`,
+      sandwich: `Fresh ${name} on toasted bread with house sauces.`,
+      chai: `Hot, aromatic ${name} brewed with ginger and spices.`,
+      coffee: `Rich, freshly brewed ${name}.`,
+      juice: `Freshly squeezed ${name}, chilled and served cold.`,
+      cake: `Moist, decadent ${name} baked fresh daily.`,
+      ice: `Cool, creamy ${name} to refresh your palate.`,
+      egg: `Farm-fresh eggs prepared as ${name}.`,
+      fish: `Fresh catch of the day served as ${name}.`,
+      mutton: `Slow-cooked tender mutton in a bold, spiced gravy.`,
+      prawn: `Succulent prawns in a tangy, aromatic preparation.`,
+    }
+  
+    let desc = `A delicious serving of ${name}, freshly prepared by our kitchen.`
+  
+    for (const keyword in keywords) {
+      if (n.includes(keyword)) { desc = keywords[keyword]; break }
+    }
+  
+    for (const cat in templates) {
+      if (c.includes(cat)) { desc = templates[cat]; break }
+    }
+  
+    if (target === "new") setNewItem(prev => ({ ...prev, description: desc }))
+    else setEditItem(prev => ({ ...prev, description: desc }))
   }
 
   async function loadHotel() {
@@ -375,8 +400,8 @@ export default function Dashboard({ onBack }) {
               <input style={d.input} placeholder="Prep time in minutes (e.g. 15)" type="number" value={newItem.prep_time} onChange={e => setNewItem({ ...newItem, prep_time: e.target.value })} />
               <div style={{ display: "flex", gap: 6 }}>
                 <input style={{ ...d.input, flex: 1 }} placeholder="Item description (optional)" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
-                <button type="button" style={d.btnSuggest} onClick={() => suggestDescription(newItem.name, newItem.category, "new")} disabled={suggestingDesc || !newItem.name}>
-                  {suggestingDesc ? "..." : "✨"}
+                <button type="button" style={d.btnSuggest} onClick={() => suggestDescription(newItem.name, newItem.category, "new")}>
+                  Suggest
                 </button>
               </div>
 
@@ -436,8 +461,8 @@ export default function Dashboard({ onBack }) {
               
               <div style={{ display: "flex", gap: 6 }}>
                 <input style={{ ...d.input, flex: 1 }} placeholder="Description (optional)" value={editItem.description || ""} onChange={e => setEditItem({ ...editItem, description: e.target.value })} />
-                <button type="button" style={d.btnSuggest} onClick={() => suggestDescription(editItem.name, editItem.category, "edit")} disabled={suggestingEditDesc || !editItem.name}>
-                  {suggestingEditDesc ? "..." : "✨"}
+                <button type="button" style={d.btnSuggest} onClick={() => suggestDescription(newItem.name, newItem.category, "new")}>
+                  Suggest
                 </button>
               </div>
               
