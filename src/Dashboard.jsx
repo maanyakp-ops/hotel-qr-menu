@@ -12,6 +12,8 @@ export default function Dashboard({ onBack }) {
   const [adding, setAdding] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [allHotels, setAllHotels] = useState([])
+  const [suggestingDesc, setSuggestingDesc] = useState(false)
+  const [suggestingEditDesc, setSuggestingEditDesc] = useState(false)
   const [editItem, setEditItem] = useState(null)
   const [showAll, setShowAll] = useState(false)
   function playOrderSound() {
@@ -65,6 +67,33 @@ export default function Dashboard({ onBack }) {
   useEffect(() => {
     if (hotel) fetchOrders(hotel.id, showAll)
   }, [showAll])
+
+  async function suggestDescription(name, category, target) {
+    if (!name) return
+    const setter = target === "new" ? setSuggestingDesc : setSuggestingEditDesc
+    setter(true)
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 100,
+          messages: [{
+            role: "user",
+            content: `Write a short, appetizing menu description (max 15 words) for a dish called "${name}"${category ? ` in the ${category} category` : ""}. Return only the description, nothing else.`
+          }]
+        })
+      })
+      const data = await res.json()
+      const desc = data.content?.[0]?.text?.trim()
+      if (desc) {
+        if (target === "new") setNewItem(prev => ({ ...prev, description: desc }))
+        else setEditItem(prev => ({ ...prev, description: desc }))
+      }
+    } catch (e) { console.error(e) }
+    setter(false)
+  }
 
   async function loadHotel() {
     document.addEventListener("click", () => {
@@ -344,7 +373,13 @@ export default function Dashboard({ onBack }) {
               <input style={d.input} placeholder="Category (e.g. Starter, Main Course)" value={newItem.category} onChange={e => setNewItem({ ...newItem, category: e.target.value })} />
               <input style={d.input} placeholder="Price (₹)" type="number" value={newItem.price} onChange={e => setNewItem({ ...newItem, price: e.target.value })} />
               <input style={d.input} placeholder="Prep time in minutes (e.g. 15)" type="number" value={newItem.prep_time} onChange={e => setNewItem({ ...newItem, prep_time: e.target.value })} />
-              <input style={d.input} placeholder="Item description (optional)" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
+              <div style={{ display: "flex", gap: 6 }}>
+                <input style={{ ...d.input, flex: 1 }} placeholder="Item description (optional)" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
+                <button type="button" style={d.btnSuggest} onClick={() => suggestDescription(newItem.name, newItem.category, "new")} disabled={suggestingDesc || !newItem.name}>
+                  {suggestingDesc ? "..." : "✨"}
+                </button>
+              </div>
+
               <button
                 type="button"
                 style={newItem.is_special ? d.btnSpecialOn : d.btnSpecialOff}
@@ -399,7 +434,13 @@ export default function Dashboard({ onBack }) {
               <input style={d.input} placeholder="Price (₹)" type="number" value={editItem.price} onChange={e => setEditItem({ ...editItem, price: e.target.value })} />
               <input style={d.input} placeholder="Prep time (minutes)" type="number" value={editItem.prep_time} onChange={e => setEditItem({ ...editItem, prep_time: e.target.value })} />
               
-              <input style={d.input} placeholder="Description (optional)" value={editItem.description || ""} onChange={e => setEditItem({ ...editItem, description: e.target.value })} />
+              <div style={{ display: "flex", gap: 6 }}>
+                <input style={{ ...d.input, flex: 1 }} placeholder="Description (optional)" value={editItem.description || ""} onChange={e => setEditItem({ ...editItem, description: e.target.value })} />
+                <button type="button" style={d.btnSuggest} onClick={() => suggestDescription(editItem.name, editItem.category, "edit")} disabled={suggestingEditDesc || !editItem.name}>
+                  {suggestingEditDesc ? "..." : "✨"}
+                </button>
+              </div>
+              
               <button
                 type="button"
                 style={editItem.is_special ? d.btnSpecialOn : d.btnSpecialOff}
@@ -567,4 +608,5 @@ const d = {
   toggleBtn: { background: "none", border: "1px solid #e2e8f0", color: "#8a9bb0", borderRadius: 8, padding: "4px 10px", fontSize: 11, cursor: "pointer" },
   btnSpecialOn: { background: "#fffbeb", color: "#b45309", border: "1px solid #fcd34d", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
   btnSpecialOff: { background: "#f4f6f9", color: "#8a9bb0", border: "1px solid #e2e8f0", borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer" },
+  btnSuggest: { background: "#fffbeb", color: "#b45309", border: "1px solid #fcd34d", borderRadius: 8, padding: "10px 12px", fontSize: 14, cursor: "pointer", flexShrink: 0 },
 }
