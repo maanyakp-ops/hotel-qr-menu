@@ -19,7 +19,7 @@ function App() {
   const [guestPhone, setGuestPhone] = useState("")
   const [guestInstructions, setGuestInstructions] = useState("")
   const [orderStatus, setOrderStatus] = useState(null)
-  const [hasLastOrder, setHasLastOrder] = useState(() => !!localStorage.getItem("lastOrder"))
+  const hasLastOrder = !!localStorage.getItem("lastOrder")
   const lastOrderTime = useRef(0)
 
   const { hotelId, roomNumber } = useParams()
