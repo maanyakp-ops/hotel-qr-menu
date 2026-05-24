@@ -20,7 +20,6 @@ export default function Dashboard({ onBack }) {
   const [savingTheme, setSavingTheme] = useState(false)
   const [themeSaved, setThemeSaved] = useState(false)
 
-
   function playOrderSound() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)()
     const oscillator = ctx.createOscillator()
@@ -261,7 +260,6 @@ export default function Dashboard({ onBack }) {
     else setOrders(data)
     setLoading(false)
   }
-  
 
   async function fetchMenu(hotelId) {
     const { data } = await supabase
@@ -339,13 +337,14 @@ export default function Dashboard({ onBack }) {
     onBack()
   }
 
+  // ─── THEME PICKER ───────────────────────────────────────────────
   const themes = [
-    { key: 'dark-gold',      label: 'Dark Gold',      swatches: ['#0D0C0A', '#141310', '#C9A84C', '#EDE8DC'] },
-    { key: 'cafe-warm',      label: 'Café Warm',      swatches: ['#FAF6F0', '#3D2B1F', '#C4A882', '#D9C9B0'] },
-    { key: 'royal-emerald',  label: 'Royal Emerald',  swatches: ['#0E1F18', '#0A1912', '#B8963E', '#E8D5A3'] },
-    { key: 'clean-app',      label: 'Clean App',      swatches: ['#F5F5F5', '#FFFFFF', '#111111', '#888888'] },
+    { key: "dark-gold",     label: "Dark Gold",     swatches: ["#0D0C0A", "#141310", "#C9A84C", "#EDE8DC"] },
+    { key: "cafe-warm",     label: "Café Warm",     swatches: ["#FAF6F0", "#3D2B1F", "#C4A882", "#D9C9B0"] },
+    { key: "royal-emerald", label: "Royal Emerald", swatches: ["#0E1F18", "#0A1912", "#B8963E", "#E8D5A3"] },
+    { key: "clean-app",     label: "Clean App",     swatches: ["#F5F5F5", "#FFFFFF", "#111111", "#888888"] },
   ]
-  
+
   async function saveTheme(themeKey) {
     setSavingTheme(true)
     await supabase.from("hotels").update({ theme: themeKey }).eq("id", hotel.id)
@@ -354,6 +353,7 @@ export default function Dashboard({ onBack }) {
     setThemeSaved(true)
     setTimeout(() => setThemeSaved(false), 2500)
   }
+  // ────────────────────────────────────────────────────────────────
 
   const active = orders.filter(o => o.status !== "delivered" && o.status !== "cancelled" && o.status !== "rejected")
   const done = orders.filter(o => o.status === "delivered")
@@ -380,9 +380,10 @@ export default function Dashboard({ onBack }) {
       </div>
 
       <div style={d.tabs}>
-        <button style={tab === "orders" ? d.tabActive : d.tab} onClick={() => setTab("orders")}>Orders</button>
-        <button style={tab === "menu" ? d.tabActive : d.tab} onClick={() => setTab("menu")}>Menu</button>
-        <button style={tab === "qr" ? d.tabActive : d.tab} onClick={() => setTab("qr")}>QR Codes</button>
+        <button style={tab === "orders"   ? d.tabActive : d.tab} onClick={() => setTab("orders")}>Orders</button>
+        <button style={tab === "menu"     ? d.tabActive : d.tab} onClick={() => setTab("menu")}>Menu</button>
+        <button style={tab === "qr"       ? d.tabActive : d.tab} onClick={() => setTab("qr")}>QR Codes</button>
+        <button style={tab === "settings" ? d.tabActive : d.tab} onClick={() => setTab("settings")}>Settings</button>
         {isAdmin && <button style={tab === "admin" ? d.tabActive : d.tab} onClick={() => setTab("admin")}>Hotels</button>}
       </div>
 
@@ -391,14 +392,14 @@ export default function Dashboard({ onBack }) {
         {/* ORDERS TAB */}
         {tab === "orders" && (
           <>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 8px" }}>
-            <p style={{ ...d.sectionLabel, margin: 0 }}>
-              {showAll ? "All Orders" : "Today's Orders"}
-            </p>
-            <button style={d.toggleBtn} onClick={() => setShowAll(!showAll)}>
-              {showAll ? "Show Today" : "Show All"}
-            </button>
-          </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 8px" }}>
+              <p style={{ ...d.sectionLabel, margin: 0 }}>
+                {showAll ? "All Orders" : "Today's Orders"}
+              </p>
+              <button style={d.toggleBtn} onClick={() => setShowAll(!showAll)}>
+                {showAll ? "Show Today" : "Show All"}
+              </button>
+            </div>
 
             {active.length > 0 && (
               <>
@@ -497,25 +498,24 @@ export default function Dashboard({ onBack }) {
         {/* MENU TAB */}
         {tab === "menu" && (
           <>
+            <div style={{ marginTop: 16, marginBottom: 8 }}>
+              <button style={d.templateToggleBtn} onClick={() => setShowTemplates(!showTemplates)}>
+                {showTemplates ? "✕ Close Templates" : "⚡ Start from a template"}
+              </button>
+            </div>
 
-<div style={{ marginTop: 16, marginBottom: 8 }}>
-  <button style={d.templateToggleBtn} onClick={() => setShowTemplates(!showTemplates)}>
-    {showTemplates ? "✕ Close Templates" : "⚡ Start from a template"}
-  </button>
-</div>
-
-{showTemplates && (
-  <div style={d.templateGrid}>
-    {Object.entries(menuTemplates).map(([key, t]) => (
-      <div key={key} style={d.templateCard}>
-        <div style={d.templateEmoji}>{t.emoji}</div>
-        <div style={d.templateLabel}>{t.label}</div>
-        <div style={d.templateCount}>{t.items.length} items</div>
-        <button style={d.templateBtn} onClick={() => openTemplatePreview(key)}>Use This</button>
-      </div>
-    ))}
-  </div>
-)}          
+            {showTemplates && (
+              <div style={d.templateGrid}>
+                {Object.entries(menuTemplates).map(([key, t]) => (
+                  <div key={key} style={d.templateCard}>
+                    <div style={d.templateEmoji}>{t.emoji}</div>
+                    <div style={d.templateLabel}>{t.label}</div>
+                    <div style={d.templateCount}>{t.items.length} items</div>
+                    <button style={d.templateBtn} onClick={() => openTemplatePreview(key)}>Use This</button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <p style={d.sectionLabel}>Add New Item</p>
             <div style={d.form}>
@@ -529,7 +529,6 @@ export default function Dashboard({ onBack }) {
                   Suggest
                 </button>
               </div>
-
               <button
                 type="button"
                 style={newItem.is_special ? d.btnSpecialOn : d.btnSpecialOff}
@@ -541,50 +540,50 @@ export default function Dashboard({ onBack }) {
                 {adding ? "Adding..." : "+ Add Item"}
               </button>
             </div>
+
             <p style={d.sectionLabel}>Your Menu ({menuItems.length} items)</p>
             {menuItems.length === 0 && <p style={d.empty}>No items yet. Add one above.</p>}
 
             {Object.entries(
-  menuItems.reduce((acc, item) => {
-    const cat = item.category || "Uncategorized"
-    if (!acc[cat]) acc[cat] = []
-    acc[cat].push(item)
-    return acc
-  }, {})
-).map(([category, items]) => (
-  <div key={category}>
-    <p style={d.sectionLabel}>{category}</p>
-    {items.map(item => (
-      <div key={item.id} style={d.menuCard}>
-        <div style={d.menuImgPlaceholder}>🍽️</div>
-        <div style={d.menuInfo}>
-          <p style={d.menuName}>{item.name}</p>
-          <p style={d.menuMeta}>{item.category} · ₹{item.price} · {item.prep_time}min</p>
-        </div>
-        <div style={d.menuActions}>
-          <button style={item.available ? d.btnOn : d.btnOff} onClick={() => toggleAvailable(item)}>
-            {item.available ? "On" : "Off"}
-          </button>
-          <button style={item.out_of_stock ? d.btnStock : d.btnNoStock} onClick={() => toggleStock(item)}>
-            {item.out_of_stock ? "In Stock" : "Out"}
-          </button>
-          <button
-            style={item.is_special ? d.btnSpecialOn : d.btnSpecialOff}
-            onClick={async () => {
-              await supabase.from("menu_items").update({ is_special: !item.is_special }).eq("id", item.id)
-              fetchMenu(hotel.id)
-            }}
-          >
-            {item.is_special ? "⭐" : "☆"}
-          </button>
-          <button style={d.btnEdit} onClick={() => setEditItem(item)}>✏️</button>
-          <button style={d.btnDelete} onClick={() => deleteItem(item.id)}>🗑</button>
-        </div>
-      </div>
-    ))}
-  </div>
-))}
-
+              menuItems.reduce((acc, item) => {
+                const cat = item.category || "Uncategorized"
+                if (!acc[cat]) acc[cat] = []
+                acc[cat].push(item)
+                return acc
+              }, {})
+            ).map(([category, items]) => (
+              <div key={category}>
+                <p style={d.sectionLabel}>{category}</p>
+                {items.map(item => (
+                  <div key={item.id} style={d.menuCard}>
+                    <div style={d.menuImgPlaceholder}>🍽️</div>
+                    <div style={d.menuInfo}>
+                      <p style={d.menuName}>{item.name}</p>
+                      <p style={d.menuMeta}>{item.category} · ₹{item.price} · {item.prep_time}min</p>
+                    </div>
+                    <div style={d.menuActions}>
+                      <button style={item.available ? d.btnOn : d.btnOff} onClick={() => toggleAvailable(item)}>
+                        {item.available ? "On" : "Off"}
+                      </button>
+                      <button style={item.out_of_stock ? d.btnStock : d.btnNoStock} onClick={() => toggleStock(item)}>
+                        {item.out_of_stock ? "In Stock" : "Out"}
+                      </button>
+                      <button
+                        style={item.is_special ? d.btnSpecialOn : d.btnSpecialOff}
+                        onClick={async () => {
+                          await supabase.from("menu_items").update({ is_special: !item.is_special }).eq("id", item.id)
+                          fetchMenu(hotel.id)
+                        }}
+                      >
+                        {item.is_special ? "⭐" : "☆"}
+                      </button>
+                      <button style={d.btnEdit} onClick={() => setEditItem(item)}>✏️</button>
+                      <button style={d.btnDelete} onClick={() => deleteItem(item.id)}>🗑</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
           </>
         )}
 
@@ -597,14 +596,12 @@ export default function Dashboard({ onBack }) {
               <input style={d.input} placeholder="Category" value={editItem.category} onChange={e => setEditItem({ ...editItem, category: e.target.value })} />
               <input style={d.input} placeholder="Price (₹)" type="number" value={editItem.price} onChange={e => setEditItem({ ...editItem, price: e.target.value })} />
               <input style={d.input} placeholder="Prep time (minutes)" type="number" value={editItem.prep_time} onChange={e => setEditItem({ ...editItem, prep_time: e.target.value })} />
-              
               <div style={{ display: "flex", gap: 6 }}>
                 <input style={{ ...d.input, flex: 1 }} placeholder="Description (optional)" value={editItem.description || ""} onChange={e => setEditItem({ ...editItem, description: e.target.value })} />
-                <button type="button" style={d.btnSuggest} onClick={() => suggestDescription(newItem.name, newItem.category, "new")}>
+                <button type="button" style={d.btnSuggest} onClick={() => suggestDescription(editItem.name, editItem.category, "edit")}>
                   Suggest
                 </button>
               </div>
-              
               <button
                 type="button"
                 style={editItem.is_special ? d.btnSpecialOn : d.btnSpecialOff}
@@ -643,7 +640,6 @@ export default function Dashboard({ onBack }) {
                         <div style={d.qrBox}>
                           <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
                           <button style={d.downloadBtn} onClick={() => downloadQR(roomNumber)}>Download</button>
-                          <button style={tab === "settings" ? d.tabActive : d.tab} onClick={() => setTab("settings")}>Settings</button>
                         </div>
                       </div>
                     )
@@ -653,82 +649,84 @@ export default function Dashboard({ onBack }) {
             }
           </>
         )}
-        
-        {tab === "settings" && (
-  <>
-    <p style={d.sectionLabel}>Menu Theme</p>
-    <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
-      Choose how your menu looks to guests.
-    </p>
-    <div style={d.themeGrid}>
-      {themes.map(t => {
-        const isActive = (hotel?.theme || 'dark-gold') === t.key
-        return (
-          <div
-            key={t.key}
-            onClick={() => !savingTheme && saveTheme(t.key)}
-            style={{
-              ...d.themeCard,
-              outline: isActive ? "2px solid #1c2b3a" : "2px solid transparent",
-              opacity: savingTheme ? 0.6 : 1,
-              cursor: savingTheme ? "wait" : "pointer",
-            }}
-          >
-            <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
-              {t.swatches.map((c, i) => (
-                <div key={i} style={{ width: 18, height: 18, borderRadius: "50%", background: c, border: "1px solid #e2e8f0" }} />
-              ))}
-            </div>
-            <div style={d.themeName}>{t.label}</div>
-            {isActive && <div style={d.themeActiveBadge}>✓ Active</div>}
-          </div>
-        )
-      })}
-    </div>
-    {themeSaved && (
-      <p style={{ color: "#2e7d32", fontSize: 13, textAlign: "center", marginTop: 8, fontWeight: 500 }}>
-        ✓ Theme saved! Guests will see it immediately.
-      </p>
-    )}
-  </>
-)}
 
-{previewTemplate && (
-  <div style={d.modalOverlay}>
-    <div style={{ ...d.modal, maxHeight: "80vh", overflowY: "auto" }}>
-      <p style={d.modalTitle}>{menuTemplates[previewTemplate].label}</p>
-      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
-        Uncheck items you don't want to add.
-      </p>
-      {menuTemplates[previewTemplate].items.map((item, i) => (
-        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: "1px solid #f0f0f0" }}>
-          <input
-            type="checkbox"
-            checked={selectedItems.includes(i)}
-            onChange={() => setSelectedItems(prev =>
-              prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
+        {/* SETTINGS TAB */}
+        {tab === "settings" && (
+          <>
+            <p style={d.sectionLabel}>Menu Theme</p>
+            <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
+              Choose how your menu looks to guests. Changes apply immediately.
+            </p>
+            <div style={d.themeGrid}>
+              {themes.map(t => {
+                const isActive = (hotel?.theme || "dark-gold") === t.key
+                return (
+                  <div
+                    key={t.key}
+                    onClick={() => !savingTheme && saveTheme(t.key)}
+                    style={{
+                      ...d.themeCard,
+                      outline: isActive ? "2px solid #1c2b3a" : "2px solid transparent",
+                      opacity: savingTheme ? 0.6 : 1,
+                      cursor: savingTheme ? "wait" : "pointer",
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
+                      {t.swatches.map((c, i) => (
+                        <div key={i} style={{ width: 20, height: 20, borderRadius: "50%", background: c, border: "1px solid #e2e8f0", flexShrink: 0 }} />
+                      ))}
+                    </div>
+                    <div style={d.themeName}>{t.label}</div>
+                    {isActive && <div style={d.themeActiveBadge}>✓ Active</div>}
+                  </div>
+                )
+              })}
+            </div>
+            {themeSaved && (
+              <p style={{ color: "#2e7d32", fontSize: 13, textAlign: "center", marginTop: 8, fontWeight: 500 }}>
+                ✓ Theme saved! Guests will see it immediately.
+              </p>
             )}
-            style={{ marginTop: 3, accentColor: "#1c2b3a", flexShrink: 0 }}
-          />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>{item.name}</div>
-            <div style={{ fontSize: 11, color: "#8a9bb0" }}>{item.category} · ₹{item.price} · {item.prep_time} min</div>
-            {item.description && <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{item.description}</div>}
+          </>
+        )}
+
+        {/* TEMPLATE PREVIEW MODAL */}
+        {previewTemplate && (
+          <div style={d.modalOverlay}>
+            <div style={{ ...d.modal, maxHeight: "80vh", overflowY: "auto" }}>
+              <p style={d.modalTitle}>{menuTemplates[previewTemplate].label}</p>
+              <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
+                Uncheck items you don't want to add.
+              </p>
+              {menuTemplates[previewTemplate].items.map((item, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: "1px solid #f0f0f0" }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(i)}
+                    onChange={() => setSelectedItems(prev =>
+                      prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
+                    )}
+                    style={{ marginTop: 3, accentColor: "#1c2b3a", flexShrink: 0 }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>{item.name}</div>
+                    <div style={{ fontSize: 11, color: "#8a9bb0" }}>{item.category} · ₹{item.price} · {item.prep_time} min</div>
+                    {item.description && <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{item.description}</div>}
+                  </div>
+                </div>
+              ))}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
+                <span style={{ fontSize: 12, color: "#8a9bb0" }}>{selectedItems.length} items selected</span>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button style={d.cancelBtn} onClick={() => setPreviewTemplate(null)}>Cancel</button>
+                  <button style={{ ...d.saveBtn, opacity: selectedItems.length === 0 ? 0.4 : 1 }} onClick={applyTemplate} disabled={selectedItems.length === 0}>
+                    Add {selectedItems.length} Items
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
-        <span style={{ fontSize: 12, color: "#8a9bb0" }}>{selectedItems.length} items selected</span>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button style={d.cancelBtn} onClick={() => setPreviewTemplate(null)}>Cancel</button>
-          <button style={{ ...d.saveBtn, opacity: selectedItems.length === 0 ? 0.4 : 1 }} onClick={applyTemplate} disabled={selectedItems.length === 0}>
-            Add {selectedItems.length} Items
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}        
+        )}
 
         {/* ADMIN TAB */}
         {tab === "admin" && isAdmin && (
@@ -776,6 +774,7 @@ export default function Dashboard({ onBack }) {
             ))}
           </>
         )}
+
       </div>
     </div>
   )
@@ -819,7 +818,6 @@ const d = {
   input: { background: "#f4f6f9", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#1c2b3a", outline: "none" },
   addBtn: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 500, cursor: "pointer" },
   menuCard: { background: "#fff", borderRadius: 14, padding: 12, marginBottom: 8, boxShadow: "0 1px 6px rgba(0,0,0,0.07)", display: "flex", alignItems: "center", gap: 12 },
-  menuImg: { width: 52, height: 52, borderRadius: 8, objectFit: "cover", flexShrink: 0 },
   menuImgPlaceholder: { width: 52, height: 52, borderRadius: 8, background: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 },
   menuInfo: { flex: 1 },
   menuName: { fontSize: 13, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px" },
@@ -857,9 +855,9 @@ const d = {
   templateLabel: { fontSize: 12, fontWeight: 600, color: "#1c2b3a" },
   templateCount: { fontSize: 10, color: "#8a9bb0" },
   templateBtn: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 6, padding: "6px 14px", fontSize: 11, fontWeight: 500, cursor: "pointer", marginTop: 4 },
+  // Theme picker
   themeGrid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 16 },
   themeCard: { background: "#fff", borderRadius: 14, padding: "16px 14px", boxShadow: "0 1px 6px rgba(0,0,0,0.07)", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, transition: "outline 0.15s" },
   themeName: { fontSize: 13, fontWeight: 600, color: "#1c2b3a" },
   themeActiveBadge: { fontSize: 10, color: "#2e7d32", background: "#e8f5e9", padding: "2px 10px", borderRadius: 20, marginTop: 4 },
-  
 }
