@@ -15,6 +15,8 @@ export default function Dashboard({ onBack }) {
   const [editItem, setEditItem] = useState(null)
   const [showAll, setShowAll] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
+  const [previewTemplate, setPreviewTemplate] = useState(null)
+  const [selectedItems, setSelectedItems] = useState([])
 
 
 
@@ -188,16 +190,21 @@ export default function Dashboard({ onBack }) {
     }
   }
   
-  async function applyTemplate(templateKey) {
-    if (!confirm(`This will add ${menuTemplates[templateKey].items.length} items to your menu. Continue?`)) return
-    const items = menuTemplates[templateKey].items.map(item => ({
-      ...item,
+  function openTemplatePreview(templateKey) {
+    setPreviewTemplate(templateKey)
+    setSelectedItems(menuTemplates[templateKey].items.map((_, i) => i))
+  }
+  
+  async function applyTemplate() {
+    const items = selectedItems.map(i => ({
+      ...menuTemplates[previewTemplate].items[i],
       hotel_id: hotel.id,
       available: true,
       is_special: false
     }))
     await supabase.from("menu_items").insert(items)
     fetchMenu(hotel.id)
+    setPreviewTemplate(null)
     setShowTemplates(false)
   }
 
@@ -487,7 +494,7 @@ export default function Dashboard({ onBack }) {
         <div style={d.templateEmoji}>{t.emoji}</div>
         <div style={d.templateLabel}>{t.label}</div>
         <div style={d.templateCount}>{t.items.length} items</div>
-        <button style={d.templateBtn} onClick={() => applyTemplate(key)}>Use This</button>
+        <button style={d.templateBtn} onClick={() => openTemplatePreview(key)}>Use This</button>
       </div>
     ))}
   </div>
@@ -614,6 +621,43 @@ export default function Dashboard({ onBack }) {
             }
           </>
         )}
+        
+{previewTemplate && (
+  <div style={d.modalOverlay}>
+    <div style={{ ...d.modal, maxHeight: "80vh", overflowY: "auto" }}>
+      <p style={d.modalTitle}>{menuTemplates[previewTemplate].label}</p>
+      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
+        Uncheck items you don't want to add.
+      </p>
+      {menuTemplates[previewTemplate].items.map((item, i) => (
+        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: "1px solid #f0f0f0" }}>
+          <input
+            type="checkbox"
+            checked={selectedItems.includes(i)}
+            onChange={() => setSelectedItems(prev =>
+              prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
+            )}
+            style={{ marginTop: 3, accentColor: "#1c2b3a", flexShrink: 0 }}
+          />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>{item.name}</div>
+            <div style={{ fontSize: 11, color: "#8a9bb0" }}>{item.category} · ₹{item.price} · {item.prep_time} min</div>
+            {item.description && <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{item.description}</div>}
+          </div>
+        </div>
+      ))}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
+        <span style={{ fontSize: 12, color: "#8a9bb0" }}>{selectedItems.length} items selected</span>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button style={d.cancelBtn} onClick={() => setPreviewTemplate(null)}>Cancel</button>
+          <button style={{ ...d.saveBtn, opacity: selectedItems.length === 0 ? 0.4 : 1 }} onClick={applyTemplate} disabled={selectedItems.length === 0}>
+            Add {selectedItems.length} Items
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}        
 
         {/* ADMIN TAB */}
         {tab === "admin" && isAdmin && (
