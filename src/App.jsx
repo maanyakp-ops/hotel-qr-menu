@@ -19,6 +19,7 @@ function App() {
   const [guestPhone, setGuestPhone] = useState("")
   const [guestInstructions, setGuestInstructions] = useState("")
   const [orderStatus, setOrderStatus] = useState(null)
+  const [, forceUpdate] = useState(0)
   const hasLastOrder = !!localStorage.getItem("lastOrder")
   const lastOrderTime = useRef(0)
 
@@ -86,6 +87,7 @@ function App() {
     }).eq("id", orderId)
     setOrderStatus("cancelled")
     localStorage.removeItem("lastOrder")
+    forceUpdate(n => n + 1)
   }
 
   async function placeOrder() {
@@ -131,6 +133,7 @@ function App() {
     setShowGuestForm(false)
     setCart([])
     localStorage.setItem("lastOrder", JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
+    forceUpdate(n => n + 1)
     watchOrderStatus(order.id)
   }
 
@@ -237,6 +240,7 @@ function App() {
           setOrderPlaced(false)
           setPlacedOrder(null)
           localStorage.removeItem("lastOrder")
+          forceUpdate(n => n + 1)
         }}>
           Back to Menu
         </button>
