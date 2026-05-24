@@ -236,14 +236,13 @@ function App() {
           </button>
         )}
 
-        <button style={s.confirmBtn} onClick={() => {
-          setOrderPlaced(false)
-          setPlacedOrder(null)
-          localStorage.removeItem("lastOrder")
-          forceUpdate(n => n + 1)
-        }}>
-          Back to Menu
-        </button>
+<button style={s.confirmBtn} onClick={() => {
+  setOrderPlaced(false)
+  setPlacedOrder(null)
+  forceUpdate(n => n + 1)
+}}>
+  Back to Menu
+</button>
       </div>
     )
   }
@@ -331,7 +330,7 @@ function App() {
           </div>
         ))}
       </div>
-      
+
       <p style={{color:"white",fontSize:10}}>{String(hasLastOrder)} - {localStorage.getItem("lastOrder") ? "has data" : "no data"}</p>
       <div style={s.staffAccess}>
         {hasLastOrder && (
