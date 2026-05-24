@@ -19,7 +19,7 @@ function App() {
   const [guestPhone, setGuestPhone] = useState("")
   const [guestInstructions, setGuestInstructions] = useState("")
   const [orderStatus, setOrderStatus] = useState(null)
-  const [hasLastOrder, setHasLastOrder] = useState(false)
+  const [hasLastOrder, setHasLastOrder] = useState(() => !!localStorage.getItem("lastOrder"))
   const lastOrderTime = useRef(0)
 
   const { hotelId, roomNumber } = useParams()
@@ -36,9 +36,7 @@ function App() {
 
   useEffect(() => { fetchHotelAndMenu() }, [])
 
-  useEffect(() => {
-    setHasLastOrder(!!localStorage.getItem("lastOrder"))
-  }, [])
+  
 
   async function fetchHotelAndMenu() {
     const { data: hotelData } = await supabase
