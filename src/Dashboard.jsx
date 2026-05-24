@@ -17,7 +17,8 @@ export default function Dashboard({ onBack }) {
   const [showTemplates, setShowTemplates] = useState(false)
   const [previewTemplate, setPreviewTemplate] = useState(null)
   const [selectedItems, setSelectedItems] = useState([])
-
+  const [savingTheme, setSavingTheme] = useState(false)
+  const [themeSaved, setThemeSaved] = useState(false)
 
 
   function playOrderSound() {
@@ -338,6 +339,22 @@ export default function Dashboard({ onBack }) {
     onBack()
   }
 
+  const themes = [
+    { key: 'dark-gold',      label: 'Dark Gold',      swatches: ['#0D0C0A', '#141310', '#C9A84C', '#EDE8DC'] },
+    { key: 'cafe-warm',      label: 'Café Warm',      swatches: ['#FAF6F0', '#3D2B1F', '#C4A882', '#D9C9B0'] },
+    { key: 'royal-emerald',  label: 'Royal Emerald',  swatches: ['#0E1F18', '#0A1912', '#B8963E', '#E8D5A3'] },
+    { key: 'clean-app',      label: 'Clean App',      swatches: ['#F5F5F5', '#FFFFFF', '#111111', '#888888'] },
+  ]
+  
+  async function saveTheme(themeKey) {
+    setSavingTheme(true)
+    await supabase.from("hotels").update({ theme: themeKey }).eq("id", hotel.id)
+    setHotel(prev => ({ ...prev, theme: themeKey }))
+    setSavingTheme(false)
+    setThemeSaved(true)
+    setTimeout(() => setThemeSaved(false), 2500)
+  }
+
   const active = orders.filter(o => o.status !== "delivered" && o.status !== "cancelled" && o.status !== "rejected")
   const done = orders.filter(o => o.status === "delivered")
   const cancelled = orders.filter(o => o.status === "cancelled" || o.status === "rejected")
@@ -626,6 +643,7 @@ export default function Dashboard({ onBack }) {
                         <div style={d.qrBox}>
                           <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
                           <button style={d.downloadBtn} onClick={() => downloadQR(roomNumber)}>Download</button>
+                          <button style={tab === "settings" ? d.tabActive : d.tab} onClick={() => setTab("settings")}>Settings</button>
                         </div>
                       </div>
                     )
@@ -636,6 +654,45 @@ export default function Dashboard({ onBack }) {
           </>
         )}
         
+        {tab === "settings" && (
+  <>
+    <p style={d.sectionLabel}>Menu Theme</p>
+    <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
+      Choose how your menu looks to guests.
+    </p>
+    <div style={d.themeGrid}>
+      {themes.map(t => {
+        const isActive = (hotel?.theme || 'dark-gold') === t.key
+        return (
+          <div
+            key={t.key}
+            onClick={() => !savingTheme && saveTheme(t.key)}
+            style={{
+              ...d.themeCard,
+              outline: isActive ? "2px solid #1c2b3a" : "2px solid transparent",
+              opacity: savingTheme ? 0.6 : 1,
+              cursor: savingTheme ? "wait" : "pointer",
+            }}
+          >
+            <div style={{ display: "flex", gap: 5, marginBottom: 10 }}>
+              {t.swatches.map((c, i) => (
+                <div key={i} style={{ width: 18, height: 18, borderRadius: "50%", background: c, border: "1px solid #e2e8f0" }} />
+              ))}
+            </div>
+            <div style={d.themeName}>{t.label}</div>
+            {isActive && <div style={d.themeActiveBadge}>✓ Active</div>}
+          </div>
+        )
+      })}
+    </div>
+    {themeSaved && (
+      <p style={{ color: "#2e7d32", fontSize: 13, textAlign: "center", marginTop: 8, fontWeight: 500 }}>
+        ✓ Theme saved! Guests will see it immediately.
+      </p>
+    )}
+  </>
+)}
+
 {previewTemplate && (
   <div style={d.modalOverlay}>
     <div style={{ ...d.modal, maxHeight: "80vh", overflowY: "auto" }}>
@@ -800,4 +857,9 @@ const d = {
   templateLabel: { fontSize: 12, fontWeight: 600, color: "#1c2b3a" },
   templateCount: { fontSize: 10, color: "#8a9bb0" },
   templateBtn: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 6, padding: "6px 14px", fontSize: 11, fontWeight: 500, cursor: "pointer", marginTop: 4 },
+  themeGrid: { display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 16 },
+  themeCard: { background: "#fff", borderRadius: 14, padding: "16px 14px", boxShadow: "0 1px 6px rgba(0,0,0,0.07)", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, transition: "outline 0.15s" },
+  themeName: { fontSize: 13, fontWeight: 600, color: "#1c2b3a" },
+  themeActiveBadge: { fontSize: 10, color: "#2e7d32", background: "#e8f5e9", padding: "2px 10px", borderRadius: 20, marginTop: 4 },
+  
 }
