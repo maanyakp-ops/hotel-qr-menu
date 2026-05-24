@@ -331,7 +331,7 @@ function App() {
         ))}
       </div>
 
-      <p style={{color:"white",fontSize:10}}>{String(hasLastOrder)} - {localStorage.getItem("lastOrder") ? "has data" : "no data"}</p>
+      
       <div style={s.staffAccess}>
         {hasLastOrder && (
           <button style={s.viewOrderBtn} onClick={async () => {
