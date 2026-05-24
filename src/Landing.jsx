@@ -182,7 +182,7 @@ export default function Landing() {
             <p style={l.whatsappSub}>Message us on WhatsApp. We'll set up a free demo for your property within 24 hours.</p>
           </div>
           <a
-            href="https://wa.me/919999999999?text=Hi%2C%20I%20want%20to%20know%20more%20about%20Hotel%2B"
+            href="https://wa.me/919370133278?text=Hi%2C%20I%20want%20to%20know%20more%20about%20Hotel%2B"
             target="_blank"
             rel="noreferrer"
             style={l.whatsappBtn}

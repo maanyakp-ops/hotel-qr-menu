@@ -14,6 +14,10 @@ export default function Dashboard({ onBack }) {
   const [allHotels, setAllHotels] = useState([])
   const [editItem, setEditItem] = useState(null)
   const [showAll, setShowAll] = useState(false)
+  const [showTemplates, setShowTemplates] = useState(false)
+
+
+
   function playOrderSound() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)()
     const oscillator = ctx.createOscillator()
@@ -118,6 +122,83 @@ export default function Dashboard({ onBack }) {
   
     if (target === "new") setNewItem(prev => ({ ...prev, description: desc }))
     else setEditItem(prev => ({ ...prev, description: desc }))
+  }
+
+  const menuTemplates = {
+    budget: {
+      label: "Lodge",
+      emoji: "🏨",
+      items: [
+        { name: "Poha", category: "Breakfast", price: 60, prep_time: 10, description: "Light, fluffy flattened rice with mustard seeds and fresh coriander." },
+        { name: "Bread Toast", category: "Breakfast", price: 40, prep_time: 5, description: "Crispy toasted bread served with butter and jam." },
+        { name: "Masala Omelette", category: "Breakfast", price: 70, prep_time: 10, description: "Farm fresh eggs with onions, tomatoes and green chilli." },
+        { name: "Chai", category: "Beverages", price: 30, prep_time: 5, description: "Hot, aromatic tea brewed with ginger and spices." },
+        { name: "Coffee", category: "Beverages", price: 40, prep_time: 5, description: "Freshly brewed hot coffee." },
+        { name: "Cold Drink", category: "Beverages", price: 50, prep_time: 2, description: "Chilled soft drink of your choice." },
+        { name: "Dal Rice", category: "Main Course", price: 120, prep_time: 20, description: "Comforting yellow dal served with steamed rice." },
+        { name: "Roti with Sabzi", category: "Main Course", price: 100, prep_time: 15, description: "Fresh rotis served with seasonal vegetable curry." },
+        { name: "Rajma Rice", category: "Main Course", price: 130, prep_time: 20, description: "Rich kidney bean curry served over steamed rice." },
+        { name: "Samosa", category: "Snacks", price: 30, prep_time: 5, description: "Crispy fried pastry filled with spiced potatoes." },
+        { name: "Bread Pakoda", category: "Snacks", price: 50, prep_time: 10, description: "Golden fried bread stuffed with spiced filling." },
+      ]
+    },
+    midrange: {
+      label: "Mid-range Hotel",
+      emoji: "🏩",
+      items: [
+        { name: "Idli Sambhar", category: "Breakfast", price: 90, prep_time: 10, description: "Steamed rice cakes served with hot sambhar and coconut chutney." },
+        { name: "Upma", category: "Breakfast", price: 80, prep_time: 10, description: "Savory semolina porridge with vegetables and curry leaves." },
+        { name: "Bread Toast with Eggs", category: "Breakfast", price: 110, prep_time: 10, description: "Toasted bread with choice of eggs and condiments." },
+        { name: "Masala Chai", category: "Beverages", price: 50, prep_time: 5, description: "Aromatic spiced tea brewed fresh." },
+        { name: "Cold Coffee", category: "Beverages", price: 90, prep_time: 5, description: "Chilled blended coffee with ice cream." },
+        { name: "Fresh Lime Soda", category: "Beverages", price: 70, prep_time: 3, description: "Freshly squeezed lime with soda, sweet or salted." },
+        { name: "Tomato Soup", category: "Starters", price: 110, prep_time: 10, description: "Creamy, slow-cooked tomato soup with croutons." },
+        { name: "Veg Spring Rolls", category: "Starters", price: 130, prep_time: 15, description: "Crispy rolls filled with stir-fried vegetables." },
+        { name: "Dal Makhani", category: "Main Course", price: 180, prep_time: 25, description: "Slow-cooked black lentils in a rich, buttery tomato gravy." },
+        { name: "Paneer Butter Masala", category: "Main Course", price: 210, prep_time: 20, description: "Soft paneer in a velvety, spiced tomato-butter sauce." },
+        { name: "Butter Naan", category: "Main Course", price: 50, prep_time: 10, description: "Soft leavened bread brushed with butter, baked in tandoor." },
+        { name: "Jeera Rice", category: "Main Course", price: 130, prep_time: 15, description: "Fragrant basmati rice tempered with cumin seeds." },
+        { name: "French Fries", category: "Snacks", price: 120, prep_time: 12, description: "Golden, crispy fries served with ketchup." },
+        { name: "Veg Sandwich", category: "Snacks", price: 100, prep_time: 10, description: "Grilled sandwich with fresh vegetables and cheese." },
+      ]
+    },
+    luxury: {
+      label: "Luxury Hotel",
+      emoji: "✦",
+      items: [
+        { name: "Fresh Fruit Platter", category: "Breakfast", price: 220, prep_time: 10, description: "Seasonal fresh fruits, elegantly arranged." },
+        { name: "Continental Breakfast", category: "Breakfast", price: 350, prep_time: 15, description: "Croissant, toast, eggs, juice and coffee served together." },
+        { name: "Masala Omelette", category: "Breakfast", price: 180, prep_time: 10, description: "Farm fresh eggs with herbs, onions and spices." },
+        { name: "Fresh Orange Juice", category: "Beverages", price: 160, prep_time: 5, description: "Freshly squeezed orange juice, served chilled." },
+        { name: "Cappuccino", category: "Beverages", price: 180, prep_time: 5, description: "Rich espresso with steamed milk foam." },
+        { name: "Mocktail of the Day", category: "Beverages", price: 200, prep_time: 8, description: "Chef's special non-alcoholic blend, served chilled." },
+        { name: "Cream of Tomato Soup", category: "Starters", price: 180, prep_time: 12, description: "Velvety tomato bisque with a swirl of cream and fresh basil." },
+        { name: "Paneer Tikka", category: "Starters", price: 320, prep_time: 20, description: "Tandoor-charred paneer with bell peppers and mint chutney." },
+        { name: "Veg Spring Rolls", category: "Starters", price: 260, prep_time: 15, description: "Crispy rolls with stir-fried vegetables and dipping sauce." },
+        { name: "Butter Chicken", category: "Main Course", price: 420, prep_time: 25, description: "Tender chicken in a rich, aromatic tomato-butter gravy." },
+        { name: "Dal Makhani", category: "Main Course", price: 320, prep_time: 30, description: "Overnight slow-cooked black lentils, finished with cream." },
+        { name: "Paneer Butter Masala", category: "Main Course", price: 360, prep_time: 20, description: "Soft cottage cheese in a velvety, spiced tomato sauce." },
+        { name: "Veg Biryani", category: "Main Course", price: 380, prep_time: 30, description: "Fragrant basmati rice layered with spiced vegetables and saffron." },
+        { name: "Butter Naan", category: "Main Course", price: 80, prep_time: 10, description: "Leavened bread baked in tandoor, finished with butter." },
+        { name: "Garlic Naan", category: "Main Course", price: 90, prep_time: 10, description: "Tandoor-baked naan topped with roasted garlic and coriander." },
+        { name: "Gulab Jamun", category: "Desserts", price: 160, prep_time: 5, description: "Soft milk dumplings soaked in rose-scented sugar syrup." },
+        { name: "Chocolate Brownie", category: "Desserts", price: 220, prep_time: 8, description: "Warm dark chocolate brownie served with vanilla ice cream." },
+        { name: "Ice Cream", category: "Desserts", price: 180, prep_time: 3, description: "Choice of vanilla, chocolate or strawberry, served with wafer." },
+      ]
+    }
+  }
+  
+  async function applyTemplate(templateKey) {
+    if (!confirm(`This will add ${menuTemplates[templateKey].items.length} items to your menu. Continue?`)) return
+    const items = menuTemplates[templateKey].items.map(item => ({
+      ...item,
+      hotel_id: hotel.id,
+      available: true,
+      is_special: false
+    }))
+    await supabase.from("menu_items").insert(items)
+    fetchMenu(hotel.id)
+    setShowTemplates(false)
   }
 
   async function loadHotel() {
@@ -392,6 +473,26 @@ export default function Dashboard({ onBack }) {
         {/* MENU TAB */}
         {tab === "menu" && (
           <>
+
+<div style={{ marginTop: 16, marginBottom: 8 }}>
+  <button style={d.templateToggleBtn} onClick={() => setShowTemplates(!showTemplates)}>
+    {showTemplates ? "✕ Close Templates" : "⚡ Start from a template"}
+  </button>
+</div>
+
+{showTemplates && (
+  <div style={d.templateGrid}>
+    {Object.entries(menuTemplates).map(([key, t]) => (
+      <div key={key} style={d.templateCard}>
+        <div style={d.templateEmoji}>{t.emoji}</div>
+        <div style={d.templateLabel}>{t.label}</div>
+        <div style={d.templateCount}>{t.items.length} items</div>
+        <button style={d.templateBtn} onClick={() => applyTemplate(key)}>Use This</button>
+      </div>
+    ))}
+  </div>
+)}          
+
             <p style={d.sectionLabel}>Add New Item</p>
             <div style={d.form}>
               <input style={d.input} placeholder="Item name" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
@@ -634,4 +735,11 @@ const d = {
   btnSpecialOn: { background: "#fffbeb", color: "#b45309", border: "1px solid #fcd34d", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
   btnSpecialOff: { background: "#f4f6f9", color: "#8a9bb0", border: "1px solid #e2e8f0", borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer" },
   btnSuggest: { background: "#fffbeb", color: "#b45309", border: "1px solid #fcd34d", borderRadius: 8, padding: "10px 12px", fontSize: 14, cursor: "pointer", flexShrink: 0 },
+  templateToggleBtn: { background: "#f0f4ff", color: "#1c2b3a", border: "1px solid #dce4f0", borderRadius: 8, padding: "9px 16px", fontSize: 12, fontWeight: 600, cursor: "pointer" },
+  templateGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 16 },
+  templateCard: { background: "#fff", borderRadius: 12, padding: "16px 12px", boxShadow: "0 1px 6px rgba(0,0,0,0.07)", textAlign: "center", display: "flex", flexDirection: "column", gap: 6, alignItems: "center" },
+  templateEmoji: { fontSize: 24 },
+  templateLabel: { fontSize: 12, fontWeight: 600, color: "#1c2b3a" },
+  templateCount: { fontSize: 10, color: "#8a9bb0" },
+  templateBtn: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 6, padding: "6px 14px", fontSize: 11, fontWeight: 500, cursor: "pointer", marginTop: 4 },
 }
