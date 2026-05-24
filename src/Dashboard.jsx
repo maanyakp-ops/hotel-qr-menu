@@ -526,34 +526,48 @@ export default function Dashboard({ onBack }) {
             </div>
             <p style={d.sectionLabel}>Your Menu ({menuItems.length} items)</p>
             {menuItems.length === 0 && <p style={d.empty}>No items yet. Add one above.</p>}
-            {menuItems.map(item => (
-              <div key={item.id} style={d.menuCard}>
-                <div style={d.menuImgPlaceholder}>🍽️</div>
-                <div style={d.menuInfo}>
-                  <p style={d.menuName}>{item.name}</p>
-                  <p style={d.menuMeta}>{item.category} · ₹{item.price} · {item.prep_time}min</p>
-                </div>
-                <div style={d.menuActions}>
-  <button style={item.available ? d.btnOn : d.btnOff} onClick={() => toggleAvailable(item)}>
-    {item.available ? "On" : "Off"}
-  </button>
-  <button style={item.out_of_stock ? d.btnStock : d.btnNoStock} onClick={() => toggleStock(item)}>
-    {item.out_of_stock ? "In Stock" : "Out"}
-  </button>
-  <button
-    style={item.is_special ? d.btnSpecialOn : d.btnSpecialOff}
-    onClick={async () => {
-      await supabase.from("menu_items").update({ is_special: !item.is_special }).eq("id", item.id)
-      fetchMenu(hotel.id)
-    }}
-  >
-    {item.is_special ? "⭐" : "☆"}
-  </button>
-  <button style={d.btnEdit} onClick={() => setEditItem(item)}>✏️</button>
-  <button style={d.btnDelete} onClick={() => deleteItem(item.id)}>🗑</button>
-</div>
-              </div>
-            ))}
+
+            {Object.entries(
+  menuItems.reduce((acc, item) => {
+    const cat = item.category || "Uncategorized"
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(item)
+    return acc
+  }, {})
+).map(([category, items]) => (
+  <div key={category}>
+    <p style={d.sectionLabel}>{category}</p>
+    {items.map(item => (
+      <div key={item.id} style={d.menuCard}>
+        <div style={d.menuImgPlaceholder}>🍽️</div>
+        <div style={d.menuInfo}>
+          <p style={d.menuName}>{item.name}</p>
+          <p style={d.menuMeta}>{item.category} · ₹{item.price} · {item.prep_time}min</p>
+        </div>
+        <div style={d.menuActions}>
+          <button style={item.available ? d.btnOn : d.btnOff} onClick={() => toggleAvailable(item)}>
+            {item.available ? "On" : "Off"}
+          </button>
+          <button style={item.out_of_stock ? d.btnStock : d.btnNoStock} onClick={() => toggleStock(item)}>
+            {item.out_of_stock ? "In Stock" : "Out"}
+          </button>
+          <button
+            style={item.is_special ? d.btnSpecialOn : d.btnSpecialOff}
+            onClick={async () => {
+              await supabase.from("menu_items").update({ is_special: !item.is_special }).eq("id", item.id)
+              fetchMenu(hotel.id)
+            }}
+          >
+            {item.is_special ? "⭐" : "☆"}
+          </button>
+          <button style={d.btnEdit} onClick={() => setEditItem(item)}>✏️</button>
+          <button style={d.btnDelete} onClick={() => deleteItem(item.id)}>🗑</button>
+        </div>
+      </div>
+    ))}
+  </div>
+))}
+
           </>
         )}
 
