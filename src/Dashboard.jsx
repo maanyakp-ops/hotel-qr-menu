@@ -13,7 +13,7 @@ export default function Dashboard({ onBack }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [allHotels, setAllHotels] = useState([])
   const [editItem, setEditItem] = useState(null)
-
+  const [showAll, setShowAll] = useState(false)
   function playOrderSound() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)()
     const oscillator = ctx.createOscillator()
@@ -61,6 +61,10 @@ export default function Dashboard({ onBack }) {
   }
 
   useEffect(() => { loadHotel() }, [])
+  
+  useEffect(() => {
+    if (hotel) fetchOrders(hotel.id, showAll)
+  }, [showAll])
 
   async function loadHotel() {
     document.addEventListener("click", () => {
@@ -95,16 +99,26 @@ export default function Dashboard({ onBack }) {
     return () => supabase.removeChannel(sub)
   }
 
-  async function fetchOrders(hotelId) {
-    const { data, error } = await supabase
+  async function fetchOrders(hotelId, all = false) {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+  
+    let query = supabase
       .from("orders")
       .select(`*, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
       .eq("hotel_id", hotelId)
       .order("created_at", { ascending: false })
+  
+    if (!all) {
+      query = query.gte("created_at", today.toISOString())
+    }
+  
+    const { data, error } = await query
     if (error) console.error(error)
     else setOrders(data)
     setLoading(false)
   }
+  
 
   async function fetchMenu(hotelId) {
     const { data } = await supabase
@@ -216,6 +230,15 @@ export default function Dashboard({ onBack }) {
         {/* ORDERS TAB */}
         {tab === "orders" && (
           <>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 8px" }}>
+            <p style={{ ...d.sectionLabel, margin: 0 }}>
+              {showAll ? "All Orders" : "Today's Orders"}
+            </p>
+            <button style={d.toggleBtn} onClick={() => setShowAll(!showAll)}>
+              {showAll ? "Show Today" : "Show All"}
+            </button>
+          </div>
+
             {active.length > 0 && (
               <>
                 <p style={d.sectionLabel}>Active Orders</p>
@@ -518,4 +541,5 @@ const d = {
   modalTitle: { fontSize: 16, fontWeight: 600, color: "#1c2b3a", margin: "0 0 8px" },
   saveBtn: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 500, cursor: "pointer" },
   cancelBtn: { background: "none", color: "#8a9bb0", border: "none", borderRadius: 8, padding: "8px", fontSize: 13, cursor: "pointer" },
+  toggleBtn: { background: "none", border: "1px solid #e2e8f0", color: "#8a9bb0", borderRadius: 8, padding: "4px 10px", fontSize: 11, cursor: "pointer" },
 }
