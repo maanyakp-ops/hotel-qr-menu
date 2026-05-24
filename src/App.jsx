@@ -4,6 +4,164 @@ import { supabase } from "./supabase"
 import Dashboard from "./Dashboard"
 import Auth from "./Auth"
 
+const themeConfigs = {
+  'dark-gold': {
+    pageBg: '#0D0C0A', heroBg: '#141310', heroBorder: '#2E2B22',
+    accent: '#C9A84C', accentMuted: '#7A6230',
+    textPrimary: '#EDE8DC', textSecondary: '#9A927E',
+    tabsBg: '#141310', tabBorder: '#2E2B22',
+    titleFont: "'Cormorant Garamond', serif", bodyFont: "'Jost', sans-serif",
+    inputBg: '#1C1A16', inputBorder: '#2E2B22', inputColor: '#EDE8DC',
+    cartBg: '#141310', cartBorder: '#2E2B22',
+    btnBg: '#C9A84C', btnColor: '#0D0C0A',
+    addBtnBg: 'none', addBtnBorder: '1px solid #7A6230', addBtnColor: '#C9A84C',
+    qtyBtnBorder: '1px solid #2E2B22', qtyBtnColor: '#C9A84C',
+    modalBg: '#141310', modalBorder: '#2E2B22',
+    heroTitleColor: '#EDE8DC', heroSubColor: '#9A927E',
+    itemBorderBottom: '1px solid #2E2B22', itemBg: 'transparent',
+    itemRadius: 0, itemShadow: 'none', itemPadding: '1.1rem 2rem', itemMargin: 0,
+    nameStyle: 'normal', nameWeight: 400, nameSize: 17,
+    priceColor: '#C9A84C', cartTotalColor: '#C9A84C',
+    cartCountColor: '#9A927E',
+  },
+  'cafe-warm': {
+    pageBg: '#FAF6F0', heroBg: '#3D2B1F', heroBorder: '#D9C9B0',
+    accent: '#3D2B1F', accentMuted: '#C4A882',
+    textPrimary: '#3D2B1F', textSecondary: '#9B7D5A',
+    tabsBg: '#FAF6F0', tabBorder: '#D9C9B0',
+    titleFont: 'Georgia, serif', bodyFont: '-apple-system, sans-serif',
+    inputBg: '#F0E8DC', inputBorder: '#D9C9B0', inputColor: '#3D2B1F',
+    cartBg: '#3D2B1F', cartBorder: '#D9C9B0',
+    btnBg: '#3D2B1F', btnColor: '#F5DEB3',
+    addBtnBg: 'none', addBtnBorder: '1px solid #C4A882', addBtnColor: '#3D2B1F',
+    qtyBtnBorder: '1px solid #C4A882', qtyBtnColor: '#3D2B1F',
+    modalBg: '#FAF6F0', modalBorder: '#D9C9B0',
+    heroTitleColor: '#F5DEB3', heroSubColor: 'rgba(245,222,179,0.6)',
+    itemBorderBottom: '1px dashed #D9C9B0', itemBg: 'transparent',
+    itemRadius: 0, itemShadow: 'none', itemPadding: '1.1rem 2rem', itemMargin: 0,
+    nameStyle: 'italic', nameWeight: 400, nameSize: 17,
+    priceColor: '#3D2B1F', cartTotalColor: '#F5DEB3',
+    cartCountColor: 'rgba(245,222,179,0.6)',
+  },
+  'royal-emerald': {
+    pageBg: '#0E1F18', heroBg: '#0A1912', heroBorder: '#1E3D2A',
+    accent: '#B8963E', accentMuted: '#3D6B4A',
+    textPrimary: '#E8D5A3', textSecondary: '#6B8F6B',
+    tabsBg: '#0E1F18', tabBorder: '#1E3D2A',
+    titleFont: 'Georgia, serif', bodyFont: '-apple-system, sans-serif',
+    inputBg: '#0A1912', inputBorder: '#1E3D2A', inputColor: '#E8D5A3',
+    cartBg: '#0A1912', cartBorder: '#B8963E',
+    btnBg: '#B8963E', btnColor: '#0A1912',
+    addBtnBg: 'none', addBtnBorder: '1px solid #B8963E', addBtnColor: '#B8963E',
+    qtyBtnBorder: '1px solid #1E3D2A', qtyBtnColor: '#B8963E',
+    modalBg: '#0A1912', modalBorder: '#1E3D2A',
+    heroTitleColor: '#E8D5A3', heroSubColor: '#6B8F6B',
+    itemBorderBottom: '1px solid #1A3323', itemBg: 'transparent',
+    itemRadius: 0, itemShadow: 'none', itemPadding: '1.1rem 2rem', itemMargin: 0,
+    nameStyle: 'normal', nameWeight: 400, nameSize: 17,
+    priceColor: '#B8963E', cartTotalColor: '#B8963E',
+    cartCountColor: '#6B8F6B',
+  },
+  'clean-app': {
+    pageBg: '#F5F5F5', heroBg: '#FFFFFF', heroBorder: '#EEEEEE',
+    accent: '#111111', accentMuted: '#888888',
+    textPrimary: '#111111', textSecondary: '#777777',
+    tabsBg: '#FFFFFF', tabBorder: '#EEEEEE',
+    titleFont: '-apple-system, sans-serif', bodyFont: '-apple-system, sans-serif',
+    inputBg: '#F0F0F0', inputBorder: '#E0E0E0', inputColor: '#111111',
+    cartBg: '#111111', cartBorder: 'none',
+    btnBg: '#111111', btnColor: '#FFFFFF',
+    addBtnBg: '#111111', addBtnBorder: '1px solid #111111', addBtnColor: '#FFFFFF',
+    qtyBtnBorder: '1px solid #DDDDDD', qtyBtnColor: '#111111',
+    modalBg: '#FFFFFF', modalBorder: '#EEEEEE',
+    heroTitleColor: '#111111', heroSubColor: '#888888',
+    itemBorderBottom: 'none', itemBg: '#FFFFFF',
+    itemRadius: 12, itemShadow: '0 1px 6px rgba(0,0,0,0.07)', itemPadding: '1rem', itemMargin: '0 0.75rem 0.5rem',
+    nameStyle: 'normal', nameWeight: 600, nameSize: 14,
+    priceColor: '#111111', cartTotalColor: '#FFFFFF',
+    cartCountColor: 'rgba(255,255,255,0.6)',
+  }
+}
+
+function getStyles(themeKey) {
+  const t = themeConfigs[themeKey] || themeConfigs['dark-gold']
+  const isClean = themeKey === 'clean-app'
+  const isWarm = themeKey === 'cafe-warm'
+  return {
+    page: { background: t.pageBg, minHeight: "100vh", maxWidth: 680, margin: "0 auto", fontFamily: t.bodyFont, fontWeight: 300, paddingBottom: 100 },
+    center: { color: t.textPrimary, textAlign: "center", marginTop: 100, fontSize: 16, background: t.pageBg, minHeight: "100vh", fontFamily: t.bodyFont },
+    hero: { background: t.heroBg, borderBottom: `1px solid ${t.heroBorder}`, padding: "2.5rem 2rem 2rem", textAlign: "center", position: "relative", overflow: "hidden" },
+    heroGoldBar: { position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, transparent, ${t.accent}, transparent)` },
+    heroBadge: { display: "inline-block", fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: isWarm ? '#F5DEB3' : t.accent, border: `1px solid ${t.accentMuted}`, padding: "4px 16px", marginBottom: "1rem", fontFamily: t.bodyFont },
+    heroTitle: { fontFamily: t.titleFont, fontSize: isClean ? 30 : 42, fontWeight: isClean ? 700 : 300, letterSpacing: isClean ? -1 : 2, color: t.heroTitleColor, lineHeight: 1.1, margin: "0 0 0.5rem" },
+    heroSub: { fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: t.heroSubColor, margin: 0 },
+    heroOrnament: { color: t.accentMuted, fontSize: 16, letterSpacing: 8, marginTop: "1rem", opacity: 0.6 },
+    tabs: { display: "flex", overflowX: "auto", background: t.tabsBg, borderBottom: `1px solid ${t.tabBorder}`, padding: "0 1rem", scrollbarWidth: "none", position: "sticky", top: 0, zIndex: 10 },
+    tab: { background: "none", border: "none", color: t.textSecondary, fontFamily: t.bodyFont, fontSize: 11, fontWeight: 400, letterSpacing: 2, textTransform: "uppercase", padding: "1rem 1.2rem", cursor: "pointer", whiteSpace: "nowrap", borderBottom: "2px solid transparent" },
+    tabActive: { background: "none", border: "none", color: t.accent, fontFamily: t.bodyFont, fontSize: 11, fontWeight: isClean ? 700 : 400, letterSpacing: 2, textTransform: "uppercase", padding: "1rem 1.2rem", cursor: "pointer", whiteSpace: "nowrap", borderBottom: `2px solid ${t.accent}` },
+    body: { padding: isClean ? "0.5rem 0 1rem" : "0 0 1rem" },
+    menuItem: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: t.itemPadding, borderBottom: t.itemBorderBottom, gap: "1rem", background: t.itemBg, borderRadius: t.itemRadius, boxShadow: t.itemShadow, margin: t.itemMargin },
+    itemLeft: { flex: 1 },
+    itemName: { fontFamily: t.titleFont, fontSize: t.nameSize, fontWeight: t.nameWeight, fontStyle: t.nameStyle, color: t.textPrimary, marginBottom: 3 },
+    itemDesc: { fontSize: 12, color: t.textSecondary, lineHeight: 1.6, maxWidth: 340, marginBottom: 4, fontFamily: t.bodyFont, fontStyle: 'normal' },
+    itemMeta: { fontSize: 11, color: t.accentMuted },
+    itemRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, minWidth: 80 },
+    itemPrice: { fontFamily: t.titleFont, fontSize: isClean ? 15 : 18, fontWeight: isClean ? 700 : 400, color: t.priceColor, whiteSpace: "nowrap" },
+    addBtn: { background: t.addBtnBg, border: t.addBtnBorder, color: t.addBtnColor, borderRadius: isClean ? 20 : 2, padding: isClean ? "5px 14px" : "4px 12px", fontSize: 11, letterSpacing: 1, cursor: "pointer", fontFamily: t.bodyFont, whiteSpace: "nowrap" },
+    qtyRow: { display: "flex", alignItems: "center", gap: 8 },
+    qtyBtn: { background: isClean ? t.accent : 'none', border: t.qtyBtnBorder, color: isClean ? '#fff' : t.qtyBtnColor, borderRadius: isClean ? "50%" : 2, width: 26, height: 26, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
+    qtyNum: { color: t.textPrimary, fontSize: 14, fontWeight: 400, minWidth: 16, textAlign: "center" },
+    outOfStock: { color: t.textSecondary, fontSize: 11, fontStyle: "italic" },
+    emptyState: { textAlign: "center", padding: "60px 24px" },
+    emptyIcon: { fontSize: 48, marginBottom: 12 },
+    emptyTitle: { color: t.textPrimary, fontFamily: t.titleFont, fontSize: 22, fontWeight: 300, margin: "0 0 8px" },
+    emptyText: { color: t.textSecondary, fontSize: 13, lineHeight: 1.6, margin: 0 },
+    menuFooter: { textAlign: "center", padding: "2rem 2rem 1rem", borderTop: `1px solid ${t.heroBorder}` },
+    footerNote: { fontSize: 11, color: t.accentMuted, marginTop: 16, lineHeight: 1.8 },
+    staffLink: { color: t.heroBorder, fontSize: 11, textDecoration: "none", display: "block", marginBottom: 8 },
+    viewOrderBtn: { background: "none", border: `1px solid ${t.heroBorder}`, color: t.textSecondary, borderRadius: isClean ? 8 : 2, padding: "6px 16px", fontSize: 11, cursor: "pointer", marginBottom: 12, letterSpacing: 1, fontFamily: t.bodyFont },
+    cartBar: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 680, background: t.cartBg, borderTop: `1px solid ${t.cartBorder}`, padding: "14px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" },
+    cartCount: { color: t.cartCountColor, fontSize: 12, letterSpacing: 1, margin: "0 0 2px", fontFamily: t.bodyFont },
+    cartTotal: { color: t.cartTotalColor, fontFamily: t.titleFont, fontSize: 20, margin: 0 },
+    placeBtn: { background: t.btnBg, color: t.btnColor, border: "none", borderRadius: isClean ? 10 : 2, padding: "10px 24px", fontSize: 12, fontWeight: 500, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase", fontFamily: t.bodyFont },
+    modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 100 },
+    modal: { background: t.modalBg, borderTop: `1px solid ${t.modalBorder}`, padding: "28px 24px 40px", width: "100%", maxWidth: 680 },
+    modalTitle: { color: t.textPrimary, fontFamily: t.titleFont, fontSize: 24, fontWeight: isClean ? 700 : 300, margin: "0 0 4px" },
+    modalSub: { color: t.textSecondary, fontSize: 12, letterSpacing: 1, margin: "0 0 20px" },
+    modalInput: { width: "100%", background: t.inputBg, border: `1px solid ${t.inputBorder}`, borderRadius: isClean ? 8 : 0, padding: "12px 14px", color: t.inputColor, fontSize: 13, marginBottom: 10, boxSizing: "border-box", outline: "none", fontFamily: t.bodyFont },
+    modalBtn: { width: "100%", background: t.btnBg, color: t.btnColor, border: "none", padding: "13px", fontSize: 12, fontWeight: 500, cursor: "pointer", marginBottom: 10, letterSpacing: 2, textTransform: "uppercase", fontFamily: t.bodyFont, borderRadius: isClean ? 10 : 0 },
+    modalCancel: { width: "100%", background: "none", color: t.textSecondary, border: "none", padding: "10px", fontSize: 12, cursor: "pointer", letterSpacing: 1, fontFamily: t.bodyFont },
+    confirmation: { background: t.pageBg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: t.bodyFont, padding: 24 },
+    confirmIcon: { fontSize: 64, marginBottom: 20 },
+    confirmTitle: { color: t.textPrimary, fontFamily: t.titleFont, fontSize: 32, fontWeight: isClean ? 700 : 300, margin: "0 0 10px" },
+    confirmSub: { color: t.textSecondary, fontSize: 13, letterSpacing: 1, margin: "0 0 24px", textAlign: "center" },
+    statusContainer: { display: "flex", alignItems: "center", width: "100%", maxWidth: 320, marginBottom: 24, padding: "0 8px" },
+    statusStep: { display: "flex", flexDirection: "column", alignItems: "center", gap: 6 },
+    statusDotActive: { width: 12, height: 12, borderRadius: "50%", background: t.accent },
+    statusDotInactive: { width: 12, height: 12, borderRadius: "50%", background: t.heroBorder, border: `1px solid ${t.tabBorder}` },
+    statusDotDone: { width: 12, height: 12, borderRadius: "50%", background: "#6DB96D" },
+    statusLine: { flex: 1, height: 1, background: t.heroBorder, marginBottom: 18 },
+    statusLineActive: { flex: 1, height: 1, background: t.accent, marginBottom: 18 },
+    statusLabel: { fontSize: 10, color: t.textSecondary, margin: 0, whiteSpace: "nowrap", letterSpacing: 1 },
+    prepTimeBox: { border: `1px solid ${t.heroBorder}`, padding: "10px 24px", marginBottom: 24 },
+    prepTimeText: { color: t.accent, fontSize: 12, letterSpacing: 1, margin: 0, fontFamily: t.bodyFont },
+    orderSummary: { border: `1px solid ${t.heroBorder}`, padding: 20, width: "100%", maxWidth: 360, marginBottom: 24 },
+    summaryTitle: { color: t.textSecondary, fontSize: 10, letterSpacing: 2, textTransform: "uppercase", margin: "0 0 16px" },
+    summaryRow: { display: "flex", justifyContent: "space-between", marginBottom: 10 },
+    summaryItem: { color: t.textPrimary, fontFamily: t.titleFont, fontSize: 15 },
+    summaryPrice: { color: t.accent, fontFamily: t.titleFont, fontSize: 15 },
+    summaryTotal: { display: "flex", justifyContent: "space-between", borderTop: `1px solid ${t.heroBorder}`, paddingTop: 12, marginTop: 8, color: t.textPrimary, fontFamily: t.titleFont, fontSize: 18 },
+    confirmBtn: { background: t.btnBg, color: t.btnColor, border: "none", padding: "12px 32px", fontSize: 11, fontWeight: 500, cursor: "pointer", letterSpacing: 2, textTransform: "uppercase", fontFamily: t.bodyFont, borderRadius: isClean ? 10 : 0 },
+    cancelOrderBtn: { background: "none", border: "1px solid #8B2020", color: "#E07070", padding: "10px 28px", fontSize: 11, cursor: "pointer", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase", fontFamily: t.bodyFont },
+    specialsHeader: { display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "1.5rem 2rem 1rem" },
+    specialsGold: { color: t.accent, fontSize: 10, opacity: 0.6 },
+    specialsTitle: { fontFamily: t.titleFont, fontSize: 13, letterSpacing: 4, textTransform: "uppercase", color: t.accent },
+    specialItem: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: isClean ? t.itemPadding : "1.6rem 2rem 1.1rem", borderBottom: t.itemBorderBottom, gap: "1rem", background: t.itemBg || t.heroBg, position: "relative", borderRadius: t.itemRadius, margin: t.itemMargin, boxShadow: t.itemShadow },
+    specialBadge: { position: "absolute", top: 10, left: 20, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: t.accent, opacity: 0.7 },
+    specialsDivider: { height: 1, background: `linear-gradient(90deg, transparent, ${t.accent}, transparent)`, margin: "0.5rem 2rem 1.5rem", opacity: 0.3 },
+  }
+}
+
 function App() {
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [placedOrder, setPlacedOrder] = useState(null)
@@ -23,11 +181,11 @@ function App() {
   const [, forceUpdate] = useState(0)
   const hasLastOrder = !!localStorage.getItem("lastOrder")
   const lastOrderTime = useRef(0)
-
   const { hotelId, roomNumber } = useParams()
   const resolvedHotelId = hotelId || "a5b9bed4-9c40-4856-b4ed-371e800beaf0"
   const resolvedRoom = roomNumber || "101"
-
+  const s = getStyles(hotelInfo?.theme || 'dark-gold')
+  
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -395,94 +553,6 @@ function App() {
   )
 }
 
-const s = {
-  page: { background: "#0D0C0A", minHeight: "100vh", maxWidth: 680, margin: "0 auto", fontFamily: "'Jost', sans-serif", fontWeight: 300, paddingBottom: 100 },
-  center: { color: "#EDE8DC", textAlign: "center", marginTop: 100, fontSize: 16, background: "#0D0C0A", minHeight: "100vh", fontFamily: "'Jost', sans-serif" },
 
-  // Hero
-  hero: { background: "#141310", borderBottom: "1px solid #2E2B22", padding: "2.5rem 2rem 2rem", textAlign: "center", position: "relative", overflow: "hidden" },
-  heroGoldBar: { position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, transparent, #C9A84C, transparent)" },
-  heroBadge: { display: "inline-block", fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "#C9A84C", border: "1px solid #7A6230", padding: "4px 16px", marginBottom: "1rem", fontFamily: "'Jost', sans-serif" },
-  heroTitle: { fontFamily: "'Cormorant Garamond', serif", fontSize: 42, fontWeight: 300, letterSpacing: 2, color: "#EDE8DC", lineHeight: 1.1, margin: "0 0 0.5rem" },
-  heroSub: { fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "#9A927E", margin: 0 },
-  heroOrnament: { color: "#7A6230", fontSize: 16, letterSpacing: 8, marginTop: "1rem", opacity: 0.6 },
-
-  // Tabs
-  tabs: { display: "flex", overflowX: "auto", background: "#141310", borderBottom: "1px solid #2E2B22", padding: "0 1rem", scrollbarWidth: "none", position: "sticky", top: 0, zIndex: 10 },
-  tab: { background: "none", border: "none", color: "#9A927E", fontFamily: "'Jost', sans-serif", fontSize: 11, fontWeight: 400, letterSpacing: 2, textTransform: "uppercase", padding: "1rem 1.2rem", cursor: "pointer", whiteSpace: "nowrap", borderBottom: "2px solid transparent" },
-  tabActive: { background: "none", border: "none", color: "#C9A84C", fontFamily: "'Jost', sans-serif", fontSize: 11, fontWeight: 400, letterSpacing: 2, textTransform: "uppercase", padding: "1rem 1.2rem", cursor: "pointer", whiteSpace: "nowrap", borderBottom: "2px solid #C9A84C" },
-
-  // Menu items
-  body: { padding: "0 0 1rem" },
-  menuItem: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "1.1rem 2rem", borderBottom: "1px solid #2E2B22", gap: "1rem" },
-  itemLeft: { flex: 1 },
-  itemName: { fontFamily: "'Cormorant Garamond', serif", fontSize: 17, fontWeight: 400, color: "#EDE8DC", marginBottom: 3 },
-  itemDesc: { fontSize: 12, color: "#9A927E", lineHeight: 1.6, maxWidth: 340, marginBottom: 4 },
-  itemMeta: { fontSize: 11, color: "#7A6230" },
-  itemRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, minWidth: 80 },
-  itemPrice: { fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 400, color: "#C9A84C", whiteSpace: "nowrap" },
-  addBtn: { background: "none", border: "1px solid #7A6230", color: "#C9A84C", borderRadius: 2, padding: "4px 12px", fontSize: 11, letterSpacing: 1, cursor: "pointer", fontFamily: "'Jost', sans-serif", whiteSpace: "nowrap" },
-  qtyRow: { display: "flex", alignItems: "center", gap: 8 },
-  qtyBtn: { background: "none", border: "1px solid #2E2B22", color: "#C9A84C", borderRadius: 2, width: 26, height: 26, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
-  qtyNum: { color: "#EDE8DC", fontSize: 14, fontWeight: 400, minWidth: 16, textAlign: "center" },
-  outOfStock: { color: "#9A927E", fontSize: 11, fontStyle: "italic" },
-
-  // Empty state
-  emptyState: { textAlign: "center", padding: "60px 24px" },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { color: "#EDE8DC", fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 300, margin: "0 0 8px" },
-  emptyText: { color: "#9A927E", fontSize: 13, lineHeight: 1.6, margin: 0 },
-
-  // Footer
-  menuFooter: { textAlign: "center", padding: "2rem 2rem 1rem", borderTop: "1px solid #2E2B22" },
-  footerNote: { fontSize: 11, color: "#7A6230", marginTop: 16, lineHeight: 1.8 },
-  staffLink: { color: "#2E2B22", fontSize: 11, textDecoration: "none", display: "block", marginBottom: 8 },
-  viewOrderBtn: { background: "none", border: "1px solid #2E2B22", color: "#9A927E", borderRadius: 2, padding: "6px 16px", fontSize: 11, cursor: "pointer", marginBottom: 12, letterSpacing: 1, fontFamily: "'Jost', sans-serif" },
-
-  // Cart bar
-  cartBar: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 680, background: "#141310", borderTop: "1px solid #2E2B22", padding: "14px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" },
-  cartCount: { color: "#9A927E", fontSize: 12, letterSpacing: 1, margin: "0 0 2px", fontFamily: "'Jost', sans-serif" },
-  cartTotal: { color: "#C9A84C", fontFamily: "'Cormorant Garamond', serif", fontSize: 20, margin: 0 },
-  placeBtn: { background: "#C9A84C", color: "#0D0C0A", border: "none", borderRadius: 2, padding: "10px 24px", fontSize: 12, fontWeight: 500, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase", fontFamily: "'Jost', sans-serif" },
-
-  // Modal
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 100 },
-  modal: { background: "#141310", borderTop: "1px solid #2E2B22", padding: "28px 24px 40px", width: "100%", maxWidth: 680 },
-  modalTitle: { color: "#EDE8DC", fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, margin: "0 0 4px" },
-  modalSub: { color: "#9A927E", fontSize: 12, letterSpacing: 1, margin: "0 0 20px" },
-  modalInput: { width: "100%", background: "#1C1A16", border: "1px solid #2E2B22", borderRadius: 0, padding: "12px 14px", color: "#EDE8DC", fontSize: 13, marginBottom: 10, boxSizing: "border-box", outline: "none", fontFamily: "'Jost', sans-serif" },
-  modalBtn: { width: "100%", background: "#C9A84C", color: "#0D0C0A", border: "none", padding: "13px", fontSize: 12, fontWeight: 500, cursor: "pointer", marginBottom: 10, letterSpacing: 2, textTransform: "uppercase", fontFamily: "'Jost', sans-serif" },
-  modalCancel: { width: "100%", background: "none", color: "#9A927E", border: "none", padding: "10px", fontSize: 12, cursor: "pointer", letterSpacing: 1, fontFamily: "'Jost', sans-serif" },
-
-  // Confirmation
-  confirmation: { background: "#0D0C0A", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "'Jost', sans-serif", padding: 24 },
-  confirmIcon: { fontSize: 64, marginBottom: 20 },
-  confirmTitle: { color: "#EDE8DC", fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, margin: "0 0 10px" },
-  confirmSub: { color: "#9A927E", fontSize: 13, letterSpacing: 1, margin: "0 0 24px", textAlign: "center" },
-  statusContainer: { display: "flex", alignItems: "center", width: "100%", maxWidth: 320, marginBottom: 24, padding: "0 8px" },
-  statusStep: { display: "flex", flexDirection: "column", alignItems: "center", gap: 6 },
-  statusDotActive: { width: 12, height: 12, borderRadius: "50%", background: "#C9A84C" },
-  statusDotInactive: { width: 12, height: 12, borderRadius: "50%", background: "#2E2B22", border: "1px solid #3E3B32" },
-  statusDotDone: { width: 12, height: 12, borderRadius: "50%", background: "#6DB96D" },
-  statusLine: { flex: 1, height: 1, background: "#2E2B22", marginBottom: 18 },
-  statusLineActive: { flex: 1, height: 1, background: "#C9A84C", marginBottom: 18 },
-  statusLabel: { fontSize: 10, color: "#9A927E", margin: 0, whiteSpace: "nowrap", letterSpacing: 1 },
-  prepTimeBox: { border: "1px solid #2E2B22", padding: "10px 24px", marginBottom: 24 },
-  prepTimeText: { color: "#C9A84C", fontSize: 12, letterSpacing: 1, margin: 0, fontFamily: "'Jost', sans-serif" },
-  orderSummary: { border: "1px solid #2E2B22", padding: 20, width: "100%", maxWidth: 360, marginBottom: 24 },
-  summaryTitle: { color: "#9A927E", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", margin: "0 0 16px" },
-  summaryRow: { display: "flex", justifyContent: "space-between", marginBottom: 10 },
-  summaryItem: { color: "#EDE8DC", fontFamily: "'Cormorant Garamond', serif", fontSize: 15 },
-  summaryPrice: { color: "#C9A84C", fontFamily: "'Cormorant Garamond', serif", fontSize: 15 },
-  summaryTotal: { display: "flex", justifyContent: "space-between", borderTop: "1px solid #2E2B22", paddingTop: 12, marginTop: 8, color: "#EDE8DC", fontFamily: "'Cormorant Garamond', serif", fontSize: 18 },
-  confirmBtn: { background: "#C9A84C", color: "#0D0C0A", border: "none", padding: "12px 32px", fontSize: 11, fontWeight: 500, cursor: "pointer", letterSpacing: 2, textTransform: "uppercase", fontFamily: "'Jost', sans-serif" },
-  cancelOrderBtn: { background: "none", border: "1px solid #8B2020", color: "#E07070", padding: "10px 28px", fontSize: 11, cursor: "pointer", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase", fontFamily: "'Jost', sans-serif" },
-  specialsHeader: { display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "1.5rem 2rem 1rem" },
-  specialsGold: { color: "#C9A84C", fontSize: 10, opacity: 0.6 },
-  specialsTitle: { fontFamily: "'Cormorant Garamond', serif", fontSize: 13, letterSpacing: 4, textTransform: "uppercase", color: "#C9A84C" },
-  specialItem: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "1.6rem 2rem 1.1rem", borderBottom: "1px solid #2E2B22", gap: "1rem", background: "#141310", position: "relative" },
-  specialBadge: { position: "absolute", top: 10, left: 20, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: "#C9A84C", opacity: 0.7 },
-  specialsDivider: { height: 1, background: "linear-gradient(90deg, transparent, #C9A84C, transparent)", margin: "0.5rem 2rem 1.5rem", opacity: 0.3 },
-}
 
 export default App
