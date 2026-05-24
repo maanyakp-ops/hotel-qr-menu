@@ -19,6 +19,7 @@ function App() {
   const [guestPhone, setGuestPhone] = useState("")
   const [guestInstructions, setGuestInstructions] = useState("")
   const [orderStatus, setOrderStatus] = useState(null)
+  const [activeTab, setActiveTab] = useState(null)
   const [, forceUpdate] = useState(0)
   const hasLastOrder = !!localStorage.getItem("lastOrder")
   const lastOrderTime = useRef(0)
@@ -36,8 +37,6 @@ function App() {
   }, [])
 
   useEffect(() => { fetchHotelAndMenu() }, [])
-
-  
 
   async function fetchHotelAndMenu() {
     const { data: hotelData } = await supabase
@@ -58,7 +57,11 @@ function App() {
       .eq("hotel_id", resolvedHotelId)
       .eq("available", true)
     if (error) console.error(error)
-    else setMenuItems(data)
+    else {
+      setMenuItems(data)
+      const cats = [...new Set(data.map(i => i.category))]
+      if (cats.length > 0) setActiveTab(cats[0])
+    }
     setLoading(false)
   }
 
@@ -169,7 +172,7 @@ function App() {
   if (hotelInfo?.status === "disabled") return (
     <div style={s.center}>
       <p style={{ fontSize: 40, marginBottom: 16 }}>🚫</p>
-      <p style={{ color: "#f2f2f2", fontSize: 16 }}>This menu is currently unavailable.</p>
+      <p style={{ color: "#EDE8DC", fontSize: 16 }}>This menu is currently unavailable.</p>
     </div>
   )
 
@@ -209,7 +212,6 @@ function App() {
                 <p style={s.statusLabel}>Delivered</p>
               </div>
             </div>
-
             <div style={s.prepTimeBox}>
               <p style={s.prepTimeText}>⏱ Estimated time: {placedOrder.prepTime || maxPrepTime} minutes</p>
             </div>
@@ -236,111 +238,101 @@ function App() {
           </button>
         )}
 
-<button style={s.confirmBtn} onClick={() => {
-  setOrderPlaced(false)
-  setPlacedOrder(null)
-  forceUpdate(n => n + 1)
-}}>
-  Back to Menu
-</button>
+        <button style={s.confirmBtn} onClick={() => {
+          setOrderPlaced(false)
+          setPlacedOrder(null)
+        }}>
+          Back to Menu
+        </button>
       </div>
     )
   }
 
   return (
     <div style={s.page}>
+      {/* Guest form modal */}
       {showGuestForm && (
         <div style={s.modalOverlay}>
           <div style={s.modal}>
             <p style={s.modalTitle}>Almost there!</p>
             <p style={s.modalSub}>Enter your details to place the order</p>
-            <input
-              style={s.modalInput}
-              placeholder="Your name *"
-              value={guestName}
-              onChange={e => setGuestName(e.target.value)}
-            />
-            <input
-              style={s.modalInput}
-              placeholder="Phone number *"
-              type="tel"
-              value={guestPhone}
-              onChange={e => setGuestPhone(e.target.value)}
-            />
-            <textarea
-              style={{ ...s.modalInput, height: 80, resize: "none" }}
-              placeholder="Special instructions — e.g. less spicy, no onion"
-              value={guestInstructions}
-              onChange={e => setGuestInstructions(e.target.value)}
-            />
+            <input style={s.modalInput} placeholder="Your name *" value={guestName} onChange={e => setGuestName(e.target.value)} />
+            <input style={s.modalInput} placeholder="Phone number *" type="tel" value={guestPhone} onChange={e => setGuestPhone(e.target.value)} />
+            <textarea style={{ ...s.modalInput, height: 80, resize: "none" }} placeholder="Special instructions — e.g. less spicy, no onion" value={guestInstructions} onChange={e => setGuestInstructions(e.target.value)} />
             <button style={s.modalBtn} onClick={placeOrder}>Confirm Order</button>
             <button style={s.modalCancel} onClick={() => setShowGuestForm(false)}>Cancel</button>
           </div>
         </div>
       )}
 
-      <div style={s.header}>
-        <div>
-          <p style={s.eyebrow}>Room Service</p>
-          <p style={s.hotelName}>{hotelInfo?.name || "Hotel"}</p>
-          <p style={s.roomTag}>Room {resolvedRoom} &nbsp;·&nbsp; Available 24/7</p>
-        </div>
+      {/* Hero header */}
+      <div style={s.hero}>
+        <div style={s.heroGoldBar} />
+        <div style={s.heroBadge}>Room Service</div>
+        <h1 style={s.heroTitle}>{hotelInfo?.name || "Hotel"}</h1>
+        <p style={s.heroSub}>Room {resolvedRoom} &nbsp;·&nbsp; Available 24/7</p>
+        <div style={s.heroOrnament}>✦ &nbsp; ✦ &nbsp; ✦</div>
       </div>
 
+      {/* Category tabs */}
+      {categories.length > 0 && (
+        <div style={s.tabs}>
+          {categories.map(cat => (
+            <button
+              key={cat}
+              style={activeTab === cat ? s.tabActive : s.tab}
+              onClick={() => setActiveTab(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Menu items */}
       <div style={s.body}>
         {menuItems.length === 0 && (
           <div style={s.emptyState}>
             <p style={s.emptyIcon}>🍽️</p>
             <p style={s.emptyTitle}>Menu coming soon</p>
-            <p style={s.emptyText}>We're still setting up our menu. Please check back shortly or call reception for assistance.</p>
+            <p style={s.emptyText}>We're still setting up our menu. Please check back shortly or call reception.</p>
           </div>
         )}
-        {categories.map(cat => (
-          <div key={cat}>
-            <p style={s.catLabel}>{cat}</p>
-            <div style={s.grid}>
-              {menuItems.filter(i => i.category === cat).map(item => {
-                const cartItem = cart.find(i => i.id === item.id)
-                return (
-                  <div key={item.id} style={s.card}>
-                    {item.photo_url
-                      ? <img src={item.photo_url} alt={item.name} style={s.cardImg} />
-                      : <div style={s.cardImgPlaceholder}>🍽️</div>
-                    }
-                    <div style={s.cardBody}>
-                      <p style={s.itemName}>{item.name}</p>
-                      <p style={s.itemPrep}>⏱ {item.prep_time || 15} min</p>
-                      <p style={s.itemPrice}>₹{item.price}</p>
-                      {item.out_of_stock ? (
-                        <span style={s.outOfStock}>Out of Stock</span>
-                      ) : cartItem ? (
-                        <div style={s.qtyRow}>
-                          <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
-                          <span style={s.qtyNum}>{cartItem.qty}</span>
-                          <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
-                        </div>
-                      ) : (
-                        <button style={s.addBtn} onClick={() => addToCart(item)}>+ Add</button>
-                      )}
-                    </div>
+
+        {menuItems.filter(i => i.category === activeTab).map(item => {
+          const cartItem = cart.find(i => i.id === item.id)
+          return (
+            <div key={item.id} style={s.menuItem}>
+              <div style={s.itemLeft}>
+                <div style={s.itemName}>{item.name}</div>
+                {item.description && <div style={s.itemDesc}>{item.description}</div>}
+                <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
+              </div>
+              <div style={s.itemRight}>
+                <div style={s.itemPrice}>₹ {item.price}</div>
+                {item.out_of_stock ? (
+                  <span style={s.outOfStock}>Out of Stock</span>
+                ) : cartItem ? (
+                  <div style={s.qtyRow}>
+                    <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
+                    <span style={s.qtyNum}>{cartItem.qty}</span>
+                    <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
                   </div>
-                )
-              })}
+                ) : (
+                  <button style={s.addBtn} onClick={() => addToCart(item)}>+ Add</button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      
-      <div style={s.staffAccess}>
+      {/* Footer */}
+      <div style={s.menuFooter}>
         {hasLastOrder && (
           <button style={s.viewOrderBtn} onClick={async () => {
             const last = JSON.parse(localStorage.getItem("lastOrder"))
-            const { data } = await supabase
-              .from("orders")
-              .select("status")
-              .eq("id", last.orderId)
-              .single()
+            const { data } = await supabase.from("orders").select("status").eq("id", last.orderId).single()
             setPlacedOrder({ items: last.items, room_id: last.room, prepTime: last.prepTime })
             setOrderStatus(data?.status || "pending")
             setOrderPlaced(true)
@@ -348,13 +340,15 @@ function App() {
           }}>View My Last Order</button>
         )}
         <a href="/auth" style={s.staffLink}>Staff Login</a>
+        <p style={s.footerNote}>All prices inclusive of taxes · Please inform staff of any allergies</p>
       </div>
 
+      {/* Cart bar */}
       {cart.length > 0 && (
         <div style={s.cartBar}>
           <div>
             <p style={s.cartCount}>{cart.reduce((s, i) => s + i.qty, 0)} items · ⏱ ~{maxPrepTime} min</p>
-            <p style={s.cartTotal}>₹{total} total</p>
+            <p style={s.cartTotal}>₹ {total}</p>
           </div>
           <button style={s.placeBtn} onClick={() => setShowGuestForm(true)}>Place Order</button>
         </div>
@@ -364,68 +358,87 @@ function App() {
 }
 
 const s = {
-  page: { background: "#1c1c1e", minHeight: "100vh", maxWidth: 480, margin: "0 auto", fontFamily: "-apple-system, sans-serif", paddingBottom: 100 },
-  center: { color: "#f2f2f2", textAlign: "center", marginTop: 100, fontSize: 16 },
-  header: { padding: "28px 20px 18px", borderBottom: "0.5px solid #2e2e30", display: "flex", justifyContent: "space-between", alignItems: "flex-start" },
-  eyebrow: { color: "#b8924a", fontSize: 10, letterSpacing: "2.5px", textTransform: "uppercase", margin: "0 0 6px", fontWeight: 500 },
-  hotelName: { color: "#f2f2f2", fontSize: 22, fontWeight: 500, margin: "0 0 4px" },
-  roomTag: { color: "#6e6e73", fontSize: 12, margin: 0 },
-  body: { padding: "8px 16px" },
-  catLabel: { color: "#6e6e73", fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", margin: "20px 0 10px", fontWeight: 500 },
-  grid: { display: "flex", flexDirection: "column", gap: 8 },
-  card: { background: "#2c2c2e", borderRadius: 14, display: "flex", overflow: "hidden", border: "0.5px solid #38383a" },
-  cardImg: { width: 90, height: 90, objectFit: "cover", flexShrink: 0 },
-  cardImgPlaceholder: { width: 90, height: 90, background: "#3a3a3c", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0 },
-  cardBody: { padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" },
-  itemName: { color: "#f2f2f2", fontSize: 14, fontWeight: 500, margin: "0 0 2px" },
-  itemPrep: { color: "#6e6e73", fontSize: 11, margin: "0 0 4px" },
-  itemPrice: { color: "#b8924a", fontSize: 13, fontWeight: 500, margin: "0 0 10px" },
-  addBtn: { alignSelf: "flex-start", background: "#b8924a", color: "#fff", border: "none", borderRadius: 8, padding: "5px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
-  qtyRow: { display: "flex", alignItems: "center", gap: 10 },
-  qtyBtn: { background: "#3a3a3c", color: "#f2f2f2", border: "none", borderRadius: 6, width: 28, height: 28, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
-  qtyNum: { color: "#f2f2f2", fontSize: 14, fontWeight: 600, minWidth: 20, textAlign: "center" },
-  empty: { color: "#6e6e73", textAlign: "center", marginTop: 60 },
-  staffAccess: { textAlign: "center", padding: "12px 0", marginBottom: 80 },
-  staffLink: { color: "#3a3a3c", fontSize: 11, textDecoration: "none" },
-  cartBar: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 480, background: "#2c2c2e", borderTop: "0.5px solid #38383a", padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" },
-  cartCount: { color: "#f2f2f2", fontSize: 13, fontWeight: 500, margin: "0 0 2px" },
-  cartTotal: { color: "#6e6e73", fontSize: 11, margin: 0 },
-  placeBtn: { background: "#b8924a", color: "#fff", border: "none", borderRadius: 12, padding: "10px 22px", fontSize: 14, fontWeight: 500, cursor: "pointer" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 100 },
-  modal: { background: "#2c2c2e", borderRadius: "20px 20px 0 0", padding: "28px 24px 40px", width: "100%", maxWidth: 480 },
-  modalTitle: { color: "#f2f2f2", fontSize: 18, fontWeight: 600, margin: "0 0 4px" },
-  modalSub: { color: "#6e6e73", fontSize: 13, margin: "0 0 20px" },
-  modalInput: { width: "100%", background: "#3a3a3c", border: "0.5px solid #48484a", borderRadius: 10, padding: "12px 14px", color: "#f2f2f2", fontSize: 14, marginBottom: 10, boxSizing: "border-box", outline: "none" },
-  modalBtn: { width: "100%", background: "#b8924a", color: "#fff", border: "none", borderRadius: 12, padding: "13px", fontSize: 15, fontWeight: 500, cursor: "pointer", marginBottom: 10 },
-  modalCancel: { width: "100%", background: "none", color: "#6e6e73", border: "none", borderRadius: 12, padding: "10px", fontSize: 14, cursor: "pointer" },
-  confirmation: { background: "#1c1c1e", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "-apple-system, sans-serif", padding: 24 },
-  confirmIcon: { fontSize: 64, marginBottom: 20 },
-  confirmTitle: { color: "#f2f2f2", fontSize: 26, fontWeight: 600, margin: "0 0 10px" },
-  confirmSub: { color: "#8a9bb0", fontSize: 15, margin: "0 0 24px", textAlign: "center" },
-  statusContainer: { display: "flex", alignItems: "center", width: "100%", maxWidth: 320, marginBottom: 24, padding: "0 8px" },
-  statusStep: { display: "flex", flexDirection: "column", alignItems: "center", gap: 6 },
-  statusDotActive: { width: 14, height: 14, borderRadius: "50%", background: "#b8924a", boxShadow: "0 0 0 3px rgba(184,146,74,0.2)" },
-  statusDotInactive: { width: 14, height: 14, borderRadius: "50%", background: "#3a3a3c", border: "1.5px solid #48484a" },
-  statusDotDone: { width: 14, height: 14, borderRadius: "50%", background: "#6fcf97", boxShadow: "0 0 0 3px rgba(111,207,151,0.2)" },
-  statusLine: { flex: 1, height: 1.5, background: "#3a3a3c", marginBottom: 20 },
-  statusLineActive: { flex: 1, height: 1.5, background: "#b8924a", marginBottom: 20 },
-  statusLabel: { fontSize: 10, color: "#8a9bb0", margin: 0, whiteSpace: "nowrap" },
-  prepTimeBox: { background: "#2c2c2e", borderRadius: 10, padding: "10px 20px", marginBottom: 20 },
-  prepTimeText: { color: "#b8924a", fontSize: 13, fontWeight: 500, margin: 0 },
-  orderSummary: { background: "#2c2c2e", borderRadius: 14, padding: 16, width: "100%", maxWidth: 340, marginBottom: 24 },
-  summaryTitle: { color: "#f2f2f2", fontSize: 13, fontWeight: 600, margin: "0 0 12px" },
-  summaryRow: { display: "flex", justifyContent: "space-between", marginBottom: 8 },
-  summaryItem: { color: "#8a9bb0", fontSize: 13 },
-  summaryPrice: { color: "#f2f2f2", fontSize: 13 },
-  summaryTotal: { display: "flex", justifyContent: "space-between", borderTop: "0.5px solid #3a3a3c", paddingTop: 10, marginTop: 8, color: "#f2f2f2", fontSize: 14, fontWeight: 600 },
-  confirmBtn: { background: "#b8924a", color: "#fff", border: "none", borderRadius: 12, padding: "12px 28px", fontSize: 15, fontWeight: 500, cursor: "pointer" },
-  cancelOrderBtn: { background: "none", border: "1.5px solid #ff6b6b", color: "#ff6b6b", borderRadius: 12, padding: "10px 28px", fontSize: 14, fontWeight: 500, cursor: "pointer", marginBottom: 10 },
-  viewOrderBtn: { background: "none", border: "0.5px solid #3a3a3c", color: "#8a9bb0", borderRadius: 8, padding: "6px 14px", fontSize: 12, cursor: "pointer", marginBottom: 8, display: "block", margin: "0 auto 8px" },
+  page: { background: "#0D0C0A", minHeight: "100vh", maxWidth: 680, margin: "0 auto", fontFamily: "'Jost', sans-serif", fontWeight: 300, paddingBottom: 100 },
+  center: { color: "#EDE8DC", textAlign: "center", marginTop: 100, fontSize: 16, background: "#0D0C0A", minHeight: "100vh", fontFamily: "'Jost', sans-serif" },
+
+  // Hero
+  hero: { background: "#141310", borderBottom: "1px solid #2E2B22", padding: "2.5rem 2rem 2rem", textAlign: "center", position: "relative", overflow: "hidden" },
+  heroGoldBar: { position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, transparent, #C9A84C, transparent)" },
+  heroBadge: { display: "inline-block", fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: "#C9A84C", border: "1px solid #7A6230", padding: "4px 16px", marginBottom: "1rem", fontFamily: "'Jost', sans-serif" },
+  heroTitle: { fontFamily: "'Cormorant Garamond', serif", fontSize: 42, fontWeight: 300, letterSpacing: 2, color: "#EDE8DC", lineHeight: 1.1, margin: "0 0 0.5rem" },
+  heroSub: { fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "#9A927E", margin: 0 },
+  heroOrnament: { color: "#7A6230", fontSize: 16, letterSpacing: 8, marginTop: "1rem", opacity: 0.6 },
+
+  // Tabs
+  tabs: { display: "flex", overflowX: "auto", background: "#141310", borderBottom: "1px solid #2E2B22", padding: "0 1rem", scrollbarWidth: "none", position: "sticky", top: 0, zIndex: 10 },
+  tab: { background: "none", border: "none", color: "#9A927E", fontFamily: "'Jost', sans-serif", fontSize: 11, fontWeight: 400, letterSpacing: 2, textTransform: "uppercase", padding: "1rem 1.2rem", cursor: "pointer", whiteSpace: "nowrap", borderBottom: "2px solid transparent" },
+  tabActive: { background: "none", border: "none", color: "#C9A84C", fontFamily: "'Jost', sans-serif", fontSize: 11, fontWeight: 400, letterSpacing: 2, textTransform: "uppercase", padding: "1rem 1.2rem", cursor: "pointer", whiteSpace: "nowrap", borderBottom: "2px solid #C9A84C" },
+
+  // Menu items
+  body: { padding: "0 0 1rem" },
+  menuItem: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "1.1rem 2rem", borderBottom: "1px solid #2E2B22", gap: "1rem" },
+  itemLeft: { flex: 1 },
+  itemName: { fontFamily: "'Cormorant Garamond', serif", fontSize: 17, fontWeight: 400, color: "#EDE8DC", marginBottom: 3 },
+  itemDesc: { fontSize: 12, color: "#9A927E", lineHeight: 1.6, maxWidth: 340, marginBottom: 4 },
+  itemMeta: { fontSize: 11, color: "#7A6230" },
+  itemRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, minWidth: 80 },
+  itemPrice: { fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 400, color: "#C9A84C", whiteSpace: "nowrap" },
+  addBtn: { background: "none", border: "1px solid #7A6230", color: "#C9A84C", borderRadius: 2, padding: "4px 12px", fontSize: 11, letterSpacing: 1, cursor: "pointer", fontFamily: "'Jost', sans-serif", whiteSpace: "nowrap" },
+  qtyRow: { display: "flex", alignItems: "center", gap: 8 },
+  qtyBtn: { background: "none", border: "1px solid #2E2B22", color: "#C9A84C", borderRadius: 2, width: 26, height: 26, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
+  qtyNum: { color: "#EDE8DC", fontSize: 14, fontWeight: 400, minWidth: 16, textAlign: "center" },
+  outOfStock: { color: "#9A927E", fontSize: 11, fontStyle: "italic" },
+
+  // Empty state
   emptyState: { textAlign: "center", padding: "60px 24px" },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { color: "#f2f2f2", fontSize: 18, fontWeight: 600, margin: "0 0 8px" },
-  emptyText: { color: "#6e6e73", fontSize: 14, lineHeight: 1.6, margin: 0 },
-  outOfStock: { color: "#6e6e73", fontSize: 11, fontStyle: "italic" },
+  emptyTitle: { color: "#EDE8DC", fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 300, margin: "0 0 8px" },
+  emptyText: { color: "#9A927E", fontSize: 13, lineHeight: 1.6, margin: 0 },
+
+  // Footer
+  menuFooter: { textAlign: "center", padding: "2rem 2rem 1rem", borderTop: "1px solid #2E2B22" },
+  footerNote: { fontSize: 11, color: "#7A6230", marginTop: 16, lineHeight: 1.8 },
+  staffLink: { color: "#2E2B22", fontSize: 11, textDecoration: "none", display: "block", marginBottom: 8 },
+  viewOrderBtn: { background: "none", border: "1px solid #2E2B22", color: "#9A927E", borderRadius: 2, padding: "6px 16px", fontSize: 11, cursor: "pointer", marginBottom: 12, letterSpacing: 1, fontFamily: "'Jost', sans-serif" },
+
+  // Cart bar
+  cartBar: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 680, background: "#141310", borderTop: "1px solid #2E2B22", padding: "14px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" },
+  cartCount: { color: "#9A927E", fontSize: 12, letterSpacing: 1, margin: "0 0 2px", fontFamily: "'Jost', sans-serif" },
+  cartTotal: { color: "#C9A84C", fontFamily: "'Cormorant Garamond', serif", fontSize: 20, margin: 0 },
+  placeBtn: { background: "#C9A84C", color: "#0D0C0A", border: "none", borderRadius: 2, padding: "10px 24px", fontSize: 12, fontWeight: 500, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase", fontFamily: "'Jost', sans-serif" },
+
+  // Modal
+  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 100 },
+  modal: { background: "#141310", borderTop: "1px solid #2E2B22", padding: "28px 24px 40px", width: "100%", maxWidth: 680 },
+  modalTitle: { color: "#EDE8DC", fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 300, margin: "0 0 4px" },
+  modalSub: { color: "#9A927E", fontSize: 12, letterSpacing: 1, margin: "0 0 20px" },
+  modalInput: { width: "100%", background: "#1C1A16", border: "1px solid #2E2B22", borderRadius: 0, padding: "12px 14px", color: "#EDE8DC", fontSize: 13, marginBottom: 10, boxSizing: "border-box", outline: "none", fontFamily: "'Jost', sans-serif" },
+  modalBtn: { width: "100%", background: "#C9A84C", color: "#0D0C0A", border: "none", padding: "13px", fontSize: 12, fontWeight: 500, cursor: "pointer", marginBottom: 10, letterSpacing: 2, textTransform: "uppercase", fontFamily: "'Jost', sans-serif" },
+  modalCancel: { width: "100%", background: "none", color: "#9A927E", border: "none", padding: "10px", fontSize: 12, cursor: "pointer", letterSpacing: 1, fontFamily: "'Jost', sans-serif" },
+
+  // Confirmation
+  confirmation: { background: "#0D0C0A", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: "'Jost', sans-serif", padding: 24 },
+  confirmIcon: { fontSize: 64, marginBottom: 20 },
+  confirmTitle: { color: "#EDE8DC", fontFamily: "'Cormorant Garamond', serif", fontSize: 32, fontWeight: 300, margin: "0 0 10px" },
+  confirmSub: { color: "#9A927E", fontSize: 13, letterSpacing: 1, margin: "0 0 24px", textAlign: "center" },
+  statusContainer: { display: "flex", alignItems: "center", width: "100%", maxWidth: 320, marginBottom: 24, padding: "0 8px" },
+  statusStep: { display: "flex", flexDirection: "column", alignItems: "center", gap: 6 },
+  statusDotActive: { width: 12, height: 12, borderRadius: "50%", background: "#C9A84C" },
+  statusDotInactive: { width: 12, height: 12, borderRadius: "50%", background: "#2E2B22", border: "1px solid #3E3B32" },
+  statusDotDone: { width: 12, height: 12, borderRadius: "50%", background: "#6DB96D" },
+  statusLine: { flex: 1, height: 1, background: "#2E2B22", marginBottom: 18 },
+  statusLineActive: { flex: 1, height: 1, background: "#C9A84C", marginBottom: 18 },
+  statusLabel: { fontSize: 10, color: "#9A927E", margin: 0, whiteSpace: "nowrap", letterSpacing: 1 },
+  prepTimeBox: { border: "1px solid #2E2B22", padding: "10px 24px", marginBottom: 24 },
+  prepTimeText: { color: "#C9A84C", fontSize: 12, letterSpacing: 1, margin: 0, fontFamily: "'Jost', sans-serif" },
+  orderSummary: { border: "1px solid #2E2B22", padding: 20, width: "100%", maxWidth: 360, marginBottom: 24 },
+  summaryTitle: { color: "#9A927E", fontSize: 10, letterSpacing: 2, textTransform: "uppercase", margin: "0 0 16px" },
+  summaryRow: { display: "flex", justifyContent: "space-between", marginBottom: 10 },
+  summaryItem: { color: "#EDE8DC", fontFamily: "'Cormorant Garamond', serif", fontSize: 15 },
+  summaryPrice: { color: "#C9A84C", fontFamily: "'Cormorant Garamond', serif", fontSize: 15 },
+  summaryTotal: { display: "flex", justifyContent: "space-between", borderTop: "1px solid #2E2B22", paddingTop: 12, marginTop: 8, color: "#EDE8DC", fontFamily: "'Cormorant Garamond', serif", fontSize: 18 },
+  confirmBtn: { background: "#C9A84C", color: "#0D0C0A", border: "none", padding: "12px 32px", fontSize: 11, fontWeight: 500, cursor: "pointer", letterSpacing: 2, textTransform: "uppercase", fontFamily: "'Jost', sans-serif" },
+  cancelOrderBtn: { background: "none", border: "1px solid #8B2020", color: "#E07070", padding: "10px 28px", fontSize: 11, cursor: "pointer", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase", fontFamily: "'Jost', sans-serif" },
 }
 
 export default App

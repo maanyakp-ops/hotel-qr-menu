@@ -8,7 +8,7 @@ export default function Dashboard({ onBack }) {
   const [hotel, setHotel] = useState(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState("orders")
-  const [newItem, setNewItem] = useState({ name: "", category: "", price: "", photo_url: "", prep_time: "15" })
+  const [newItem, setNewItem] = useState({ name: "", category: "", price: "", photo_url: "", prep_time: "15", description: "" })
   const [adding, setAdding] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [allHotels, setAllHotels] = useState([])
@@ -160,7 +160,8 @@ export default function Dashboard({ onBack }) {
       category: editItem.category,
       price: parseFloat(editItem.price),
       prep_time: parseInt(editItem.prep_time) || 15,
-      photo_url: editItem.photo_url || null
+      photo_url: editItem.photo_url || null,
+      description: editItem.description || null
     }).eq("id", editItem.id)
     setEditItem(null)
     fetchMenu(hotel.id)
@@ -182,9 +183,10 @@ export default function Dashboard({ onBack }) {
       price: parseFloat(newItem.price),
       photo_url: newItem.photo_url || null,
       prep_time: parseInt(newItem.prep_time) || 15,
+      description: newItem.description || null,
       available: true
     })
-    setNewItem({ name: "", category: "", price: "", photo_url: "", prep_time: "15" })
+    setNewItem({ name: "", category: "", price: "", photo_url: "", prep_time: "15", description: "" })
     fetchMenu(hotel.id)
     setAdding(false)
   }
@@ -342,6 +344,7 @@ export default function Dashboard({ onBack }) {
               <input style={d.input} placeholder="Category (e.g. Starter, Main Course)" value={newItem.category} onChange={e => setNewItem({ ...newItem, category: e.target.value })} />
               <input style={d.input} placeholder="Price (₹)" type="number" value={newItem.price} onChange={e => setNewItem({ ...newItem, price: e.target.value })} />
               <input style={d.input} placeholder="Prep time in minutes (e.g. 15)" type="number" value={newItem.prep_time} onChange={e => setNewItem({ ...newItem, prep_time: e.target.value })} />
+              <input style={d.input} placeholder="Item description (optional)" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
               <input style={d.input} placeholder="Photo URL (optional)" value={newItem.photo_url} onChange={e => setNewItem({ ...newItem, photo_url: e.target.value })} />
               <button style={d.addBtn} onClick={addItem} disabled={adding}>
                 {adding ? "Adding..." : "+ Add Item"}
@@ -384,6 +387,7 @@ export default function Dashboard({ onBack }) {
               <input style={d.input} placeholder="Price (₹)" type="number" value={editItem.price} onChange={e => setEditItem({ ...editItem, price: e.target.value })} />
               <input style={d.input} placeholder="Prep time (minutes)" type="number" value={editItem.prep_time} onChange={e => setEditItem({ ...editItem, prep_time: e.target.value })} />
               <input style={d.input} placeholder="Photo URL (optional)" value={editItem.photo_url || ""} onChange={e => setEditItem({ ...editItem, photo_url: e.target.value })} />
+              <input style={d.input} placeholder="Description (optional)" value={editItem.description || ""} onChange={e => setEditItem({ ...editItem, description: e.target.value })} />
               <button style={d.saveBtn} onClick={() => saveEdit()}>Save Changes</button>
               <button style={d.cancelBtn} onClick={() => setEditItem(null)}>Cancel</button>
             </div>
