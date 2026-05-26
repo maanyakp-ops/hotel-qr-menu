@@ -328,16 +328,15 @@ startHoldCountdown(order.id)
   function startHoldCountdown(orderId) {
     setHoldCountdown(60)
     setHoldActive(true)
+    let seconds = 60
     countdownRef.current = setInterval(async () => {
-      setHoldCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(countdownRef.current)
-          setHoldActive(false)
-          supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
-          return 0
-        }
-        return prev - 1
-      })
+      seconds -= 1
+      setHoldCountdown(seconds)
+      if (seconds <= 0) {
+        clearInterval(countdownRef.current)
+        setHoldActive(false)
+        await supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
+      }
     }, 1000)
   }
   
