@@ -471,12 +471,12 @@ startHoldCountdown(order.id)
         <div style={s.heroOrnament}>✦ &nbsp; ✦ &nbsp; ✦</div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: "1rem" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: "1rem", marginBottom: "0.5rem", background: s.tabsBg, padding: "8px 0" }}>
   <button
     style={{
-      background: vegOnly ? s.addBtnBg || s.btnBg : "none",
-      border: `1px solid ${s.accentMuted}`,
-      color: vegOnly ? s.btnColor : s.accent,
+      background: vegOnly ? "#2e7d32" : "none",
+      border: "1px solid #2e7d32",
+      color: vegOnly ? "#fff" : "#2e7d32",
       borderRadius: 20,
       padding: "5px 16px",
       fontSize: 11,
@@ -556,7 +556,7 @@ startHoldCountdown(order.id)
   </div>
 )}
 
-        {menuItems.filter(i => i.category === activeTab).map(item => {
+{filteredItems.filter(i => i.category === activeTab).map(item => {
           const cartItem = cart.find(i => i.id === item.id)
           return (
             <div key={item.id} style={s.menuItem}>
