@@ -254,7 +254,10 @@ function App() {
   async function placeOrder() {
     if (cart.length === 0) return
     if (!guestName.trim()) { alert("Please enter your name."); return }
-    if (!guestPhone.trim()) { alert("Please enter your phone number."); return }
+    if (!guestPhone.trim() || guestPhone.replace(/\D/g, '').length !== 10) {
+      alert("Please enter a valid 10-digit phone number.")
+      return
+    }
 
     const now = Date.now()
     if (now - lastOrderTime.current < 30000) {
@@ -415,7 +418,15 @@ function App() {
             <p style={s.modalTitle}>Almost there!</p>
             <p style={s.modalSub}>Enter your details to place the order</p>
             <input style={s.modalInput} placeholder="Your name *" value={guestName} onChange={e => setGuestName(e.target.value)} />
-            <input style={s.modalInput} placeholder="Phone number *" type="tel" value={guestPhone} onChange={e => setGuestPhone(e.target.value)} />
+            <input
+  style={s.modalInput}
+  placeholder="Phone number *"
+  type="tel"
+  inputMode="numeric"
+  maxLength={10}
+  value={guestPhone}
+  onChange={e => setGuestPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+/>
             <textarea style={{ ...s.modalInput, height: 80, resize: "none" }} placeholder="Special instructions — e.g. less spicy, no onion" value={guestInstructions} onChange={e => setGuestInstructions(e.target.value)} />
             <button style={s.modalBtn} onClick={placeOrder}>Confirm Order</button>
             <button style={s.modalCancel} onClick={() => setShowGuestForm(false)}>Cancel</button>
