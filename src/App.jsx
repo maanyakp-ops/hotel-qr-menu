@@ -248,6 +248,24 @@ function App() {
     } catch (e) {
       console.log("Realtime not available", e)
     }
+  
+    // Poll every 8 seconds as fallback
+    const pollInterval = setInterval(async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("status, reject_reason")
+        .eq("id", orderId)
+        .single()
+      if (data) {
+        setOrderStatus(data.status)
+        if (data.status === "rejected") {
+          setPlacedOrder(prev => ({ ...prev, reject_reason: data.reject_reason }))
+        }
+        if (data.status === "delivered" || data.status === "cancelled" || data.status === "rejected") {
+          clearInterval(pollInterval)
+        }
+      }
+    }, 8000)
   }
 
   async function cancelOrder(orderId) {

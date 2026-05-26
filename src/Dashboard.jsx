@@ -441,11 +441,13 @@ function downloadCSV() {
         </div>
       </div>
 
-      <div style={d.metrics}>
-        <div style={d.metric}><p style={d.metricVal}>{orders.length}</p><p style={d.metricLabel}>Orders today</p></div>
-        <div style={d.metric}><p style={d.metricVal}>{active.length}</p><p style={d.metricLabel}>Active now</p></div>
-        <div style={d.metric}><p style={d.metricVal}>₹{(revenue / 1000).toFixed(1)}k</p><p style={d.metricLabel}>Revenue</p></div>
-      </div>
+      {tab !== "reports" && (
+  <div style={d.metrics}>
+    <div style={d.metric}><p style={d.metricVal}>{orders.length}</p><p style={d.metricLabel}>Orders today</p></div>
+    <div style={d.metric}><p style={d.metricVal}>{active.length}</p><p style={d.metricLabel}>Active now</p></div>
+    <div style={d.metric}><p style={d.metricVal}>₹{(revenue / 1000).toFixed(1)}k</p><p style={d.metricLabel}>Revenue</p></div>
+  </div>
+)}
 
       <div style={d.tabs}>
         <button style={tab === "orders"   ? d.tabActive : d.tab} onClick={() => setTab("orders")}>Orders</button>
