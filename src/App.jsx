@@ -237,6 +237,9 @@ function App() {
           filter: `id=eq.${orderId}`
         }, payload => {
           setOrderStatus(payload.new.status)
+          if (payload.new.status === "rejected") {
+            setPlacedOrder(prev => ({ ...prev, reject_reason: payload.new.reject_reason }))
+          }
         })
         .subscribe()
     } catch (e) {
@@ -371,7 +374,7 @@ startHoldCountdown(order.id)
         </h2>
         <p style={s.confirmSub}>
           {orderStatus === "cancelled" ? "Your order has been cancelled." :
-           orderStatus === "rejected" ? "Sorry, the hotel couldn't accept your order. Please call reception." :
+           orderStatus === "rejected" ? (placedOrder?.reject_reason ? `Rejected: ${placedOrder.reject_reason}` : "Sorry, the hotel couldn't accept your order.") :
            `We'll deliver to Room ${resolvedRoom} shortly.`}
         </p>
 

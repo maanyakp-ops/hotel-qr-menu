@@ -19,6 +19,9 @@ export default function Dashboard({ onBack }) {
   const [selectedItems, setSelectedItems] = useState([])
   const [savingTheme, setSavingTheme] = useState(false)
   const [themeSaved, setThemeSaved] = useState(false)
+  const [rejectingOrder, setRejectingOrder] = useState(null)
+  const [rejectReason, setRejectReason] = useState("")
+  const [customReason, setCustomReason] = useState("")
 
   function playOrderSound() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)()
@@ -301,7 +304,14 @@ export default function Dashboard({ onBack }) {
     await supabase.from("orders").update({ status }).eq("id", id)
     fetchOrders(hotel.id)
   }
-
+  async function rejectOrder(id) {
+    const reason = rejectReason === "custom" ? customReason : rejectReason
+    await supabase.from("orders").update({ status: "rejected", reject_reason: reason }).eq("id", id)
+    setRejectingOrder(null)
+    setRejectReason("")
+    setCustomReason("")
+    fetchOrders(hotel.id)
+  }
   async function toggleAvailable(item) {
     await supabase.from("menu_items").update({ available: !item.available }).eq("id", item.id)
     fetchMenu(hotel.id)
@@ -377,7 +387,7 @@ export default function Dashboard({ onBack }) {
   const active = orders.filter(o => o.status !== "delivered" && o.status !== "cancelled" && o.status !== "rejected")
   const done = orders.filter(o => o.status === "delivered")
   const cancelled = orders.filter(o => o.status === "cancelled" || o.status === "rejected")
-  const revenue = orders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)
+  const revenue = orders.filter(o => o.status !== "cancelled" && o.status !== "rejected").reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)
 
   if (loading) return <div style={d.center}>Loading...</div>
 
@@ -418,6 +428,57 @@ export default function Dashboard({ onBack }) {
               <button style={d.toggleBtn} onClick={() => setShowAll(!showAll)}>
                 {showAll ? "Show Today" : "Show All"}
               </button>
+              {rejectingOrder && (
+  <div style={d.modalOverlay}>
+    <div style={d.modal}>
+      <p style={d.modalTitle}>Reason for Rejection</p>
+      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
+        This will be shown to the guest on their order screen.
+      </p>
+      {[
+        "Item currently unavailable",
+        "Kitchen is closed",
+        "Too many orders at the moment",
+        "Outside delivery hours",
+        "custom"
+      ].map(reason => (
+        <button
+          key={reason}
+          onClick={() => setRejectReason(reason)}
+          style={{
+            background: rejectReason === reason ? "#1c2b3a" : "#f4f6f9",
+            color: rejectReason === reason ? "#7eb3f5" : "#1c2b3a",
+            border: "1px solid #e2e8f0",
+            borderRadius: 8,
+            padding: "10px 14px",
+            fontSize: 13,
+            cursor: "pointer",
+            textAlign: "left",
+            marginBottom: 6,
+          }}
+        >
+          {reason === "custom" ? "✏️ Write custom reason..." : reason}
+        </button>
+      ))}
+      {rejectReason === "custom" && (
+        <textarea
+          style={{ ...d.input, height: 80, resize: "none", marginTop: 4 }}
+          placeholder="Type your reason here..."
+          value={customReason}
+          onChange={e => setCustomReason(e.target.value)}
+        />
+      )}
+      <button
+        style={{ ...d.saveBtn, marginTop: 8, opacity: (!rejectReason || (rejectReason === "custom" && !customReason.trim())) ? 0.4 : 1 }}
+        disabled={!rejectReason || (rejectReason === "custom" && !customReason.trim())}
+        onClick={() => rejectOrder(rejectingOrder)}
+      >
+        Confirm Rejection
+      </button>
+      <button style={d.cancelBtn} onClick={() => setRejectingOrder(null)}>Cancel</button>
+    </div>
+  </div>
+)}
             </div>
 
             {active.length > 0 && (
@@ -455,7 +516,7 @@ export default function Dashboard({ onBack }) {
                         {order.status === "pending" && (
                           <>
                             <button style={d.btnPrepare} onClick={() => updateStatus(order.id, "preparing")}>Mark as Preparing</button>
-                            <button style={d.btnReject} onClick={() => updateStatus(order.id, "rejected")}>Reject</button>
+                            <button style={d.btnReject} onClick={() => { setRejectingOrder(order.id); setRejectReason("") }}>Reject</button>
                           </>
                         )}
                         {order.status === "preparing" && (
