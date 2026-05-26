@@ -381,7 +381,7 @@ async function fetchReportOrders() {
   end.setHours(23, 59, 59, 999)
   const { data } = await supabase
     .from("orders")
-    .select(`*, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
+    .select(`*, order_items(quantity, price, menu_item_id, menu_items(name))`)
     .eq("hotel_id", hotel.id)
     .gte("created_at", start.toISOString())
     .lte("created_at", end.toISOString())
@@ -450,9 +450,9 @@ function downloadCSV() {
       <div style={d.tabs}>
         <button style={tab === "orders"   ? d.tabActive : d.tab} onClick={() => setTab("orders")}>Orders</button>
         <button style={tab === "menu"     ? d.tabActive : d.tab} onClick={() => setTab("menu")}>Menu</button>
+        <button style={tab === "reports"  ? d.tabActive : d.tab} onClick={() => setTab("reports")}>Reports</button>
         <button style={tab === "qr"       ? d.tabActive : d.tab} onClick={() => setTab("qr")}>QR Codes</button>
         <button style={tab === "settings" ? d.tabActive : d.tab} onClick={() => setTab("settings")}>Settings</button>
-        <button style={tab === "reports" ? d.tabActive : d.tab} onClick={() => setTab("reports")}>Reports</button>
         {isAdmin && <button style={tab === "admin" ? d.tabActive : d.tab} onClick={() => setTab("admin")}>Hotels</button>}
       </div>
 
@@ -586,6 +586,18 @@ function downloadCSV() {
                         <span style={d.badgeDone}>✓ Delivered</span>
                       </div>
                       <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
+{order.rating && (
+  <div style={{ marginTop: 6 }}>
+    <span style={{ color: "#f5a623", fontSize: 14 }}>
+      {"★".repeat(order.rating)}{"☆".repeat(5 - order.rating)}
+    </span>
+    {order.rating_comment && (
+      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "4px 0 0" }}>
+        "{order.rating_comment}"
+      </p>
+    )}
+  </div>
+)}
                     </div>
                   )
                 })}
@@ -812,7 +824,7 @@ function downloadCSV() {
         <p style={d.metricLabel}>Delivered</p>
       </div>
       <div style={d.metric}>
-        <p style={d.metricVal}>₹{reportOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}</p>
+        <p style={d.metricVal}>₹{reportOrders.filter(o => o.status === "delivered").reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}</p>
         <p style={d.metricLabel}>Revenue</p>
       </div>
     </div>

@@ -189,6 +189,9 @@ function App() {
   const resolvedHotelId = hotelId || "a5b9bed4-9c40-4856-b4ed-371e800beaf0"
   const resolvedRoom = roomNumber || "101"
   const s = getStyles(hotelInfo?.theme || 'dark-gold')
+  const [rating, setRating] = useState(0)
+  const [ratingComment, setRatingComment] = useState("")
+  const [ratingSubmitted, setRatingSubmitted] = useState(false)
   
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -430,12 +433,69 @@ startHoldCountdown(order.id)
   </div>
 )}
 
-        <button style={s.confirmBtn} onClick={() => {
-          setOrderPlaced(false)
-          setPlacedOrder(null)
-        }}>
-          Back to Menu
+{orderStatus === "delivered" && !ratingSubmitted && (
+  <div style={{ textAlign: "center", marginBottom: 24, width: "100%", maxWidth: 360 }}>
+    <p style={{ color: s.textPrimary, fontSize: 13, letterSpacing: 1, marginBottom: 16 }}>
+      How was your experience?
+    </p>
+    <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+      {[1, 2, 3, 4, 5].map(star => (
+        <button
+          key={star}
+          onClick={() => setRating(star)}
+          style={{
+            background: "none",
+            border: "none",
+            fontSize: 36,
+            cursor: "pointer",
+            opacity: star <= rating ? 1 : 0.3,
+            transition: "opacity 0.15s"
+          }}
+        >
+          ★
         </button>
+      ))}
+    </div>
+    {rating > 0 && rating < 3 && (
+      <textarea
+        style={{ ...s.modalInput, height: 80, resize: "none", marginBottom: 12 }}
+        placeholder="What went wrong? We'd love to know..."
+        value={ratingComment}
+        onChange={e => setRatingComment(e.target.value)}
+      />
+    )}
+    {rating > 0 && (
+      <button
+        style={{ ...s.confirmBtn, width: "100%" }}
+        onClick={async () => {
+          await supabase.from("orders").update({
+            rating,
+            rating_comment: ratingComment || null
+          }).eq("id", placedOrder.id)
+          setRatingSubmitted(true)
+        }}
+      >
+        Submit Rating
+      </button>
+    )}
+  </div>
+)}
+
+{ratingSubmitted && (
+  <p style={{ color: s.textSecondary, fontSize: 13, marginBottom: 24, letterSpacing: 1 }}>
+    ✓ Thanks for your feedback!
+  </p>
+)}
+
+<button style={s.confirmBtn} onClick={() => {
+  setOrderPlaced(false)
+  setPlacedOrder(null)
+  setRating(0)
+  setRatingComment("")
+  setRatingSubmitted(false)
+}}>
+  Back to Menu
+</button>
       </div>
     )
   }
