@@ -133,7 +133,7 @@ export default function Dashboard({ onBack }) {
       items: [
         { name: "Poha", category: "Breakfast", price: 60, prep_time: 10, description: "Light, fluffy flattened rice with mustard seeds and fresh coriander." },
         { name: "Bread Toast", category: "Breakfast", price: 40, prep_time: 5, description: "Crispy toasted bread served with butter and jam." },
-        { name: "Masala Omelette", category: "Breakfast", price: 70, prep_time: 10, description: "Farm fresh eggs with onions, tomatoes and green chilli." },
+        { name: "Masala Omelette", is_veg: false, category: "Breakfast", price: 70, prep_time: 10, description: "Farm fresh eggs with onions, tomatoes and green chilli." },
         { name: "Chai", category: "Beverages", price: 30, prep_time: 5, description: "Hot, aromatic tea brewed with ginger and spices." },
         { name: "Coffee", category: "Beverages", price: 40, prep_time: 5, description: "Freshly brewed hot coffee." },
         { name: "Cold Drink", category: "Beverages", price: 50, prep_time: 2, description: "Chilled soft drink of your choice." },
@@ -150,7 +150,7 @@ export default function Dashboard({ onBack }) {
       items: [
         { name: "Idli Sambhar", category: "Breakfast", price: 90, prep_time: 10, description: "Steamed rice cakes served with hot sambhar and coconut chutney." },
         { name: "Upma", category: "Breakfast", price: 80, prep_time: 10, description: "Savory semolina porridge with vegetables and curry leaves." },
-        { name: "Bread Toast with Eggs", category: "Breakfast", price: 110, prep_time: 10, description: "Toasted bread with choice of eggs and condiments." },
+        { name: "Bread Toast with Eggs", is_veg: false, category: "Breakfast", price: 110, prep_time: 10, description: "Toasted bread with choice of eggs and condiments." },
         { name: "Masala Chai", category: "Beverages", price: 50, prep_time: 5, description: "Aromatic spiced tea brewed fresh." },
         { name: "Cold Coffee", category: "Beverages", price: 90, prep_time: 5, description: "Chilled blended coffee with ice cream." },
         { name: "Fresh Lime Soda", category: "Beverages", price: 70, prep_time: 3, description: "Freshly squeezed lime with soda, sweet or salted." },
@@ -170,14 +170,14 @@ export default function Dashboard({ onBack }) {
       items: [
         { name: "Fresh Fruit Platter", category: "Breakfast", price: 220, prep_time: 10, description: "Seasonal fresh fruits, elegantly arranged." },
         { name: "Continental Breakfast", category: "Breakfast", price: 350, prep_time: 15, description: "Croissant, toast, eggs, juice and coffee served together." },
-        { name: "Masala Omelette", category: "Breakfast", price: 180, prep_time: 10, description: "Farm fresh eggs with herbs, onions and spices." },
+        { name: "Masala Omelette", is_veg: false, category: "Breakfast", price: 180, prep_time: 10, description: "Farm fresh eggs with herbs, onions and spices." },
         { name: "Fresh Orange Juice", category: "Beverages", price: 160, prep_time: 5, description: "Freshly squeezed orange juice, served chilled." },
         { name: "Cappuccino", category: "Beverages", price: 180, prep_time: 5, description: "Rich espresso with steamed milk foam." },
         { name: "Mocktail of the Day", category: "Beverages", price: 200, prep_time: 8, description: "Chef's special non-alcoholic blend, served chilled." },
         { name: "Cream of Tomato Soup", category: "Starters", price: 180, prep_time: 12, description: "Velvety tomato bisque with a swirl of cream and fresh basil." },
         { name: "Paneer Tikka", category: "Starters", price: 320, prep_time: 20, description: "Tandoor-charred paneer with bell peppers and mint chutney." },
         { name: "Veg Spring Rolls", category: "Starters", price: 260, prep_time: 15, description: "Crispy rolls with stir-fried vegetables and dipping sauce." },
-        { name: "Butter Chicken", category: "Main Course", price: 420, prep_time: 25, description: "Tender chicken in a rich, aromatic tomato-butter gravy." },
+        { name: "Butter Chicken", is_veg: false, category: "Main Course", price: 420, prep_time: 25, description: "Tender chicken in a rich, aromatic tomato-butter gravy." },
         { name: "Dal Makhani", category: "Main Course", price: 320, prep_time: 30, description: "Overnight slow-cooked black lentils, finished with cream." },
         { name: "Paneer Butter Masala", category: "Main Course", price: 360, prep_time: 20, description: "Soft cottage cheese in a velvety, spiced tomato sauce." },
         { name: "Veg Biryani", category: "Main Course", price: 380, prep_time: 30, description: "Fragrant basmati rice layered with spiced vegetables and saffron." },
@@ -246,7 +246,7 @@ export default function Dashboard({ onBack }) {
   }, (payload) => {
     if (payload.new.status === "hold") return
     fetchOrders(hotelData.id)
-    if (payload.old.status === "hold" && payload.new.status === "pending") {
+    if (payload.new.status === "pending") {
       playOrderSound()
       showBadge()
     }
