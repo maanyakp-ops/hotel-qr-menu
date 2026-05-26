@@ -341,7 +341,7 @@ export default function Dashboard({ onBack }) {
       prep_time: parseInt(newItem.prep_time) || 15,
       description: newItem.description || null,
       is_special: newItem.is_special || false,
-      available: true
+      available: true,
       is_veg: newItem.is_veg !== false ? true : false,
     })
     setNewItem({ name: "", category: "", price: "", prep_time: "15", description: "", is_special: false })
