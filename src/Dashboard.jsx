@@ -366,6 +366,45 @@ export default function Dashboard({ onBack }) {
     onBack()
   }
 
+  const today = new Date().toISOString().split("T")[0]
+const [reportDate, setReportDate] = useState(today)
+const [reportOrders, setReportOrders] = useState([])
+
+useEffect(() => {
+  if (hotel && tab === "reports") fetchReportOrders()
+}, [reportDate, tab, hotel])
+
+async function fetchReportOrders() {
+  const start = new Date(reportDate)
+  start.setHours(0, 0, 0, 0)
+  const end = new Date(reportDate)
+  end.setHours(23, 59, 59, 999)
+  const { data } = await supabase
+    .from("orders")
+    .select(`*, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
+    .eq("hotel_id", hotel.id)
+    .gte("created_at", start.toISOString())
+    .lte("created_at", end.toISOString())
+    .order("created_at", { ascending: false })
+  if (data) setReportOrders(data)
+}
+
+function downloadCSV() {
+  const rows = [["Time", "Room", "Guest", "Phone", "Items", "Total", "Status"]]
+  reportOrders.forEach(o => {
+    const time = new Date(o.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+    const items = o.order_items.map(i => `${i.menu_items?.name} x${i.quantity}`).join("; ")
+    const total = o.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+    rows.push([time, o.room_id, o.guest_name || "", o.guest_phone || "", items, total, o.status])
+  })
+  const csv = rows.map(r => r.join(",")).join("\n")
+  const blob = new Blob([csv], { type: "text/csv" })
+  const a = document.createElement("a")
+  a.href = URL.createObjectURL(blob)
+  a.download = `report-${reportDate}.csv`
+  a.click()
+}
+
   // ─── THEME PICKER ───────────────────────────────────────────────
   const themes = [
     { key: "dark-gold",     label: "Dark Gold",     swatches: ["#0D0C0A", "#141310", "#C9A84C", "#EDE8DC"] },
@@ -413,6 +452,7 @@ export default function Dashboard({ onBack }) {
         <button style={tab === "menu"     ? d.tabActive : d.tab} onClick={() => setTab("menu")}>Menu</button>
         <button style={tab === "qr"       ? d.tabActive : d.tab} onClick={() => setTab("qr")}>QR Codes</button>
         <button style={tab === "settings" ? d.tabActive : d.tab} onClick={() => setTab("settings")}>Settings</button>
+        <button style={tab === "reports" ? d.tabActive : d.tab} onClick={() => setTab("reports")}>Reports</button>
         {isAdmin && <button style={tab === "admin" ? d.tabActive : d.tab} onClick={() => setTab("admin")}>Hotels</button>}
       </div>
 
@@ -747,6 +787,104 @@ export default function Dashboard({ onBack }) {
             }
           </>
         )}
+
+        {/* REPORTS TAB */}
+{tab === "reports" && (
+  <>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 8px" }}>
+      <p style={{ ...d.sectionLabel, margin: 0 }}>Daily Report</p>
+      <input
+        type="date"
+        style={{ ...d.input, padding: "6px 10px", fontSize: 12 }}
+        value={reportDate}
+        onChange={e => setReportDate(e.target.value)}
+      />
+    </div>
+
+    {/* Summary cards */}
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 16 }}>
+      <div style={d.metric}>
+        <p style={d.metricVal}>{reportOrders.length}</p>
+        <p style={d.metricLabel}>Orders</p>
+      </div>
+      <div style={d.metric}>
+        <p style={d.metricVal}>{reportOrders.filter(o => o.status === "delivered").length}</p>
+        <p style={d.metricLabel}>Delivered</p>
+      </div>
+      <div style={d.metric}>
+        <p style={d.metricVal}>₹{reportOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}</p>
+        <p style={d.metricLabel}>Revenue</p>
+      </div>
+    </div>
+
+    {/* Most ordered items */}
+    {(() => {
+      const itemCounts = {}
+      reportOrders.forEach(o => o.order_items.forEach(i => {
+        const name = i.menu_items?.name || "Unknown"
+        itemCounts[name] = (itemCounts[name] || 0) + i.quantity
+      }))
+      const sorted = Object.entries(itemCounts).sort((a, b) => b[1] - a[1]).slice(0, 5)
+      return sorted.length > 0 ? (
+        <>
+          <p style={d.sectionLabel}>Top Items</p>
+          {sorted.map(([name, count]) => (
+            <div key={name} style={{ ...d.card, padding: "10px 14px", display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 13, color: "#1c2b3a" }}>{name}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>{count} ordered</span>
+            </div>
+          ))}
+        </>
+      ) : null
+    })()}
+
+
+    {/* Orders list */}
+    <p style={d.sectionLabel}>All Orders ({reportOrders.length})</p>
+    {reportOrders.length === 0 && <p style={d.empty}>No orders for this date.</p>}
+    {reportOrders.map(order => {
+      const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+      const time = new Date(order.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+      return (
+        <div key={order.id} style={d.card}>
+          <div style={d.cardHeader}>
+            <div>
+              <span style={d.room}>Room {order.room_id}</span>
+              {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name} {order.guest_phone ? `· ${order.guest_phone}` : ""}</p>}
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <span style={
+                order.status === "delivered" ? d.badgeDone :
+                order.status === "cancelled" || order.status === "rejected" ? d.badgeCancelled :
+                order.status === "preparing" ? d.badgePrep : d.badgePending
+              }>{order.status}</span>
+              <p style={{ fontSize: 10, color: "#8a9bb0", margin: "4px 0 0" }}>{time}</p>
+            </div>
+          </div>
+          <div style={d.items}>
+            {order.order_items.map((item, i) => (
+              <div key={i} style={d.itemRow}>
+                <span>{item.menu_items?.name} x{item.quantity}</span>
+                <span>₹{item.price * item.quantity}</span>
+              </div>
+            ))}
+            {order.special_instructions && (
+              <p style={{ fontSize: 11, color: "#8a9bb0", margin: "4px 0 0" }}>📝 {order.special_instructions}</p>
+            )}
+          </div>
+          <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
+        </div>
+      )
+    })}
+
+    {/* Download CSV */}
+    {reportOrders.length > 0 && (
+      <button style={{ ...d.addBtn, marginTop: 8 }} onClick={() => downloadCSV()}>
+        ⬇ Download CSV
+      </button>
+    )}
+  </>
+)}
 
         {/* SETTINGS TAB */}
         {tab === "settings" && (
