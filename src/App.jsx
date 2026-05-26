@@ -466,8 +466,11 @@ startHoldCountdown(order.id)
             border: "none",
             fontSize: 36,
             cursor: "pointer",
-            opacity: star <= rating ? 1 : 0.3,
-            transition: "opacity 0.15s"
+            color: "#F5A623",
+            opacity: star <= rating ? 1 : 0.25,
+            transition: "opacity 0.15s",
+            padding: "0 4px",
+            lineHeight: 1
           }}
         >
           ★
