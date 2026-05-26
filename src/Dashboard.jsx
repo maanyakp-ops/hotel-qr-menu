@@ -225,6 +225,8 @@ export default function Dashboard({ onBack }) {
     fetchOrders(hotelData.id)
     fetchMenu(hotelData.id)
     if (hotelData?.is_admin) fetchAllHotels()
+    
+    setInterval(() => fetchOrders(hotelData.id), 10000)
 
     const sub = supabase.channel("orders-channel-" + hotelData.id)
   .on("postgres_changes", {
