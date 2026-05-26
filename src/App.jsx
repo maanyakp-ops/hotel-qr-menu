@@ -179,6 +179,10 @@ function App() {
   const [orderStatus, setOrderStatus] = useState(null)
   const [activeTab, setActiveTab] = useState(null)
   const [, forceUpdate] = useState(0)
+  const [vegOnly, setVegOnly] = useState(false)
+  const [holdCountdown, setHoldCountdown] = useState(60)
+  const [holdActive, setHoldActive] = useState(false)
+  const countdownRef = useRef(null)
   const hasLastOrder = !!localStorage.getItem("lastOrder")
   const lastOrderTime = useRef(0)
   const { hotelId, roomNumber } = useParams()
@@ -242,10 +246,9 @@ function App() {
 
   async function cancelOrder(orderId) {
     if (!orderId) return
-    await supabase.from("orders").update({
-      status: "cancelled",
-      cancelled_at: new Date().toISOString()
-    }).eq("id", orderId)
+    clearInterval(countdownRef.current)
+    setHoldActive(false)
+    await supabase.from("orders").delete().eq("id", orderId)
     setOrderStatus("cancelled")
     localStorage.removeItem("lastOrder")
     forceUpdate(n => n + 1)
@@ -271,7 +274,7 @@ function App() {
       .insert({
         hotel_id: resolvedHotelId,
         room_id: resolvedRoom,
-        status: "pending",
+        status: "hold",
         payment_method: "cash",
         guest_name: guestName,
         guest_phone: guestPhone,
@@ -299,6 +302,7 @@ function App() {
     localStorage.setItem("lastOrder", JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
     forceUpdate(n => n + 1)
     watchOrderStatus(order.id)
+startHoldCountdown(order.id)
   }
 
   function addToCart(item) {
@@ -320,8 +324,25 @@ function App() {
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0)
   const categories = [...new Set(menuItems.map(i => i.category))]
   const maxPrepTime = cart.length > 0 ? Math.max(...cart.map(i => i.prep_time || 15)) : 15
-
+  const filteredItems = vegOnly ? menuItems.filter(i => i.is_veg !== false) : menuItems
+  function startHoldCountdown(orderId) {
+    setHoldCountdown(60)
+    setHoldActive(true)
+    countdownRef.current = setInterval(async () => {
+      setHoldCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownRef.current)
+          setHoldActive(false)
+          supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }
+  
   if (!authChecked) return <div style={s.center}>Loading...</div>
+  
 
   if (view === "dashboard") {
     if (!session) return <Auth onLogin={() => setView("dashboard")} />
@@ -393,11 +414,19 @@ function App() {
           </div>
         </div>
 
-        {canCancel && (
-          <button style={s.cancelOrderBtn} onClick={() => cancelOrder(placedOrder.id)}>
-            Cancel Order
-          </button>
-        )}
+        {holdActive && (
+  <div style={{ textAlign: "center", marginBottom: 16 }}>
+    <p style={{ color: s.prepTimeText?.color || "#C9A84C", fontSize: 13, marginBottom: 8, letterSpacing: 1 }}>
+      Order confirms in {holdCountdown}s
+    </p>
+    <div style={{ width: 200, height: 3, background: "rgba(255,255,255,0.1)", borderRadius: 2, margin: "0 auto 16px" }}>
+      <div style={{ width: `${(holdCountdown / 60) * 100}%`, height: "100%", background: "#C9A84C", borderRadius: 2, transition: "width 1s linear" }} />
+    </div>
+    <button style={s.cancelOrderBtn} onClick={() => cancelOrder(placedOrder.id)}>
+      Cancel Order
+    </button>
+  </div>
+)}
 
         <button style={s.confirmBtn} onClick={() => {
           setOrderPlaced(false)
@@ -443,6 +472,25 @@ function App() {
         <div style={s.heroOrnament}>✦ &nbsp; ✦ &nbsp; ✦</div>
       </div>
 
+      <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: "1rem" }}>
+  <button
+    style={{
+      background: vegOnly ? s.addBtnBg || s.btnBg : "none",
+      border: `1px solid ${s.accentMuted}`,
+      color: vegOnly ? s.btnColor : s.accent,
+      borderRadius: 20,
+      padding: "5px 16px",
+      fontSize: 11,
+      cursor: "pointer",
+      fontFamily: s.bodyFont,
+      letterSpacing: 1,
+    }}
+    onClick={() => setVegOnly(!vegOnly)}
+  >
+    🟢 Veg Only
+  </button>
+</div>
+
       {/* Category tabs */}
       {categories.length > 0 && (
         <div style={s.tabs}>
@@ -481,7 +529,10 @@ function App() {
         <div key={item.id} style={s.specialItem}>
           <div style={s.specialBadge}>Chef's Special</div>
           <div style={s.itemLeft}>
-            <div style={s.itemName}>{item.name}</div>
+          <div style={{ ...s.itemName, display: "flex", alignItems: "center", gap: 6 }}>
+  <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
+  {item.name}
+</div>
             {item.description && <div style={s.itemDesc}>{item.description}</div>}
             <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
           </div>
@@ -511,7 +562,10 @@ function App() {
           return (
             <div key={item.id} style={s.menuItem}>
               <div style={s.itemLeft}>
-                <div style={s.itemName}>{item.name}</div>
+              <div style={{ ...s.itemName, display: "flex", alignItems: "center", gap: 6 }}>
+  <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
+  {item.name}
+</div>
                 {item.description && <div style={s.itemDesc}>{item.description}</div>}
                 <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
               </div>

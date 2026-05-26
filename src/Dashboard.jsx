@@ -227,17 +227,31 @@ export default function Dashboard({ onBack }) {
     if (hotelData?.is_admin) fetchAllHotels()
 
     const sub = supabase.channel("orders-channel-" + hotelData.id)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "orders",
-        filter: `hotel_id=eq.${hotelData.id}`
-      }, () => {
-        fetchOrders(hotelData.id)
-        playOrderSound()
-        showBadge()
-      })
-      .subscribe()
+  .on("postgres_changes", {
+    event: "INSERT",
+    schema: "public",
+    table: "orders",
+    filter: `hotel_id=eq.${hotelData.id}`
+  }, (payload) => {
+    if (payload.new.status === "hold") return
+    fetchOrders(hotelData.id)
+    playOrderSound()
+    showBadge()
+  })
+  .on("postgres_changes", {
+    event: "UPDATE",
+    schema: "public",
+    table: "orders",
+    filter: `hotel_id=eq.${hotelData.id}`
+  }, (payload) => {
+    if (payload.new.status === "hold") return
+    fetchOrders(hotelData.id)
+    if (payload.old.status === "hold" && payload.new.status === "pending") {
+      playOrderSound()
+      showBadge()
+    }
+  })
+  .subscribe()
     return () => supabase.removeChannel(sub)
   }
 
@@ -246,10 +260,11 @@ export default function Dashboard({ onBack }) {
     today.setHours(0, 0, 0, 0)
   
     let query = supabase
-      .from("orders")
-      .select(`*, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
-      .eq("hotel_id", hotelId)
-      .order("created_at", { ascending: false })
+  .from("orders")
+  .select(`*, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
+  .eq("hotel_id", hotelId)
+  .neq("status", "hold")
+  .order("created_at", { ascending: false })
   
     if (!all) {
       query = query.gte("created_at", today.toISOString())
@@ -303,6 +318,7 @@ export default function Dashboard({ onBack }) {
       prep_time: parseInt(editItem.prep_time) || 15,
       description: editItem.description || null,
       is_special: editItem.is_special || false,
+      is_veg: editItem.is_veg !== false ? true : false,
     }).eq("id", editItem.id)
     setEditItem(null)
     fetchMenu(hotel.id)
@@ -326,6 +342,7 @@ export default function Dashboard({ onBack }) {
       description: newItem.description || null,
       is_special: newItem.is_special || false,
       available: true
+      is_veg: newItem.is_veg !== false ? true : false,
     })
     setNewItem({ name: "", category: "", price: "", prep_time: "15", description: "", is_special: false })
     fetchMenu(hotel.id)
@@ -536,6 +553,15 @@ export default function Dashboard({ onBack }) {
               >
                 {newItem.is_special ? "⭐ Marked as Special" : "☆ Mark as Special"}
               </button>
+
+              <button
+  type="button"
+  style={newItem.is_veg !== false ? d.btnVeg : d.btnNonVeg}
+  onClick={() => setNewItem({ ...newItem, is_veg: newItem.is_veg === false ? true : false })}
+>
+  {newItem.is_veg !== false ? "🟢 Veg" : "🔴 Non-Veg"}
+</button>
+
               <button style={d.addBtn} onClick={addItem} disabled={adding}>
                 {adding ? "Adding..." : "+ Add Item"}
               </button>
@@ -609,6 +635,15 @@ export default function Dashboard({ onBack }) {
               >
                 {editItem.is_special ? "⭐ Marked as Special" : "☆ Mark as Special"}
               </button>
+
+              <button
+  type="button"
+  style={editItem.is_veg !== false ? d.btnVeg : d.btnNonVeg}
+  onClick={() => setEditItem({ ...editItem, is_veg: editItem.is_veg === false ? true : false })}
+>
+  {editItem.is_veg !== false ? "🟢 Veg" : "🔴 Non-Veg"}
+</button>
+
               <button style={d.saveBtn} onClick={() => saveEdit()}>Save Changes</button>
               <button style={d.cancelBtn} onClick={() => setEditItem(null)}>Cancel</button>
             </div>
@@ -899,4 +934,6 @@ const d = {
   themeCard: { background: "#fff", borderRadius: 14, padding: "16px 14px", boxShadow: "0 1px 6px rgba(0,0,0,0.07)", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, transition: "outline 0.15s" },
   themeName: { fontSize: 13, fontWeight: 600, color: "#1c2b3a" },
   themeActiveBadge: { fontSize: 10, color: "#2e7d32", background: "#e8f5e9", padding: "2px 10px", borderRadius: 20, marginTop: 4 },
+  btnVeg: { background: "#e8f5e9", color: "#2e7d32", border: "1px solid #a5d6a7", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
+  btnNonVeg: { background: "#fce4e4", color: "#c0392b", border: "1px solid #ef9a9a", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
 }
