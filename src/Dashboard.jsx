@@ -22,7 +22,9 @@ export default function Dashboard({ onBack }) {
   const [rejectingOrder, setRejectingOrder] = useState(null)
   const [rejectReason, setRejectReason] = useState("")
   const [customReason, setCustomReason] = useState("")
-
+  const [roomSummaryNumber, setRoomSummaryNumber] = useState("")
+  const [roomSummaryOrders, setRoomSummaryOrders] = useState(null)
+  const [roomSummaryLoading, setRoomSummaryLoading] = useState(false)
   function playOrderSound() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)()
     const oscillator = ctx.createOscillator()
@@ -431,6 +433,21 @@ async function fetchReportOrders() {
   if (data) setReportOrders(data)
 }
 
+async function fetchRoomSummary() {
+  if (!roomSummaryNumber) return
+  setRoomSummaryLoading(true)
+  const { data } = await supabase
+    .from("orders")
+    .select(`*, order_items(quantity, price, menu_item_id, menu_items(name))`)
+    .eq("hotel_id", hotel.id)
+    .eq("room_id", roomSummaryNumber)
+    .neq("status", "hold")
+    .neq("status", "cancelled")
+    .neq("status", "rejected")
+    .order("created_at", { ascending: true })
+  setRoomSummaryOrders(data || [])
+  setRoomSummaryLoading(false)
+}
 function downloadCSV() {
   const rows = [["Time", "Room", "Guest", "Phone", "Items", "Total", "Status"]]
   reportOrders.forEach(o => {
@@ -964,6 +981,135 @@ function downloadCSV() {
       <button style={{ ...d.addBtn, marginTop: 8 }} onClick={() => downloadCSV()}>
         ⬇ Download CSV
       </button>
+    )}
+
+    {/* ROOM CHECKOUT SUMMARY */}
+    <p style={{ ...d.sectionLabel, marginTop: 24 }}>Room Checkout Summary</p>
+    <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 12px" }}>
+      Enter a room number to see all orders placed during their stay.
+    </p>
+    <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+      <input
+        style={{ ...d.input, flex: 1 }}
+        placeholder="Room number e.g. 101"
+        value={roomSummaryNumber}
+        onChange={e => setRoomSummaryNumber(e.target.value)}
+        onKeyDown={e => e.key === "Enter" && fetchRoomSummary()}
+      />
+      <button style={{ ...d.saveBtn, padding: "10px 20px" }} onClick={fetchRoomSummary}>
+        {roomSummaryLoading ? "..." : "Search"}
+      </button>
+    </div>
+
+    {roomSummaryOrders !== null && (
+      <>
+        {roomSummaryOrders.length === 0 ? (
+          <p style={d.empty}>No orders found for Room {roomSummaryNumber}.</p>
+        ) : (
+          <>
+            <div style={{ ...d.card, background: "#1c2b3a", color: "#e8f0f8" }}>
+              <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 4px", color: "#e8f0f8" }}>
+                Room {roomSummaryNumber} — Stay Summary
+              </p>
+              <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 12px" }}>
+                {new Date(roomSummaryOrders[0].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                {" → "}
+                {new Date(roomSummaryOrders[roomSummaryOrders.length - 1].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: "#7eb3f5", margin: "0 0 2px" }}>{roomSummaryOrders.length}</p>
+                  <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>Orders</p>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: "#6fcf97", margin: "0 0 2px" }}>
+                    ₹{roomSummaryOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}
+                  </p>
+                  <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>Total Spent</p>
+                </div>
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ fontSize: 20, fontWeight: 700, color: "#f5a623", margin: "0 0 2px" }}>
+                    {roomSummaryOrders.filter(o => o.rating).length > 0
+                      ? (roomSummaryOrders.reduce((s, o) => s + (o.rating || 0), 0) / roomSummaryOrders.filter(o => o.rating).length).toFixed(1) + " ★"
+                      : "—"}
+                  </p>
+                  <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>Avg Rating</p>
+                </div>
+              </div>
+            </div>
+
+            {(() => {
+              const itemCounts = {}
+              roomSummaryOrders.forEach(o => o.order_items.forEach(i => {
+                const name = i.menu_items?.name || "Unknown"
+                if (!itemCounts[name]) itemCounts[name] = { qty: 0, total: 0 }
+                itemCounts[name].qty += i.quantity
+                itemCounts[name].total += i.price * i.quantity
+              }))
+              return (
+                <>
+                  <p style={d.sectionLabel}>Items Ordered</p>
+                  {Object.entries(itemCounts).map(([name, data]) => (
+                    <div key={name} style={{ ...d.card, padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <span style={{ fontSize: 13, color: "#1c2b3a", fontWeight: 500 }}>{name}</span>
+                        <span style={{ fontSize: 11, color: "#8a9bb0", marginLeft: 8 }}>x{data.qty}</span>
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>₹{data.total}</span>
+                    </div>
+                  ))}
+                </>
+              )
+            })()}
+
+            <p style={d.sectionLabel}>Order Timeline</p>
+            {roomSummaryOrders.map((order, idx) => {
+              const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+              const time = new Date(order.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+              return (
+                <div key={order.id} style={{ ...d.card, borderLeft: "3px solid #1c2b3a" }}>
+                  <div style={d.cardHeader}>
+                    <p style={{ fontSize: 12, color: "#8a9bb0", margin: 0 }}>Order {idx + 1} · {time}</p>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>₹{orderTotal}</span>
+                  </div>
+                  {order.order_items.map((item, i) => (
+                    <div key={i} style={d.itemRow}>
+                      <span>{item.menu_items?.name} x{item.quantity}</span>
+                      <span>₹{item.price * item.quantity}</span>
+                    </div>
+                  ))}
+                  {order.special_instructions && (
+                    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "6px 0 0" }}>📝 {order.special_instructions}</p>
+                  )}
+                  {order.rating && (
+                    <p style={{ fontSize: 12, color: "#f5a623", margin: "6px 0 0" }}>{"★".repeat(order.rating)}{"☆".repeat(5 - order.rating)}</p>
+                  )}
+                </div>
+              )
+            })}
+
+            <button
+              style={{ ...d.addBtn, marginTop: 8, width: "100%" }}
+              onClick={() => {
+                const lines = [`ROOM ${roomSummaryNumber} — CHECKOUT SUMMARY\n`]
+                roomSummaryOrders.forEach((o, idx) => {
+                  const time = new Date(o.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                  lines.push(`Order ${idx + 1} — ${time}`)
+                  o.order_items.forEach(i => lines.push(`  ${i.menu_items?.name} x${i.quantity} — ₹${i.price * i.quantity}`))
+                  lines.push(`  Total: ₹${o.order_items.reduce((s, i) => s + i.price * i.quantity, 0)}\n`)
+                })
+                const grand = roomSummaryOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)
+                lines.push(`GRAND TOTAL: ₹${grand}`)
+                const win = window.open("", "_blank")
+                win.document.write(`<pre style="font-family:monospace;padding:24px">${lines.join("\n")}</pre>`)
+                win.print()
+              }}
+            >
+              🖨️ Print Checkout Bill
+            </button>
+          </>
+        )}
+      </>
     )}
   </>
 )}
