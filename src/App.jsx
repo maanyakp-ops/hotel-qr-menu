@@ -683,7 +683,6 @@ startHoldCountdown(order.id)
             watchOrderStatus(last.orderId)
           }}>View My Last Order</button>
         )}
-        <a href="/auth" style={s.staffLink}>Staff Login</a>
         <p style={s.footerNote}>All prices inclusive of taxes · Please inform staff of any allergies</p>
       </div>
 
