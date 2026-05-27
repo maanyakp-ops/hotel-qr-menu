@@ -203,6 +203,33 @@ function App() {
 
   useEffect(() => { fetchHotelAndMenu() }, [])
 
+  useEffect(() => {
+    if (orderStatus === "delivered") {
+      const layer = document.getElementById("confetti-layer")
+      if (!layer) return
+      layer.innerHTML = ""
+      const colors = ["#C9A84C","#2e7d32","#0369a1","#b45309","#5e35b1"]
+      for (let i = 0; i < 24; i++) {
+        const dot = document.createElement("div")
+        const tx = (Math.random() - 0.5) * 300
+        const ty = -(Math.random() * 120 + 40)
+        dot.style.cssText = `
+          position: absolute;
+          left: ${40 + Math.random() * 20}%;
+          top: 0;
+          width: ${6 + Math.random() * 6}px;
+          height: ${6 + Math.random() * 6}px;
+          background: ${colors[Math.floor(Math.random() * colors.length)]};
+          border-radius: ${Math.random() > 0.5 ? "50%" : "2px"};
+          --tx: ${tx}px; --ty: ${ty}px;
+          animation: flyDot ${0.6 + Math.random() * 0.6}s ease-out ${Math.random() * 0.3}s forwards;
+          pointer-events: none;
+        `
+        layer.appendChild(dot)
+      }
+    }
+  }, [orderStatus])
+
   async function fetchHotelAndMenu() {
     const { data: hotelData } = await supabase
       .from("hotels")
@@ -401,25 +428,97 @@ startHoldCountdown(order.id)
 
         {orderStatus !== "cancelled" && orderStatus !== "rejected" && (
           <>
-            <div style={s.statusContainer}>
-              <div style={s.statusStep}>
-                <div style={s.statusDotActive} />
-                <p style={s.statusLabel}>Received</p>
-              </div>
-              <div style={orderStatus === "preparing" || orderStatus === "delivered" ? s.statusLineActive : s.statusLine} />
-              <div style={s.statusStep}>
-                <div style={orderStatus === "preparing" || orderStatus === "delivered" ? s.statusDotActive : s.statusDotInactive} />
-                <p style={s.statusLabel}>Preparing</p>
-              </div>
-              <div style={orderStatus === "delivered" ? s.statusLineActive : s.statusLine} />
-              <div style={s.statusStep}>
-                <div style={orderStatus === "delivered" ? s.statusDotDone : s.statusDotInactive} />
-                <p style={s.statusLabel}>Delivered</p>
-              </div>
-            </div>
-            <div style={s.prepTimeBox}>
-              <p style={s.prepTimeText}>⏱ Estimated time: {placedOrder.prepTime || maxPrepTime} minutes</p>
-            </div>
+<div style={{ width: "100%", maxWidth: 420, marginBottom: 28, position: "relative" }}>
+
+{/* confetti layer */}
+<div id="confetti-layer" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 0, overflow: "visible", pointerEvents: "none" }} />
+
+<div style={{ display: "flex", alignItems: "flex-start" }}>
+  {[
+    { key: "pending",   icon: "🧾", label: "Received" },
+    { key: "preparing", icon: "👨‍🍳", label: "Preparing" },
+    { key: "onway",     icon: "🚀", label: "On the Way" },
+    { key: "done",      icon: "✅", label: "Delivered" },
+  ].map((step, idx) => {
+    const currentIdx = orderStatus === "delivered" ? 3 : orderStatus === "preparing" ? 1 : orderStatus === "pending" ? 0 : 0
+    const isDone = idx < currentIdx
+    const isActive = idx === currentIdx
+
+    return (
+      <div key={step.key} style={{ display: "flex", alignItems: "flex-start", flex: idx < 3 ? "1" : "0" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 72, flexShrink: 0 }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: "50%",
+            background: isDone ? "#e8f5e9" : isActive ? "#1c2b3a" : "rgba(255,255,255,0.07)",
+            border: isDone ? "2px solid #2e7d32" : isActive ? "2px solid #C9A84C" : "2px solid rgba(255,255,255,0.1)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 22,
+            transform: isActive ? "scale(1.15)" : "scale(1)",
+            transition: "all 0.5s cubic-bezier(0.34,1.56,0.64,1)",
+            opacity: idx > currentIdx ? 0.4 : 1,
+            position: "relative",
+          }}>
+            {isActive && (
+              <div style={{
+                position: "absolute", inset: -6, borderRadius: "50%",
+                border: "2px solid #C9A84C",
+                animation: "pulseRing 1.5s ease-out infinite",
+              }} />
+            )}
+            <span style={{
+              color: isDone ? "#2e7d32" : "#C9A84C",
+              animation: isActive ? "bounceIcon 0.8s ease infinite alternate" : isDone ? "popIcon 0.4s cubic-bezier(0.34,1.56,0.64,1)" : "none",
+              display: "inline-block",
+            }}>
+              {isDone ? "✓" : step.icon}
+            </span>
+          </div>
+          <p style={{
+            fontSize: 11, textAlign: "center", margin: "6px 0 0",
+            color: isDone ? "#2e7d32" : isActive ? "#C9A84C" : s.textSecondary,
+            fontWeight: (isDone || isActive) ? 500 : 400,
+            lineHeight: 1.3, whiteSpace: "nowrap",
+            transition: "color 0.3s",
+          }}>
+            {step.label}
+          </p>
+        </div>
+
+        {idx < 3 && (
+          <div style={{ flex: 1, height: 3, marginTop: 27, borderRadius: 2, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
+            <div style={{
+              height: "100%", borderRadius: 2,
+              background: "linear-gradient(90deg, #2e7d32, #C9A84C)",
+              width: isDone ? "100%" : isActive ? "40%" : "0%",
+              transition: "width 0.9s cubic-bezier(0.4,0,0.2,1)",
+            }} />
+          </div>
+        )}
+      </div>
+    )
+  })}
+</div>
+
+<style>{`
+  @keyframes pulseRing {
+    0%   { transform: scale(1);   opacity: 0.7; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+  @keyframes bounceIcon {
+    from { transform: translateY(0px); }
+    to   { transform: translateY(-4px); }
+  }
+  @keyframes popIcon {
+    0%   { transform: scale(0.5); }
+    70%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  @keyframes flyDot {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+`}</style>
+</div>
           </>
         )}
 
