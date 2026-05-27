@@ -1096,7 +1096,7 @@ const d = {
   live: { display: "flex", alignItems: "center", gap: 5, color: "#6fcf97", fontSize: 12 },
   dot: { width: 7, height: 7, borderRadius: "50%", background: "#6fcf97", display: "inline-block" },
   logoutBtn: { background: "none", border: "0.5px solid #3a3a3c", color: "#6e6e73", borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer" },
-  metrics: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, padding: 14 },
+  metrics: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, padding: 14 },
   metric: { background: "#fff", borderRadius: 12, padding: "12px 10px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
   metricVal: { fontSize: 20, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px" },
   metricLabel: { fontSize: 10, color: "#8a9bb0", margin: 0 },
