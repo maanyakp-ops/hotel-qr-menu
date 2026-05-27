@@ -414,12 +414,13 @@ export default function Dashboard({ onBack }) {
   }
 
   
-const [reportDate, setReportDate] = useState(today)
-const [reportOrders, setReportOrders] = useState([])
+  
+  const [reportDate, setReportDate] = useState(today)
+  const [reportOrders, setReportOrders] = useState([])
 
-useEffect(() => {
-  if (hotel && tab === "reports") fetchReportOrders()
-}, [reportDate, tab, hotel])
+  useEffect(() => {
+    if (hotel && tab === "reports") fetchReportOrders()
+  }, [reportDate, tab, hotel])
 
 async function fetchReportOrders() {
   const start = new Date(reportDate)
