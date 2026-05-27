@@ -708,8 +708,8 @@ function downloadCSV() {
                       <button style={item.available ? d.btnOn : d.btnOff} onClick={() => toggleAvailable(item)}>
                         {item.available ? "On" : "Off"}
                       </button>
-                      <button style={item.out_of_stock ? d.btnStock : d.btnNoStock} onClick={() => toggleStock(item)}>
-                        {item.out_of_stock ? "In Stock" : "Out"}
+                      <button style={item.out_of_stock ? d.btnNoStock : d.btnStock} onClick={() => toggleStock(item)}>
+                        {item.out_of_stock ? "Out of Stock" : "In Stock"}
                       </button>
                       <button
                         style={item.is_special ? d.btnSpecialOn : d.btnSpecialOff}
