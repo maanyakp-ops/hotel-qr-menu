@@ -1,7 +1,3 @@
-
-bash
-
-cat > /mnt/user-data/outputs/App.jsx << 'ENDOFFILE'
 import { useEffect, useState, useRef } from "react"
 import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
