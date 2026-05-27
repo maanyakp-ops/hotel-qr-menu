@@ -183,7 +183,7 @@ function App() {
   const [holdCountdown, setHoldCountdown] = useState(60)
   const [holdActive, setHoldActive] = useState(false)
   const countdownRef = useRef(null)
-  const hasLastOrder = !!localStorage.getItem("lastOrder")
+  const hasLastOrder = !!localStorage.getItem(`lastOrder_${resolvedRoom}`)
   const lastOrderTime = useRef(0)
   const { hotelId, roomNumber } = useParams()
   const resolvedHotelId = hotelId || "a5b9bed4-9c40-4856-b4ed-371e800beaf0"
@@ -301,7 +301,7 @@ function App() {
     setHoldActive(false)
     await supabase.from("orders").delete().eq("id", orderId)
     setOrderStatus("cancelled")
-    localStorage.removeItem("lastOrder")
+    localStorage.removeItem(`lastOrder_${resolvedRoom}`)
     forceUpdate(n => n + 1)
   }
 
@@ -350,7 +350,7 @@ function App() {
     setOrderPlaced(true)
     setShowGuestForm(false)
     setCart([])
-    localStorage.setItem("lastOrder", JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
+    localStorage.setItem(`lastOrder_${resolvedRoom}`, JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
     forceUpdate(n => n + 1)
     watchOrderStatus(order.id)
 startHoldCountdown(order.id)
@@ -774,7 +774,7 @@ startHoldCountdown(order.id)
       <div style={s.menuFooter}>
         {hasLastOrder && (
           <button style={s.viewOrderBtn} onClick={async () => {
-            const last = JSON.parse(localStorage.getItem("lastOrder"))
+            const last = JSON.parse(localStorage.getItem(`lastOrder_${resolvedRoom}`))
             const { data } = await supabase.from("orders").select("status, rating").eq("id", last.orderId).single()
 setPlacedOrder({ items: last.items, room_id: last.room, prepTime: last.prepTime })
 setOrderStatus(data?.status || "pending")
