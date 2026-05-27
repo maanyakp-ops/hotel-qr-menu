@@ -192,6 +192,8 @@ function App() {
   const [rating, setRating] = useState(0)
   const [ratingComment, setRatingComment] = useState("")
   const [ratingSubmitted, setRatingSubmitted] = useState(false)
+  const pollRef = useRef(null)
+  const channelRef = useRef(null)
   
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -258,6 +260,10 @@ function App() {
   }
 
   async function watchOrderStatus(orderId) {
+    // Clean up previous listeners
+    if (pollRef.current) clearInterval(pollRef.current)
+    if (channelRef.current) supabase.removeChannel(channelRef.current)
+  
     try {
       const sub = supabase.channel("order-status-" + orderId)
         .on("postgres_changes", {
@@ -272,12 +278,12 @@ function App() {
           }
         })
         .subscribe()
+      channelRef.current = sub
     } catch (e) {
       console.log("Realtime not available", e)
     }
   
-    // Poll every 8 seconds as fallback
-    const pollInterval = setInterval(async () => {
+    pollRef.current = setInterval(async () => {
       const { data } = await supabase
         .from("orders")
         .select("status, reject_reason")
@@ -289,7 +295,8 @@ function App() {
           setPlacedOrder(prev => ({ ...prev, reject_reason: data.reject_reason }))
         }
         if (data.status === "delivered" || data.status === "cancelled" || data.status === "rejected") {
-          clearInterval(pollInterval)
+          clearInterval(pollRef.current)
+          supabase.removeChannel(channelRef.current)
         }
       }
     }, 8000)
