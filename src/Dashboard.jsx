@@ -4,7 +4,8 @@ import { QRCodeSVG as QRCode } from "qrcode.react"
 
 export default function Dashboard({ onBack }) {
   const today = new Date().toISOString().split("T")[0]
-  const [orders, setOrders] = useState([])([])
+  const [orders, setOrders] = useState([])
+  const [menuItems, setMenuItems] = useState([])
   const [hotel, setHotel] = useState(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState("orders")
