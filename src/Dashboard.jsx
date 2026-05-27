@@ -816,7 +816,7 @@ function downloadCSV() {
     </div>
 
     {/* Summary cards */}
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 16 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 16 }}>
       <div style={d.metric}>
         <p style={d.metricVal}>{reportOrders.length}</p>
         <p style={d.metricLabel}>Orders</p>
@@ -829,6 +829,14 @@ function downloadCSV() {
         <p style={d.metricVal}>₹{reportOrders.filter(o => o.status === "delivered").reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}</p>
         <p style={d.metricLabel}>Revenue</p>
       </div>
+      <div style={d.metric}>
+  <p style={d.metricVal}>
+    {reportOrders.filter(o => o.rating).length > 0
+      ? (reportOrders.reduce((sum, o) => sum + (o.rating || 0), 0) / reportOrders.filter(o => o.rating).length).toFixed(1)
+      : "—"}
+  </p>
+  <p style={d.metricLabel}>Avg Rating ★</p>
+</div>
     </div>
 
     {/* Most ordered items */}
@@ -887,6 +895,16 @@ function downloadCSV() {
             )}
           </div>
           <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
+          {order.rating && (
+  <div style={{ marginTop: 8, paddingTop: 8, borderTop: "0.5px solid #eee" }}>
+    <span style={{ color: "#f5a623", fontSize: 16 }}>
+      {"★".repeat(order.rating)}{"☆".repeat(5 - order.rating)}
+    </span>
+    {order.rating_comment && (
+      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "4px 0 0" }}>"{order.rating_comment}"</p>
+    )}
+  </div>
+)}
         </div>
       )
     })}
@@ -1078,7 +1096,7 @@ const d = {
   live: { display: "flex", alignItems: "center", gap: 5, color: "#6fcf97", fontSize: 12 },
   dot: { width: 7, height: 7, borderRadius: "50%", background: "#6fcf97", display: "inline-block" },
   logoutBtn: { background: "none", border: "0.5px solid #3a3a3c", color: "#6e6e73", borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer" },
-  metrics: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, padding: 14 },
+  metrics: { display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, padding: 14 },
   metric: { background: "#fff", borderRadius: 12, padding: "12px 10px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
   metricVal: { fontSize: 20, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px" },
   metricLabel: { fontSize: 10, color: "#8a9bb0", margin: 0 },
