@@ -3,8 +3,8 @@ import { supabase } from "./supabase"
 import { QRCodeSVG as QRCode } from "qrcode.react"
 
 export default function Dashboard({ onBack }) {
-  const [orders, setOrders] = useState([])
-  const [menuItems, setMenuItems] = useState([])
+  const today = new Date().toISOString().split("T")[0]
+  const [orders, setOrders] = useState([])([])
   const [hotel, setHotel] = useState(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState("orders")
@@ -413,7 +413,7 @@ export default function Dashboard({ onBack }) {
     onBack()
   }
 
-  const today = new Date().toISOString().split("T")[0]
+  
 const [reportDate, setReportDate] = useState(today)
 const [reportOrders, setReportOrders] = useState([])
 
