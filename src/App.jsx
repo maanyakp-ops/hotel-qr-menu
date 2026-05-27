@@ -196,6 +196,7 @@ function App() {
   const resolvedRoom = roomNumber || "101"
   const hasLastOrder = !!localStorage.getItem(`lastOrder_${resolvedRoom}`)
   const s = getStyles(hotelInfo?.theme || 'dark-gold')
+  const t = themeConfigs[hotelInfo?.theme || 'dark-gold'] || themeConfigs['dark-gold']  // ← add this
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -426,21 +427,21 @@ function App() {
   if (showOrdersList) {
     return (
       <div style={{ ...s.page, padding: 0 }}>
-        <div style={{ background: s.heroBg, padding: "1.5rem 1.5rem 1rem", borderBottom: `1px solid ${s.heroBorder}` }}>
+        <div style={{ background: t.heroBg, padding: "1.5rem 1.5rem 1rem", borderBottom: `1px solid ${t.heroBorder}` }}>
           <button
             onClick={() => setShowOrdersList(false)}
-            style={{ background: "none", border: "none", color: s.accent, fontSize: 13, cursor: "pointer", padding: 0, marginBottom: 12 }}
+            style={{ background: "none", border: "none", color: t.accent, fontSize: 13, cursor: "pointer", padding: 0, marginBottom: 12 }}
           >
             ← Back to Menu
           </button>
-          <h2 style={{ color: s.textPrimary, fontFamily: s.titleFont, fontSize: 24, fontWeight: 300, margin: 0 }}>
+          <h2 style={{ color: t.textPrimary, fontFamily: t.titleFont, fontSize: 24, fontWeight: 300, margin: 0 }}>
             My Orders
           </h2>
-          <p style={{ color: s.textSecondary, fontSize: 12, margin: "4px 0 0" }}>Room {resolvedRoom}</p>
+          <p style={{ color: t.textSecondary, fontSize: 12, margin: "4px 0 0" }}>Room {resolvedRoom}</p>
         </div>
         <div style={{ padding: "1rem" }}>
           {roomOrders.length === 0 && (
-            <p style={{ color: s.textSecondary, textAlign: "center", marginTop: 40 }}>No orders found.</p>
+            <p style={{ color: t.textSecondary, textAlign: "center", marginTop: 40 }}>No orders found.</p>
           )}
           {roomOrders.map(order => {
             const orderTotal = order.order_items.reduce((sum, i) => sum + i.price * i.quantity, 0)
@@ -459,18 +460,18 @@ function App() {
                   setShowOrdersList(false)
                   watchOrderStatus(order.id)
                 }}
-                style={{ background: s.heroBg, border: `1px solid ${s.heroBorder}`, borderRadius: 12, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}
+                style={{ background: t.heroBg, border: `1px solid ${t.heroBorder}`, borderRadius: 12, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ color: s.textPrimary, fontFamily: s.titleFont, fontSize: 16 }}>₹{orderTotal}</span>
+                  <span style={{ color: t.textPrimary, fontFamily: t.titleFont, fontSize: 16 }}>₹{orderTotal}</span>
                   <span style={{ fontSize: 11, color: statusColor, fontWeight: 500, textTransform: "capitalize" }}>
                     {order.status.replace("_", " ")}
                   </span>
                 </div>
-                <div style={{ color: s.textSecondary, fontSize: 12, marginBottom: 6 }}>
+                <div style={{ color: t.textSecondary, fontSize: 12, marginBottom: 6 }}>
                   {order.order_items.map(i => `${i.menu_items?.name} x${i.quantity}`).join(", ")}
                 </div>
-                <div style={{ color: s.accentMuted, fontSize: 11 }}>{date} · {time}</div>
+                <div style={{ color: t.accentMuted, fontSize: 11 }}>{date} · {time}</div>
               </div>
             )
           })}
