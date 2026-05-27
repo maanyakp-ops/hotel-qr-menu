@@ -440,7 +440,7 @@ startHoldCountdown(order.id)
     { key: "onway",     icon: "🚀", label: "On the Way" },
     { key: "done",      icon: "✅", label: "Delivered" },
   ].map((step, idx) => {
-    const currentIdx = orderStatus === "delivered" ? 3 : orderStatus === "preparing" ? 1 : orderStatus === "pending" ? 0 : 0
+    const currentIdx = orderStatus === "delivered" ? 3 : orderStatus === "on_the_way" ? 2 : orderStatus === "preparing" ? 1 : 0
     const isDone = idx < currentIdx
     const isActive = idx === currentIdx
 
@@ -602,9 +602,9 @@ startHoldCountdown(order.id)
 )}
 
 {ratingSubmitted && (
-  <p style={{ color: s.textSecondary, fontSize: 13, marginBottom: 24, letterSpacing: 1 }}>
-    ✓ Thanks for your feedback!
-  </p>
+ <p style={{ color: s.accent, fontSize: 13, marginBottom: 24, letterSpacing: 1 }}>
+ ✓ Thanks for your feedback!
+</p>
 )}
 
 <button style={s.confirmBtn} onClick={() => {

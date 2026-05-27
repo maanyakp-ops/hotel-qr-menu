@@ -538,8 +538,8 @@ function downloadCSV() {
                           <span style={d.room}>Room {order.room_id}</span>
                           {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name} {order.guest_phone ? `· ${order.guest_phone}` : ""}</p>}
                         </div>
-                        <span style={order.status === "pending" ? d.badgePending : d.badgePrep}>
-                          {order.status === "pending" ? "Pending" : "Preparing"}
+                        <span style={order.status === "pending" ? d.badgePending : order.status === "on_the_way" ? d.badgeOnWay : d.badgePrep}>
+                          {order.status === "pending" ? "Pending" : order.status === "on_the_way" ? "On the Way" : "Preparing"}
                         </span>
                       </div>
                       <div style={d.items}>
@@ -564,8 +564,11 @@ function downloadCSV() {
                           </>
                         )}
                         {order.status === "preparing" && (
-                          <button style={d.btnDeliver} onClick={() => updateStatus(order.id, "delivered")}>Mark as Delivered</button>
-                        )}
+  <button style={d.btnOnWay} onClick={() => updateStatus(order.id, "on_the_way")}>Mark as On the Way</button>
+)}
+{order.status === "on_the_way" && (
+  <button style={d.btnDeliver} onClick={() => updateStatus(order.id, "delivered")}>Mark as Delivered</button>
+)}
                         <span style={d.timeAgo}>{mins < 1 ? "Just now" : `${mins} min ago`}</span>
                       </div>
                     </div>
@@ -1176,4 +1179,6 @@ const d = {
   themeActiveBadge: { fontSize: 10, color: "#2e7d32", background: "#e8f5e9", padding: "2px 10px", borderRadius: 20, marginTop: 4 },
   btnVeg: { background: "#e8f5e9", color: "#2e7d32", border: "1px solid #a5d6a7", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
   btnNonVeg: { background: "#fce4e4", color: "#c0392b", border: "1px solid #ef9a9a", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
+  btnOnWay: { background: "#ede7f6", color: "#5e35b1", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
+  badgeOnWay: { background: "#ede7f6", color: "#5e35b1", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
 }
