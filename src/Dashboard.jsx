@@ -25,6 +25,9 @@ export default function Dashboard({ onBack }) {
   const [roomSummaryNumber, setRoomSummaryNumber] = useState("")
   const [roomSummaryOrders, setRoomSummaryOrders] = useState(null)
   const [roomSummaryLoading, setRoomSummaryLoading] = useState(false)
+  const [roomCheckIn, setRoomCheckIn] = useState(today)
+  const [roomCheckOut, setRoomCheckOut] = useState(today)
+  const [guestSearchPhone, setGuestSearchPhone] = useState("")
   function playOrderSound() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)()
     const oscillator = ctx.createOscillator()
@@ -434,17 +437,28 @@ async function fetchReportOrders() {
 }
 
 async function fetchRoomSummary() {
-  if (!roomSummaryNumber) return
+  if (!roomSummaryNumber && !guestSearchPhone) return
   setRoomSummaryLoading(true)
-  const { data } = await supabase
+  const start = new Date(roomCheckIn)
+  start.setHours(0, 0, 0, 0)
+  const end = new Date(roomCheckOut)
+  end.setHours(23, 59, 59, 999)
+
+  let query = supabase
     .from("orders")
     .select(`*, order_items(quantity, price, menu_item_id, menu_items(name))`)
     .eq("hotel_id", hotel.id)
-    .eq("room_id", roomSummaryNumber)
     .neq("status", "hold")
     .neq("status", "cancelled")
     .neq("status", "rejected")
+    .gte("created_at", start.toISOString())
+    .lte("created_at", end.toISOString())
     .order("created_at", { ascending: true })
+
+  if (guestSearchPhone) query = query.eq("guest_phone", guestSearchPhone)
+  else query = query.eq("room_id", roomSummaryNumber)
+
+  const { data } = await query
   setRoomSummaryOrders(data || [])
   setRoomSummaryLoading(false)
 }
@@ -988,18 +1002,55 @@ function downloadCSV() {
     <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 12px" }}>
       Enter a room number to see all orders placed during their stay.
     </p>
-    <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+  <div style={{ display: "flex", gap: 8 }}>
+    <input
+      style={{ ...d.input, flex: 1 }}
+      placeholder="Guest phone number"
+      type="tel"
+      inputMode="numeric"
+      maxLength={10}
+      value={guestSearchPhone}
+      onChange={e => {
+        setGuestSearchPhone(e.target.value.replace(/\D/g, '').slice(0, 10))
+        if (e.target.value) setRoomSummaryNumber("")
+      }}
+    />
+    <span style={{ alignSelf: "center", color: "#8a9bb0", fontSize: 12 }}>or</span>
+    <input
+      style={{ ...d.input, flex: 1 }}
+      placeholder="Room number"
+      value={roomSummaryNumber}
+      onChange={e => {
+        setRoomSummaryNumber(e.target.value)
+        if (e.target.value) setGuestSearchPhone("")
+      }}
+    />
+  </div>
+  <div style={{ display: "flex", gap: 8 }}>
+    <div style={{ flex: 1 }}>
+      <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>Check-in</p>
       <input
-        style={{ ...d.input, flex: 1 }}
-        placeholder="Room number e.g. 101"
-        value={roomSummaryNumber}
-        onChange={e => setRoomSummaryNumber(e.target.value)}
-        onKeyDown={e => e.key === "Enter" && fetchRoomSummary()}
+        type="date"
+        style={{ ...d.input, width: "100%", boxSizing: "border-box" }}
+        value={roomCheckIn}
+        onChange={e => setRoomCheckIn(e.target.value)}
       />
-      <button style={{ ...d.saveBtn, padding: "10px 20px" }} onClick={fetchRoomSummary}>
-        {roomSummaryLoading ? "..." : "Search"}
-      </button>
     </div>
+    <div style={{ flex: 1 }}>
+      <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>Check-out</p>
+      <input
+        type="date"
+        style={{ ...d.input, width: "100%", boxSizing: "border-box" }}
+        value={roomCheckOut}
+        onChange={e => setRoomCheckOut(e.target.value)}
+      />
+    </div>
+  </div>
+  <button style={d.saveBtn} onClick={fetchRoomSummary}>
+    {roomSummaryLoading ? "Searching..." : "Search"}
+  </button>
+</div>
 
     {roomSummaryOrders !== null && (
       <>
@@ -1008,9 +1059,12 @@ function downloadCSV() {
         ) : (
           <>
             <div style={{ ...d.card, background: "#1c2b3a", color: "#e8f0f8" }}>
-              <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 4px", color: "#e8f0f8" }}>
-                Room {roomSummaryNumber} — Stay Summary
-              </p>
+            <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 4px", color: "#e8f0f8" }}>
+  {roomSummaryOrders[0]?.guest_name || "Guest"} — Stay Summary
+</p>
+<p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>
+  {guestSearchPhone ? `📞 ${guestSearchPhone}` : `🚪 Room ${roomSummaryNumber}`}
+</p>
               <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 12px" }}>
                 {new Date(roomSummaryOrders[0].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                 {" → "}
