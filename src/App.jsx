@@ -593,6 +593,7 @@ startHoldCountdown(order.id)
             rating_comment: ratingComment || null
           }).eq("id", placedOrder.id)
           setRatingSubmitted(true)
+          localStorage.setItem(`rated_${placedOrder.id}`, "true")
         }}
       >
         Submit Rating
@@ -778,7 +779,7 @@ startHoldCountdown(order.id)
             const { data } = await supabase.from("orders").select("status, rating").eq("id", last.orderId).single()
 setPlacedOrder({ items: last.items, room_id: last.room, prepTime: last.prepTime })
 setOrderStatus(data?.status || "pending")
-if (data?.rating) setRatingSubmitted(true)
+if (data?.rating || localStorage.getItem(`rated_${last.orderId}`)) setRatingSubmitted(true)
             setOrderPlaced(true)
             watchOrderStatus(last.orderId)
           }}>View My Last Order</button>
