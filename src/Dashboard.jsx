@@ -301,7 +301,9 @@ export default function Dashboard({ onBack }) {
   }
 
   async function updateStatus(id, status) {
-    await supabase.from("orders").update({ status }).eq("id", id)
+    const updates = { status }
+    if (status === "delivered") updates.delivered_at = new Date().toISOString()
+    await supabase.from("orders").update(updates).eq("id", id)
     fetchOrders(hotel.id)
   }
   async function rejectOrder(id) {
@@ -880,7 +882,12 @@ function downloadCSV() {
                 order.status === "cancelled" || order.status === "rejected" ? d.badgeCancelled :
                 order.status === "preparing" ? d.badgePrep : d.badgePending
               }>{order.status}</span>
-              <p style={{ fontSize: 10, color: "#8a9bb0", margin: "4px 0 0" }}>{time}</p>
+              <p style={{ fontSize: 10, color: "#8a9bb0", margin: "4px 0 0" }}>🕐 Ordered: {time}</p>
+{order.delivered_at && (
+  <p style={{ fontSize: 10, color: "#2e7d32", margin: "2px 0 0" }}>
+    ✓ Delivered: {new Date(order.delivered_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+  </p>
+)}
             </div>
           </div>
           <div style={d.items}>
