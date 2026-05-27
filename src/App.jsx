@@ -183,11 +183,11 @@ function App() {
   const [holdCountdown, setHoldCountdown] = useState(60)
   const [holdActive, setHoldActive] = useState(false)
   const countdownRef = useRef(null)
-  const hasLastOrder = !!localStorage.getItem(`lastOrder_${resolvedRoom}`)
   const lastOrderTime = useRef(0)
   const { hotelId, roomNumber } = useParams()
   const resolvedHotelId = hotelId || "a5b9bed4-9c40-4856-b4ed-371e800beaf0"
   const resolvedRoom = roomNumber || "101"
+  const hasLastOrder = !!localStorage.getItem(`lastOrder_${resolvedRoom}`)
   const s = getStyles(hotelInfo?.theme || 'dark-gold')
   const [rating, setRating] = useState(0)
   const [ratingComment, setRatingComment] = useState("")
