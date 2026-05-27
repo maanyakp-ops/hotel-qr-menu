@@ -304,7 +304,8 @@ function App() {
 
   async function cancelOrder(orderId) {
     if (!orderId) return
-    clearInterval(countdownRef.current)
+    if (countdownRef.current) clearInterval(countdownRef.current)
+    countdownRef.current = null
     setHoldActive(false)
     await supabase.from("orders").delete().eq("id", orderId)
     setOrderStatus("cancelled")
@@ -383,7 +384,11 @@ startHoldCountdown(order.id)
   const categories = [...new Set(menuItems.map(i => i.category))]
   const maxPrepTime = cart.length > 0 ? Math.max(...cart.map(i => i.prep_time || 15)) : 15
   const filteredItems = vegOnly ? menuItems.filter(i => i.is_veg !== false) : menuItems
+
   function startHoldCountdown(orderId) {
+    // Clear any existing countdown first
+    if (countdownRef.current) clearInterval(countdownRef.current)
+    
     setHoldCountdown(60)
     setHoldActive(true)
     let seconds = 60
@@ -392,6 +397,7 @@ startHoldCountdown(order.id)
       setHoldCountdown(seconds)
       if (seconds <= 0) {
         clearInterval(countdownRef.current)
+        countdownRef.current = null
         setHoldActive(false)
         await supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
       }
