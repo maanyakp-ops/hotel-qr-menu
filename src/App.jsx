@@ -1,3 +1,7 @@
+
+bash
+
+cat > /mnt/user-data/outputs/App.jsx << 'ENDOFFILE'
 import { useEffect, useState, useRef } from "react"
 import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
@@ -182,21 +186,21 @@ function App() {
   const [vegOnly, setVegOnly] = useState(false)
   const [holdCountdown, setHoldCountdown] = useState(60)
   const [holdActive, setHoldActive] = useState(false)
+  const [rating, setRating] = useState(0)
+  const [ratingComment, setRatingComment] = useState("")
+  const [ratingSubmitted, setRatingSubmitted] = useState(false)
+  const [showOrdersList, setShowOrdersList] = useState(false)
+  const [roomOrders, setRoomOrders] = useState([])
   const countdownRef = useRef(null)
   const lastOrderTime = useRef(0)
+  const pollRef = useRef(null)
+  const channelRef = useRef(null)
   const { hotelId, roomNumber } = useParams()
   const resolvedHotelId = hotelId || "a5b9bed4-9c40-4856-b4ed-371e800beaf0"
   const resolvedRoom = roomNumber || "101"
   const hasLastOrder = !!localStorage.getItem(`lastOrder_${resolvedRoom}`)
   const s = getStyles(hotelInfo?.theme || 'dark-gold')
-  const [rating, setRating] = useState(0)
-  const [ratingComment, setRatingComment] = useState("")
-  const [ratingSubmitted, setRatingSubmitted] = useState(false)
-  const pollRef = useRef(null)
-  const channelRef = useRef(null)
-  const [showOrdersList, setShowOrdersList] = useState(false)
-  const [roomOrders, setRoomOrders] = useState([])
-  
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -241,12 +245,10 @@ function App() {
       .eq("id", resolvedHotelId)
       .single()
     setHotelInfo(hotelData)
-
     if (!hotelData || hotelData.status === "disabled") {
       setLoading(false)
       return
     }
-
     const { data, error } = await supabase
       .from("menu_items")
       .select("*")
@@ -261,11 +263,21 @@ function App() {
     setLoading(false)
   }
 
+  async function fetchRoomOrders() {
+    const { data } = await supabase
+      .from("orders")
+      .select(`*, order_items(quantity, price, menu_items(name))`)
+      .eq("hotel_id", resolvedHotelId)
+      .eq("room_id", resolvedRoom)
+      .neq("status", "hold")
+      .order("created_at", { ascending: false })
+      .limit(10)
+    if (data) setRoomOrders(data)
+  }
+
   async function watchOrderStatus(orderId) {
-    // Clean up previous listeners
     if (pollRef.current) clearInterval(pollRef.current)
     if (channelRef.current) supabase.removeChannel(channelRef.current)
-  
     try {
       const sub = supabase.channel("order-status-" + orderId)
         .on("postgres_changes", {
@@ -284,7 +296,6 @@ function App() {
     } catch (e) {
       console.log("Realtime not available", e)
     }
-  
     pollRef.current = setInterval(async () => {
       const { data } = await supabase
         .from("orders")
@@ -315,6 +326,107 @@ function App() {
     forceUpdate(n => n + 1)
   }
 
+  async function placeOrder() {
+    if (cart.length === 0) return
+    if (!guestName.trim()) { alert("Please enter your name."); return }
+    if (!guestPhone.trim() || guestPhone.replace(/\D/g, '').length !== 10) {
+      alert("Please enter a valid 10-digit phone number.")
+      return
+    }
+    const now = Date.now()
+    if (now - lastOrderTime.current < 30000) {
+      alert("Please wait 30 seconds before placing another order.")
+      return
+    }
+    lastOrderTime.current = now
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert({
+        hotel_id: resolvedHotelId,
+        room_id: resolvedRoom,
+        status: "hold",
+        payment_method: "cash",
+        guest_name: guestName,
+        guest_phone: guestPhone,
+        special_instructions: guestInstructions || null
+      })
+      .select().single()
+    if (orderError) { console.error(orderError); alert("Something went wrong."); return }
+    const { error: itemsError } = await supabase
+      .from("order_items")
+      .insert(cart.map(item => ({
+        order_id: order.id,
+        menu_item_id: item.id,
+        quantity: item.qty,
+        price: item.price
+      })))
+    if (itemsError) { console.error(itemsError); return }
+    const orderData = { ...order, items: cart, prepTime: maxPrepTime }
+    setPlacedOrder(orderData)
+    setOrderStatus("pending")
+    setOrderPlaced(true)
+    setShowGuestForm(false)
+    setCart([])
+    localStorage.setItem(`lastOrder_${resolvedRoom}`, JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
+    forceUpdate(n => n + 1)
+    watchOrderStatus(order.id)
+    startHoldCountdown(order.id)
+  }
+
+  function addToCart(item) {
+    setCart(prev => {
+      const existing = prev.find(i => i.id === item.id)
+      if (existing) return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i)
+      return [...prev, { ...item, qty: 1 }]
+    })
+  }
+
+  function removeFromCart(item) {
+    setCart(prev => {
+      const existing = prev.find(i => i.id === item.id)
+      if (existing.qty === 1) return prev.filter(i => i.id !== item.id)
+      return prev.map(i => i.id === item.id ? { ...i, qty: i.qty - 1 } : i)
+    })
+  }
+
+  function startHoldCountdown(orderId) {
+    if (countdownRef.current) clearInterval(countdownRef.current)
+    setHoldCountdown(60)
+    setHoldActive(true)
+    let seconds = 60
+    countdownRef.current = setInterval(async () => {
+      seconds -= 1
+      setHoldCountdown(seconds)
+      if (seconds <= 0) {
+        clearInterval(countdownRef.current)
+        countdownRef.current = null
+        setHoldActive(false)
+        await supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
+      }
+    }, 1000)
+  }
+
+  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0)
+  const categories = [...new Set(menuItems.map(i => i.category))]
+  const maxPrepTime = cart.length > 0 ? Math.max(...cart.map(i => i.prep_time || 15)) : 15
+  const filteredItems = vegOnly ? menuItems.filter(i => i.is_veg !== false) : menuItems
+
+  if (!authChecked) return <div style={s.center}>Loading...</div>
+
+  if (view === "dashboard") {
+    if (!session) return <Auth onLogin={() => setView("dashboard")} />
+    return <Dashboard onBack={() => setView("menu")} />
+  }
+
+  if (loading) return <div style={s.center}>Loading menu...</div>
+
+  if (hotelInfo?.status === "disabled") return (
+    <div style={s.center}>
+      <p style={{ fontSize: 40, marginBottom: 16 }}>🚫</p>
+      <p style={{ color: "#EDE8DC", fontSize: 16 }}>This menu is currently unavailable.</p>
+    </div>
+  )
+
   if (showOrdersList) {
     return (
       <div style={{ ...s.page, padding: 0 }}>
@@ -330,7 +442,6 @@ function App() {
           </h2>
           <p style={{ color: s.textSecondary, fontSize: 12, margin: "4px 0 0" }}>Room {resolvedRoom}</p>
         </div>
-  
         <div style={{ padding: "1rem" }}>
           {roomOrders.length === 0 && (
             <p style={{ color: s.textSecondary, textAlign: "center", marginTop: 40 }}>No orders found.</p>
@@ -343,19 +454,16 @@ function App() {
             return (
               <div
                 key={order.id}
-                onClick={async () => {
+                onClick={() => {
                   setPlacedOrder({ ...order, items: order.order_items.map(i => ({ ...i, name: i.menu_items?.name, qty: i.quantity })), prepTime: 15 })
                   setOrderStatus(order.status)
-                  if (order.rating) setRatingSubmitted(true)
+                  if (order.rating || localStorage.getItem(`rated_${order.id}`)) setRatingSubmitted(true)
                   else setRatingSubmitted(false)
                   setOrderPlaced(true)
                   setShowOrdersList(false)
                   watchOrderStatus(order.id)
                 }}
-                style={{
-                  background: s.heroBg, border: `1px solid ${s.heroBorder}`,
-                  borderRadius: 12, padding: "14px 16px", marginBottom: 10, cursor: "pointer"
-                }}
+                style={{ background: s.heroBg, border: `1px solid ${s.heroBorder}`, borderRadius: 12, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ color: s.textPrimary, fontFamily: s.titleFont, fontSize: 16 }}>₹{orderTotal}</span>
@@ -375,118 +483,7 @@ function App() {
     )
   }
 
-  async function placeOrder() {
-    if (cart.length === 0) return
-    if (!guestName.trim()) { alert("Please enter your name."); return }
-    if (!guestPhone.trim() || guestPhone.replace(/\D/g, '').length !== 10) {
-      alert("Please enter a valid 10-digit phone number.")
-      return
-    }
-
-    const now = Date.now()
-    if (now - lastOrderTime.current < 30000) {
-      alert("Please wait 30 seconds before placing another order.")
-      return
-    }
-    lastOrderTime.current = now
-
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert({
-        hotel_id: resolvedHotelId,
-        room_id: resolvedRoom,
-        status: "hold",
-        payment_method: "cash",
-        guest_name: guestName,
-        guest_phone: guestPhone,
-        special_instructions: guestInstructions || null
-      })
-      .select().single()
-    if (orderError) { console.error(orderError); alert("Something went wrong."); return }
-
-    const { error: itemsError } = await supabase
-      .from("order_items")
-      .insert(cart.map(item => ({
-        order_id: order.id,
-        menu_item_id: item.id,
-        quantity: item.qty,
-        price: item.price
-      })))
-    if (itemsError) { console.error(itemsError); return }
-
-    const orderData = { ...order, items: cart, prepTime: maxPrepTime }
-    setPlacedOrder(orderData)
-    setOrderStatus("pending")
-    setOrderPlaced(true)
-    setShowGuestForm(false)
-    setCart([])
-    localStorage.setItem(`lastOrder_${resolvedRoom}`, JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
-    forceUpdate(n => n + 1)
-    watchOrderStatus(order.id)
-startHoldCountdown(order.id)
-  }
-
-  function addToCart(item) {
-    setCart(prev => {
-      const existing = prev.find(i => i.id === item.id)
-      if (existing) return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i)
-      return [...prev, { ...item, qty: 1 }]
-    })
-  }
-
-  function removeFromCart(item) {
-    setCart(prev => {
-      const existing = prev.find(i => i.id === item.id)
-      if (existing.qty === 1) return prev.filter(i => i.id !== item.id)
-      return prev.map(i => i.id === item.id ? { ...i, qty: i.qty - 1 } : i)
-    })
-  }
-
-  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0)
-  const categories = [...new Set(menuItems.map(i => i.category))]
-  const maxPrepTime = cart.length > 0 ? Math.max(...cart.map(i => i.prep_time || 15)) : 15
-  const filteredItems = vegOnly ? menuItems.filter(i => i.is_veg !== false) : menuItems
-
-  function startHoldCountdown(orderId) {
-    // Clear any existing countdown first
-    if (countdownRef.current) clearInterval(countdownRef.current)
-    
-    setHoldCountdown(60)
-    setHoldActive(true)
-    let seconds = 60
-    countdownRef.current = setInterval(async () => {
-      seconds -= 1
-      setHoldCountdown(seconds)
-      if (seconds <= 0) {
-        clearInterval(countdownRef.current)
-        countdownRef.current = null
-        setHoldActive(false)
-        await supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
-      }
-    }, 1000)
-  }
-  
-  if (!authChecked) return <div style={s.center}>Loading...</div>
-  
-
-  if (view === "dashboard") {
-    if (!session) return <Auth onLogin={() => setView("dashboard")} />
-    return <Dashboard onBack={() => setView("menu")} />
-  }
-
-  if (loading) return <div style={s.center}>Loading menu...</div>
-
-  if (hotelInfo?.status === "disabled") return (
-    <div style={s.center}>
-      <p style={{ fontSize: 40, marginBottom: 16 }}>🚫</p>
-      <p style={{ color: "#EDE8DC", fontSize: 16 }}>This menu is currently unavailable.</p>
-    </div>
-  )
-
   if (orderPlaced && placedOrder) {
-    const orderAge = Date.now() - new Date(placedOrder.created_at).getTime()
-    const canCancel = orderAge < 60000 && orderStatus === "pending"
-
     return (
       <div style={s.confirmation}>
         <div style={s.confirmIcon}>
@@ -502,99 +499,59 @@ startHoldCountdown(order.id)
         </p>
 
         {orderStatus !== "cancelled" && orderStatus !== "rejected" && (
-          <>
-<div style={{ width: "100%", maxWidth: 420, marginBottom: 28, position: "relative" }}>
-
-{/* confetti layer */}
-<div id="confetti-layer" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 0, overflow: "visible", pointerEvents: "none" }} />
-
-<div style={{ display: "flex", alignItems: "flex-start" }}>
-  {[
-    { key: "pending",   icon: "🧾", label: "Received" },
-    { key: "preparing", icon: "👨‍🍳", label: "Preparing" },
-    { key: "onway",     icon: "🚀", label: "On the Way" },
-    { key: "done",      icon: "✅", label: "Delivered" },
-  ].map((step, idx) => {
-    const currentIdx = orderStatus === "delivered" ? 3 : orderStatus === "on_the_way" ? 2 : orderStatus === "preparing" ? 1 : 0
-    const isDone = idx < currentIdx
-    const isActive = idx === currentIdx
-
-    return (
-      <div key={step.key} style={{ display: "flex", alignItems: "flex-start", flex: idx < 3 ? "1" : "0" }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 72, flexShrink: 0 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: "50%",
-            background: isDone ? "#e8f5e9" : isActive ? "#1c2b3a" : "rgba(255,255,255,0.07)",
-            border: isDone ? "2px solid #2e7d32" : isActive ? "2px solid #C9A84C" : "2px solid rgba(255,255,255,0.1)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 22,
-            transform: isActive ? "scale(1.15)" : "scale(1)",
-            transition: "all 0.5s cubic-bezier(0.34,1.56,0.64,1)",
-            opacity: idx > currentIdx ? 0.4 : 1,
-            position: "relative",
-          }}>
-            {isActive && (
-              <div style={{
-                position: "absolute", inset: -6, borderRadius: "50%",
-                border: "2px solid #C9A84C",
-                animation: "pulseRing 1.5s ease-out infinite",
-              }} />
-            )}
-            <span style={{
-              color: isDone ? "#2e7d32" : "#C9A84C",
-              animation: isActive ? "bounceIcon 0.8s ease infinite alternate" : isDone ? "popIcon 0.4s cubic-bezier(0.34,1.56,0.64,1)" : "none",
-              display: "inline-block",
-            }}>
-              {isDone ? "✓" : step.icon}
-            </span>
+          <div style={{ width: "100%", maxWidth: 420, marginBottom: 28, position: "relative" }}>
+            <div id="confetti-layer" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 0, overflow: "visible", pointerEvents: "none" }} />
+            <div style={{ display: "flex", alignItems: "flex-start" }}>
+              {[
+                { key: "pending",   icon: "🧾", label: "Received" },
+                { key: "preparing", icon: "👨‍🍳", label: "Preparing" },
+                { key: "onway",     icon: "🚀", label: "On the Way" },
+                { key: "done",      icon: "✅", label: "Delivered" },
+              ].map((step, idx) => {
+                const currentIdx = orderStatus === "delivered" ? 3 : orderStatus === "on_the_way" ? 2 : orderStatus === "preparing" ? 1 : 0
+                const isDone = idx < currentIdx
+                const isActive = idx === currentIdx
+                return (
+                  <div key={step.key} style={{ display: "flex", alignItems: "flex-start", flex: idx < 3 ? "1" : "0" }}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 72, flexShrink: 0 }}>
+                      <div style={{
+                        width: 56, height: 56, borderRadius: "50%",
+                        background: isDone ? "#e8f5e9" : isActive ? "#1c2b3a" : "rgba(255,255,255,0.07)",
+                        border: isDone ? "2px solid #2e7d32" : isActive ? "2px solid #C9A84C" : "2px solid rgba(255,255,255,0.1)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 22,
+                        transform: isActive ? "scale(1.15)" : "scale(1)",
+                        transition: "all 0.5s cubic-bezier(0.34,1.56,0.64,1)",
+                        opacity: idx > currentIdx ? 0.4 : 1,
+                        position: "relative",
+                      }}>
+                        {isActive && (
+                          <div style={{ position: "absolute", inset: -6, borderRadius: "50%", border: "2px solid #C9A84C", animation: "pulseRing 1.5s ease-out infinite" }} />
+                        )}
+                        <span style={{ color: isDone ? "#2e7d32" : "#C9A84C", animation: isActive ? "bounceIcon 0.8s ease infinite alternate" : isDone ? "popIcon 0.4s cubic-bezier(0.34,1.56,0.64,1)" : "none", display: "inline-block" }}>
+                          {isDone ? "✓" : step.icon}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: 11, textAlign: "center", margin: "6px 0 0", color: isDone ? "#2e7d32" : isActive ? "#C9A84C" : s.textSecondary, fontWeight: (isDone || isActive) ? 500 : 400, lineHeight: 1.3, whiteSpace: "nowrap", transition: "color 0.3s" }}>
+                        {step.label}
+                      </p>
+                    </div>
+                    {idx < 3 && (
+                      <div style={{ flex: 1, height: 3, marginTop: 27, borderRadius: 2, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
+                        <div style={{ height: "100%", borderRadius: 2, background: "linear-gradient(90deg, #2e7d32, #C9A84C)", width: isDone ? "100%" : isActive ? "40%" : "0%", transition: "width 0.9s cubic-bezier(0.4,0,0.2,1)" }} />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <style>{`
+              @keyframes pulseRing { 0% { transform: scale(1); opacity: 0.7; } 100% { transform: scale(1.5); opacity: 0; } }
+              @keyframes bounceIcon { from { transform: translateY(0px); } to { transform: translateY(-4px); } }
+              @keyframes popIcon { 0% { transform: scale(0.5); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+              @keyframes flyDot { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+            `}</style>
           </div>
-          <p style={{
-            fontSize: 11, textAlign: "center", margin: "6px 0 0",
-            color: isDone ? "#2e7d32" : isActive ? "#C9A84C" : s.textSecondary,
-            fontWeight: (isDone || isActive) ? 500 : 400,
-            lineHeight: 1.3, whiteSpace: "nowrap",
-            transition: "color 0.3s",
-          }}>
-            {step.label}
-          </p>
-        </div>
-
-        {idx < 3 && (
-          <div style={{ flex: 1, height: 3, marginTop: 27, borderRadius: 2, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
-            <div style={{
-              height: "100%", borderRadius: 2,
-              background: "linear-gradient(90deg, #2e7d32, #C9A84C)",
-              width: isDone ? "100%" : isActive ? "40%" : "0%",
-              transition: "width 0.9s cubic-bezier(0.4,0,0.2,1)",
-            }} />
-          </div>
-        )}
-      </div>
-    )
-  })}
-</div>
-
-<style>{`
-  @keyframes pulseRing {
-    0%   { transform: scale(1);   opacity: 0.7; }
-    100% { transform: scale(1.5); opacity: 0; }
-  }
-  @keyframes bounceIcon {
-    from { transform: translateY(0px); }
-    to   { transform: translateY(-4px); }
-  }
-  @keyframes popIcon {
-    0%   { transform: scale(0.5); }
-    70%  { transform: scale(1.2); }
-    100% { transform: scale(1); }
-  }
-  @keyframes flyDot {
-    0%   { transform: translate(0,0) scale(1); opacity: 1; }
-    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
-  }
-`}</style>
-</div>
-          </>
         )}
 
         <div style={s.orderSummary}>
@@ -612,108 +569,62 @@ startHoldCountdown(order.id)
         </div>
 
         {holdActive && (
-  <div style={{ textAlign: "center", marginBottom: 16 }}>
-    <p style={{ color: s.prepTimeText?.color || "#C9A84C", fontSize: 13, marginBottom: 8, letterSpacing: 1 }}>
-      Order confirms in {holdCountdown}s
-    </p>
-    <div style={{ width: 200, height: 3, background: "rgba(255,255,255,0.1)", borderRadius: 2, margin: "0 auto 16px" }}>
-      <div style={{ width: `${(holdCountdown / 60) * 100}%`, height: "100%", background: "#C9A84C", borderRadius: 2, transition: "width 1s linear" }} />
-    </div>
-    <button style={s.cancelOrderBtn} onClick={() => cancelOrder(placedOrder.id)}>
-      Cancel Order
-    </button>
-  </div>
-)}
+          <div style={{ textAlign: "center", marginBottom: 16 }}>
+            <p style={{ color: "#C9A84C", fontSize: 13, marginBottom: 8, letterSpacing: 1 }}>
+              Order confirms in {holdCountdown}s
+            </p>
+            <div style={{ width: 200, height: 3, background: "rgba(255,255,255,0.1)", borderRadius: 2, margin: "0 auto 16px" }}>
+              <div style={{ width: `${(holdCountdown / 60) * 100}%`, height: "100%", background: "#C9A84C", borderRadius: 2, transition: "width 1s linear" }} />
+            </div>
+            <button style={s.cancelOrderBtn} onClick={() => cancelOrder(placedOrder.id)}>Cancel Order</button>
+          </div>
+        )}
 
-{orderStatus === "delivered" && !ratingSubmitted && (
-  <div style={{ textAlign: "center", marginBottom: 24, width: "100%", maxWidth: 360 }}>
-    <p style={{ color: s.textPrimary, fontSize: 13, letterSpacing: 1, marginBottom: 16 }}>
-      How was your experience?
-    </p>
-    <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
-      {[1, 2, 3, 4, 5].map(star => (
-        <button
-          key={star}
-          onClick={() => setRating(star)}
-          style={{
-            background: "none",
-            border: "none",
-            fontSize: 36,
-            cursor: "pointer",
-            color: "#F5A623",
-            opacity: star <= rating ? 1 : 0.25,
-            transition: "opacity 0.15s",
-            padding: "0 4px",
-            lineHeight: 1
-          }}
-        >
-          ★
-        </button>
-      ))}
-    </div>
-    {rating > 0 && rating < 3 && (
-      <textarea
-        style={{ ...s.modalInput, height: 80, resize: "none", marginBottom: 12 }}
-        placeholder="What went wrong? We'd love to know..."
-        value={ratingComment}
-        onChange={e => setRatingComment(e.target.value)}
-      />
-    )}
-    {rating > 0 && (
-      <button
-        style={{ ...s.confirmBtn, width: "100%" }}
-        onClick={async () => {
-          await supabase.from("orders").update({
-            rating,
-            rating_comment: ratingComment || null
-          }).eq("id", placedOrder.id)
-          setRatingSubmitted(true)
-          localStorage.setItem(`rated_${placedOrder.id}`, "true")
-        }}
-      >
-        Submit Rating
-      </button>
-    )}
-  </div>
-)}
+        {orderStatus === "delivered" && !ratingSubmitted && (
+          <div style={{ textAlign: "center", marginBottom: 24, width: "100%", maxWidth: 360 }}>
+            <p style={{ color: s.textPrimary, fontSize: 13, letterSpacing: 1, marginBottom: 16 }}>How was your experience?</p>
+            <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+              {[1, 2, 3, 4, 5].map(star => (
+                <button key={star} onClick={() => setRating(star)} style={{ background: "none", border: "none", fontSize: 36, cursor: "pointer", color: "#F5A623", opacity: star <= rating ? 1 : 0.25, transition: "opacity 0.15s", padding: "0 4px", lineHeight: 1 }}>★</button>
+              ))}
+            </div>
+            {rating > 0 && rating < 3 && (
+              <textarea style={{ ...s.modalInput, height: 80, resize: "none", marginBottom: 12 }} placeholder="What went wrong? We'd love to know..." value={ratingComment} onChange={e => setRatingComment(e.target.value)} />
+            )}
+            {rating > 0 && (
+              <button style={{ ...s.confirmBtn, width: "100%" }} onClick={async () => {
+                await supabase.from("orders").update({ rating, rating_comment: ratingComment || null }).eq("id", placedOrder.id)
+                setRatingSubmitted(true)
+                localStorage.setItem(`rated_${placedOrder.id}`, "true")
+              }}>Submit Rating</button>
+            )}
+          </div>
+        )}
 
-{ratingSubmitted && (
- <p style={{ color: "#ffffff", fontSize: 13, marginBottom: 24, letterSpacing: 1 }}>
- ✓ Thanks for your feedback!
-</p>
-)}
+        {ratingSubmitted && (
+          <p style={{ color: "#ffffff", fontSize: 13, marginBottom: 24, letterSpacing: 1 }}>✓ Thanks for your feedback!</p>
+        )}
 
-<button style={s.confirmBtn} onClick={() => {
-  setOrderPlaced(false)
-  setPlacedOrder(null)
-  setRating(0)
-  setRatingComment("")
-  setRatingSubmitted(false)
-}}>
-  Back to Menu
-</button>
+        <button style={s.confirmBtn} onClick={() => {
+          setOrderPlaced(false)
+          setPlacedOrder(null)
+          setRating(0)
+          setRatingComment("")
+          setRatingSubmitted(false)
+        }}>Back to Menu</button>
       </div>
     )
   }
 
   return (
     <div style={s.page}>
-      {/* Guest form modal */}
       {showGuestForm && (
         <div style={s.modalOverlay}>
           <div style={s.modal}>
             <p style={s.modalTitle}>Almost there!</p>
             <p style={s.modalSub}>Enter your details to place the order</p>
             <input style={s.modalInput} placeholder="Your name *" value={guestName} onChange={e => setGuestName(e.target.value)} />
-            <input
-  style={s.modalInput}
-  placeholder="Phone number *"
-  type="tel"
-  inputMode="numeric"
-  maxLength={10}
-  value={guestPhone}
-  onChange={e => setGuestPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-/>
+            <input style={s.modalInput} placeholder="Phone number *" type="tel" inputMode="numeric" maxLength={10} value={guestPhone} onChange={e => setGuestPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} />
             <textarea style={{ ...s.modalInput, height: 80, resize: "none" }} placeholder="Special instructions — e.g. less spicy, no onion" value={guestInstructions} onChange={e => setGuestInstructions(e.target.value)} />
             <button style={s.modalBtn} onClick={placeOrder}>Confirm Order</button>
             <button style={s.modalCancel} onClick={() => setShowGuestForm(false)}>Cancel</button>
@@ -721,7 +632,6 @@ startHoldCountdown(order.id)
         </div>
       )}
 
-      {/* Hero header */}
       <div style={s.hero}>
         <div style={s.heroGoldBar} />
         <div style={s.heroBadge}>Room Service</div>
@@ -731,40 +641,22 @@ startHoldCountdown(order.id)
       </div>
 
       <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: "1rem", marginBottom: "0.5rem", background: s.tabsBg, padding: "8px 0" }}>
-  <button
-    style={{
-      background: vegOnly ? "#2e7d32" : "none",
-      border: "1px solid #2e7d32",
-      color: vegOnly ? "#fff" : "#2e7d32",
-      borderRadius: 20,
-      padding: "5px 16px",
-      fontSize: 11,
-      cursor: "pointer",
-      fontFamily: s.bodyFont,
-      letterSpacing: 1,
-    }}
-    onClick={() => setVegOnly(!vegOnly)}
-  >
-    🟢 Veg Only
-  </button>
-</div>
+        <button
+          style={{ background: vegOnly ? "#2e7d32" : "none", border: "1px solid #2e7d32", color: vegOnly ? "#fff" : "#2e7d32", borderRadius: 20, padding: "5px 16px", fontSize: 11, cursor: "pointer", fontFamily: s.bodyFont, letterSpacing: 1 }}
+          onClick={() => setVegOnly(!vegOnly)}
+        >
+          🟢 Veg Only
+        </button>
+      </div>
 
-      {/* Category tabs */}
       {categories.length > 0 && (
         <div style={s.tabs}>
           {categories.map(cat => (
-            <button
-              key={cat}
-              style={activeTab === cat ? s.tabActive : s.tab}
-              onClick={() => setActiveTab(cat)}
-            >
-              {cat}
-            </button>
+            <button key={cat} style={activeTab === cat ? s.tabActive : s.tab} onClick={() => setActiveTab(cat)}>{cat}</button>
           ))}
         </div>
       )}
 
-      {/* Menu items */}
       <div style={s.body}>
         {menuItems.length === 0 && (
           <div style={s.emptyState}>
@@ -774,56 +666,56 @@ startHoldCountdown(order.id)
           </div>
         )}
 
-{menuItems.filter(i => i.is_special).length > 0 && (
-  <div>
-    <div style={s.specialsHeader}>
-      <span style={s.specialsGold}>✦</span>
-      <span style={s.specialsTitle}>Our Specials</span>
-      <span style={s.specialsGold}>✦</span>
-    </div>
-    {menuItems.filter(i => i.is_special).map(item => {
-      const cartItem = cart.find(i => i.id === item.id)
-      return (
-        <div key={item.id} style={s.specialItem}>
-          <div style={s.specialBadge}>Chef's Special</div>
-          <div style={s.itemLeft}>
-          <div style={{ ...s.itemName, display: "flex", alignItems: "center", gap: 6 }}>
-  <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
-  {item.name}
-</div>
-            {item.description && <div style={s.itemDesc}>{item.description}</div>}
-            <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
+        {menuItems.filter(i => i.is_special).length > 0 && (
+          <div>
+            <div style={s.specialsHeader}>
+              <span style={s.specialsGold}>✦</span>
+              <span style={s.specialsTitle}>Our Specials</span>
+              <span style={s.specialsGold}>✦</span>
+            </div>
+            {menuItems.filter(i => i.is_special).map(item => {
+              const cartItem = cart.find(i => i.id === item.id)
+              return (
+                <div key={item.id} style={s.specialItem}>
+                  <div style={s.specialBadge}>Chef's Special</div>
+                  <div style={s.itemLeft}>
+                    <div style={{ ...s.itemName, display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
+                      {item.name}
+                    </div>
+                    {item.description && <div style={s.itemDesc}>{item.description}</div>}
+                    <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
+                  </div>
+                  <div style={s.itemRight}>
+                    <div style={s.itemPrice}>₹ {item.price}</div>
+                    {item.out_of_stock ? (
+                      <span style={s.outOfStock}>Out of Stock</span>
+                    ) : cartItem ? (
+                      <div style={s.qtyRow}>
+                        <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
+                        <span style={s.qtyNum}>{cartItem.qty}</span>
+                        <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
+                      </div>
+                    ) : (
+                      <button style={s.addBtn} onClick={() => addToCart(item)}>+ Add</button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+            <div style={s.specialsDivider} />
           </div>
-          <div style={s.itemRight}>
-            <div style={s.itemPrice}>₹ {item.price}</div>
-            {item.out_of_stock ? (
-              <span style={s.outOfStock}>Out of Stock</span>
-            ) : cartItem ? (
-              <div style={s.qtyRow}>
-                <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
-                <span style={s.qtyNum}>{cartItem.qty}</span>
-                <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
-              </div>
-            ) : (
-              <button style={s.addBtn} onClick={() => addToCart(item)}>+ Add</button>
-            )}
-          </div>
-        </div>
-      )
-    })}
-    <div style={s.specialsDivider} />
-  </div>
-)}
+        )}
 
-{filteredItems.filter(i => i.category === activeTab).map(item => {
+        {filteredItems.filter(i => i.category === activeTab).map(item => {
           const cartItem = cart.find(i => i.id === item.id)
           return (
             <div key={item.id} style={s.menuItem}>
               <div style={s.itemLeft}>
-              <div style={{ ...s.itemName, display: "flex", alignItems: "center", gap: 6 }}>
-  <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
-  {item.name}
-</div>
+                <div style={{ ...s.itemName, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
+                  {item.name}
+                </div>
                 {item.description && <div style={s.itemDesc}>{item.description}</div>}
                 <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
               </div>
@@ -846,23 +738,18 @@ startHoldCountdown(order.id)
         })}
       </div>
 
-      {/* Footer */}
       <div style={s.menuFooter}>
         {hasLastOrder && (
           <button style={s.viewOrderBtn} onClick={async () => {
-            const last = JSON.parse(localStorage.getItem(`lastOrder_${resolvedRoom}`))
-            const { data } = await supabase.from("orders").select("status, rating").eq("id", last.orderId).single()
-setPlacedOrder({ items: last.items, room_id: last.room, prepTime: last.prepTime })
-setOrderStatus(data?.status || "pending")
-if (data?.rating || localStorage.getItem(`rated_${last.orderId}`)) setRatingSubmitted(true)
-            setOrderPlaced(true)
-            watchOrderStatus(last.orderId)
-          }}>View My Last Order</button>
+            setOrderPlaced(false)
+            setPlacedOrder(null)
+            await fetchRoomOrders()
+            setShowOrdersList(true)
+          }}>My Orders</button>
         )}
         <p style={s.footerNote}>All prices inclusive of taxes · Please inform staff of any allergies</p>
       </div>
 
-      {/* Cart bar */}
       {cart.length > 0 && (
         <div style={s.cartBar}>
           <div>
@@ -876,6 +763,5 @@ if (data?.rating || localStorage.getItem(`rated_${last.orderId}`)) setRatingSubm
   )
 }
 
-
-
 export default App
+
