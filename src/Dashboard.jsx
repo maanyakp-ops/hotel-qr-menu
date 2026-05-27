@@ -382,8 +382,8 @@ async function fetchReportOrders() {
   const end = new Date(reportDate)
   end.setHours(23, 59, 59, 999)
   const { data } = await supabase
-    .from("orders")
-    .select(`*, order_items(quantity, price, menu_item_id, menu_items(name))`)
+  .from("orders")
+  .select(`*, delivered_at, order_items(quantity, price, menu_item_id, menu_items(name))`)
     .eq("hotel_id", hotel.id)
     .gte("created_at", start.toISOString())
     .lte("created_at", end.toISOString())
