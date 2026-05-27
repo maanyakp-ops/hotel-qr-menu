@@ -194,6 +194,8 @@ function App() {
   const [ratingSubmitted, setRatingSubmitted] = useState(false)
   const pollRef = useRef(null)
   const channelRef = useRef(null)
+  const [showOrdersList, setShowOrdersList] = useState(false)
+  const [roomOrders, setRoomOrders] = useState([])
   
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -311,6 +313,66 @@ function App() {
     setOrderStatus("cancelled")
     localStorage.removeItem(`lastOrder_${resolvedRoom}`)
     forceUpdate(n => n + 1)
+  }
+
+  if (showOrdersList) {
+    return (
+      <div style={{ ...s.page, padding: 0 }}>
+        <div style={{ background: s.heroBg, padding: "1.5rem 1.5rem 1rem", borderBottom: `1px solid ${s.heroBorder}` }}>
+          <button
+            onClick={() => setShowOrdersList(false)}
+            style={{ background: "none", border: "none", color: s.accent, fontSize: 13, cursor: "pointer", padding: 0, marginBottom: 12 }}
+          >
+            ← Back to Menu
+          </button>
+          <h2 style={{ color: s.textPrimary, fontFamily: s.titleFont, fontSize: 24, fontWeight: 300, margin: 0 }}>
+            My Orders
+          </h2>
+          <p style={{ color: s.textSecondary, fontSize: 12, margin: "4px 0 0" }}>Room {resolvedRoom}</p>
+        </div>
+  
+        <div style={{ padding: "1rem" }}>
+          {roomOrders.length === 0 && (
+            <p style={{ color: s.textSecondary, textAlign: "center", marginTop: 40 }}>No orders found.</p>
+          )}
+          {roomOrders.map(order => {
+            const orderTotal = order.order_items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+            const time = new Date(order.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+            const date = new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+            const statusColor = order.status === "delivered" ? "#2e7d32" : order.status === "cancelled" || order.status === "rejected" ? "#c0392b" : order.status === "preparing" || order.status === "on_the_way" ? "#0369a1" : "#b45309"
+            return (
+              <div
+                key={order.id}
+                onClick={async () => {
+                  setPlacedOrder({ ...order, items: order.order_items.map(i => ({ ...i, name: i.menu_items?.name, qty: i.quantity })), prepTime: 15 })
+                  setOrderStatus(order.status)
+                  if (order.rating) setRatingSubmitted(true)
+                  else setRatingSubmitted(false)
+                  setOrderPlaced(true)
+                  setShowOrdersList(false)
+                  watchOrderStatus(order.id)
+                }}
+                style={{
+                  background: s.heroBg, border: `1px solid ${s.heroBorder}`,
+                  borderRadius: 12, padding: "14px 16px", marginBottom: 10, cursor: "pointer"
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ color: s.textPrimary, fontFamily: s.titleFont, fontSize: 16 }}>₹{orderTotal}</span>
+                  <span style={{ fontSize: 11, color: statusColor, fontWeight: 500, textTransform: "capitalize" }}>
+                    {order.status.replace("_", " ")}
+                  </span>
+                </div>
+                <div style={{ color: s.textSecondary, fontSize: 12, marginBottom: 6 }}>
+                  {order.order_items.map(i => `${i.menu_items?.name} x${i.quantity}`).join(", ")}
+                </div>
+                <div style={{ color: s.accentMuted, fontSize: 11 }}>{date} · {time}</div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
   }
 
   async function placeOrder() {
