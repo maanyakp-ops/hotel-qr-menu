@@ -602,7 +602,7 @@ startHoldCountdown(order.id)
 )}
 
 {ratingSubmitted && (
- <p style={{ color: s.accent, fontSize: 13, marginBottom: 24, letterSpacing: 1 }}>
+ <p style={{ color: "#ffffff", fontSize: 13, marginBottom: 24, letterSpacing: 1 }}>
  ✓ Thanks for your feedback!
 </p>
 )}
