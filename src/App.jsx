@@ -335,6 +335,21 @@ function App() {
       alert("Please wait 30 seconds before placing another order.")
       return
     }
+
+// Check if there's already an active order for this room
+const { data: activeOrders } = await supabase
+  .from("orders")
+  .select("id, status")
+  .eq("hotel_id", resolvedHotelId)
+  .eq("room_id", resolvedRoom)
+  .in("status", ["hold", "pending"])
+  .limit(1)
+
+if (activeOrders && activeOrders.length > 0) {
+  alert("You already have an order being processed. Please wait until it is being prepared before placing a new one.")
+  return
+}
+
     lastOrderTime.current = now
     const { data: order, error: orderError } = await supabase
       .from("orders")
