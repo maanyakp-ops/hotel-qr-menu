@@ -333,6 +333,8 @@ function App() {
 
 
 // Check if there's already an active order for this room
+const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString()
+
 const { data: activeOrders } = await supabase
   .from("orders")
   .select("id, status")
