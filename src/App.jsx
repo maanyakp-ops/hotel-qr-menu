@@ -261,12 +261,14 @@ function App() {
   }
 
   async function fetchRoomOrders() {
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
     const { data } = await supabase
       .from("orders")
       .select(`*, order_items(quantity, price, menu_items(name))`)
       .eq("hotel_id", resolvedHotelId)
       .eq("room_id", resolvedRoom)
       .neq("status", "hold")
+      .gte("created_at", threeDaysAgo)
       .order("created_at", { ascending: false })
       .limit(10)
     if (data) setRoomOrders(data)
