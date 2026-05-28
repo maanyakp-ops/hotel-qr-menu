@@ -828,8 +828,8 @@ function downloadCSV() {
               <input style={d.input} placeholder="Item name" value={editItem.name} onChange={e => setEditItem({ ...editItem, name: e.target.value })} />
               <select
   style={d.input}
-  value={newItem.category}
-  onChange={e => setNewItem({ ...newItem, category: e.target.value })}
+  value={editItem.category}
+  onChange={e => setEditItem({ ...editItem, category: e.target.value })}
 >
   <option value="">Select Category</option>
   {["Breakfast", "Starters", "Main Course", "Breads", "Rice & Biryani", "Snacks", "Desserts", "Beverages"].map(cat => (
