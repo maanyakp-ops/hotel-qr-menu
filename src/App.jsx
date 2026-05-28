@@ -344,7 +344,7 @@ const { data: activeOrders } = await supabase
   .limit(1)
 
 if (activeOrders && activeOrders.length > 0) {
-  alert("You already have an order being processed. Please wait until it is being prepared before placing a new one.")
+  alert("You can only place another order after the first order is marked as Preparing")
   return
 }
 
