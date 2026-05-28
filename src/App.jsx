@@ -330,11 +330,7 @@ function App() {
       alert("Please enter a valid 10-digit phone number.")
       return
     }
-    const now = Date.now()
-    if (now - lastOrderTime.current < 30000) {
-      alert("Please wait 30 seconds before placing another order.")
-      return
-    }
+
 
 // Check if there's already an active order for this room
 const { data: activeOrders } = await supabase
