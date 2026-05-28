@@ -348,7 +348,7 @@ if (activeOrders && activeOrders.length > 0) {
   return
 }
 
-    lastOrderTime.current = now
+    
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
