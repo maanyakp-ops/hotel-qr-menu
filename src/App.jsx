@@ -391,14 +391,13 @@ function App() {
     setHoldCountdown(60)
     setHoldActive(true)
     let seconds = 60
-    countdownRef.current = setInterval(async () => {
+    countdownRef.current = setInterval(() => {
       seconds -= 1
       setHoldCountdown(seconds)
       if (seconds <= 0) {
         clearInterval(countdownRef.current)
         countdownRef.current = null
         setHoldActive(false)
-        await supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
       }
     }, 1000)
   }
