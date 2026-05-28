@@ -267,7 +267,7 @@ function App() {
       .select(`*, order_items(quantity, price, menu_items(name))`)
       .eq("hotel_id", resolvedHotelId)
       .eq("room_id", resolvedRoom)
-      .neq("status", "hold")
+      .or(`status.neq.hold,created_at.gte.${new Date(Date.now() - 2 * 60 * 1000).toISOString()}`)
       .gte("created_at", threeDaysAgo)
       .order("created_at", { ascending: false })
       .limit(10)

@@ -732,7 +732,19 @@ function downloadCSV() {
             <p style={d.sectionLabel}>Add New Item</p>
             <div style={d.form}>
               <input style={d.input} placeholder="Item name" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
-              <input style={d.input} placeholder="Category (e.g. Starter, Main Course)" value={newItem.category} onChange={e => setNewItem({ ...newItem, category: e.target.value })} />
+              <select
+  style={d.input}
+  value={newItem.category}
+  onChange={e => setNewItem({ ...newItem, category: e.target.value })}
+>
+  <option value="">Select Category</option>
+  {["Breakfast", "Starters", "Main Course", "Breads", "Rice & Biryani", "Snacks", "Desserts", "Beverages"].map(cat => (
+    <option key={cat} value={cat}>{cat}</option>
+  ))}
+  {menuItems.map(i => i.category).filter((c, idx, arr) => c && arr.indexOf(c) === idx && !["Breakfast", "Starters", "Main Course", "Breads", "Rice & Biryani", "Snacks", "Desserts", "Beverages"].includes(c)).map(cat => (
+    <option key={cat} value={cat}>{cat}</option>
+  ))}
+</select>
               <input style={d.input} placeholder="Price (₹)" type="number" value={newItem.price} onChange={e => setNewItem({ ...newItem, price: e.target.value })} />
               <input style={d.input} placeholder="Prep time in minutes (e.g. 15)" type="number" value={newItem.prep_time} onChange={e => setNewItem({ ...newItem, prep_time: e.target.value })} />
               <div style={{ display: "flex", gap: 6 }}>
@@ -814,7 +826,19 @@ function downloadCSV() {
             <div style={d.modal}>
               <p style={d.modalTitle}>Edit Item</p>
               <input style={d.input} placeholder="Item name" value={editItem.name} onChange={e => setEditItem({ ...editItem, name: e.target.value })} />
-              <input style={d.input} placeholder="Category" value={editItem.category} onChange={e => setEditItem({ ...editItem, category: e.target.value })} />
+              <select
+  style={d.input}
+  value={newItem.category}
+  onChange={e => setNewItem({ ...newItem, category: e.target.value })}
+>
+  <option value="">Select Category</option>
+  {["Breakfast", "Starters", "Main Course", "Breads", "Rice & Biryani", "Snacks", "Desserts", "Beverages"].map(cat => (
+    <option key={cat} value={cat}>{cat}</option>
+  ))}
+  {menuItems.map(i => i.category).filter((c, idx, arr) => c && arr.indexOf(c) === idx && !["Breakfast", "Starters", "Main Course", "Breads", "Rice & Biryani", "Snacks", "Desserts", "Beverages"].includes(c)).map(cat => (
+    <option key={cat} value={cat}>{cat}</option>
+  ))}
+</select>
               <input style={d.input} placeholder="Price (₹)" type="number" value={editItem.price} onChange={e => setEditItem({ ...editItem, price: e.target.value })} />
               <input style={d.input} placeholder="Prep time (minutes)" type="number" value={editItem.prep_time} onChange={e => setEditItem({ ...editItem, prep_time: e.target.value })} />
               <div style={{ display: "flex", gap: 6 }}>
