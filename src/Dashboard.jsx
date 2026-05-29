@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "./supabase"
 import { QRCodeSVG as QRCode } from "qrcode.react"
 
+
 export default function Dashboard({ onBack }) {
   const today = new Date().toISOString().split("T")[0]
   const [orders, setOrders] = useState([])
@@ -270,6 +271,7 @@ export default function Dashboard({ onBack }) {
       .eq("user_id", user.id)
       .single()
     setHotel(hotelData)
+    
     setIsAdmin(hotelData?.is_admin || false)
     fetchOrders(hotelData.id)
     fetchMenu(hotelData.id)
@@ -413,6 +415,8 @@ export default function Dashboard({ onBack }) {
     await supabase.auth.signOut()
     onBack()
   }
+
+  
 
   
   
