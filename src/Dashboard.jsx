@@ -542,28 +542,28 @@ function downloadCSV() {
 </div>
 
 {tab !== "reports" && (
-  <div style={{ ...d.metrics, gridTemplateColumns: "repeat(4,1fr)" }}>
-    <div style={d.metric}>
-      <p style={d.metricVal}>{orders.length}</p>
-      <p style={d.metricLabel}>Orders today</p>
-    </div>
-    <div style={d.metric}>
-      <p style={d.metricVal}>{active.length}</p>
-      <p style={d.metricLabel}>Active now</p>
-    </div>
-    <div style={d.metric}>
-      <p style={d.metricVal}>₹{(revenue / 1000).toFixed(1)}k</p>
-      <p style={d.metricLabel}>Revenue</p>
-    </div>
-    <div style={d.metric}>
-      <p style={d.metricVal}>
-        {orders.filter(o => o.rating).length > 0
-          ? (orders.reduce((sum, o) => sum + (o.rating || 0), 0) / orders.filter(o => o.rating).length).toFixed(1) + " ★"
-          : "—"}
-      </p>
-      <p style={d.metricLabel}>Avg rating</p>
-    </div>
+<div style={{ ...d.metrics, gridTemplateColumns: "repeat(4,1fr)" }}>
+  <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+    <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>{orders.length}</p>
+    <p style={d.metricLabel}>Orders today</p>
   </div>
+  <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+    <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>{active.length}</p>
+    <p style={d.metricLabel}>Active now</p>
+  </div>
+  <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+    <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>₹{(revenue / 1000).toFixed(1)}k</p>
+    <p style={d.metricLabel}>Revenue</p>
+  </div>
+  <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+    <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
+      {orders.filter(o => o.rating).length > 0
+        ? (orders.reduce((sum, o) => sum + (o.rating || 0), 0) / orders.filter(o => o.rating).length).toFixed(1) + " ★"
+        : "—"}
+    </p>
+    <p style={d.metricLabel}>Avg rating</p>
+  </div>
+</div>
 )}
 
       <div style={{ ...d.tabs, background: darkMode ? "#111f2c" : "#fff", borderBottom: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
@@ -962,7 +962,7 @@ function downloadCSV() {
                     const roomNumber = i + (hotel.room_start || 101)
                     const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
                     return (
-                      <div key={roomNumber} style={d.qrCard}>
+                      <div key={roomNumber} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}> 
                         <div style={d.qrInfo}>
                           <p style={d.qrRoom}>Room {roomNumber}</p>
                           <p style={d.qrUrl}>{url}</p>
@@ -995,20 +995,26 @@ function downloadCSV() {
 
     {/* Summary cards */}
     <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 16 }}>
-      <div style={d.metric}>
-        <p style={d.metricVal}>{reportOrders.length}</p>
-        <p style={d.metricLabel}>Orders</p>
-      </div>
-      <div style={d.metric}>
-        <p style={d.metricVal}>{reportOrders.filter(o => o.status === "delivered").length}</p>
-        <p style={d.metricLabel}>Delivered</p>
-      </div>
-      <div style={d.metric}>
-        <p style={d.metricVal}>₹{reportOrders.filter(o => o.status === "delivered").reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}</p>
-        <p style={d.metricLabel}>Revenue</p>
-      </div>
-      <div style={d.metric}>
+      <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+    <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>{reportOrders.filter(o => o.status === "delivered").length}</p>
+    <p style={d.metricLabel}>Delivered</p>
+  </div>
+  <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+    <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>₹{reportOrders.filter(o => o.status === "delivered").reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}</p>
+    <p style={d.metricLabel}>Revenue</p>
+  </div>
+  <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+    <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
+      {reportOrders.filter(o => o.rating).length > 0
+        ? (reportOrders.reduce((sum, o) => sum + (o.rating || 0), 0) / reportOrders.filter(o => o.rating).length).toFixed(1)
+        : "—"}
+    </p>
+    <p style={d.metricLabel}>Avg Rating ★</p>
+  </div>
+      <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+        <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>{reportOrders.length}</p>
   <p style={d.metricVal}>
+
     {reportOrders.filter(o => o.rating).length > 0
       ? (reportOrders.reduce((sum, o) => sum + (o.rating || 0), 0) / reportOrders.filter(o => o.rating).length).toFixed(1)
       : "—"}
@@ -1046,7 +1052,7 @@ function downloadCSV() {
   const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
   const time = new Date(order.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
   return (
-    <div key={order.id} style={d.card}>
+<div key={order.id} style={{ ...d.card, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
       <div style={d.cardHeader}>
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
@@ -1482,7 +1488,7 @@ const d = {
   logoutBtn: { background: "none", border: "0.5px solid #3a3a3c", color: "#6e6e73", borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer" },
   metrics: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, padding: 14 },
   metric: { background: "#fff", borderRadius: 12, padding: "12px 10px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
-  metricVal: { fontSize: 24, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px" },
+  metricVal: { fontSize: 24, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px", transition: "color 0.2s" },
   metricLabel: { fontSize: 13, color: "#8a9bb0", margin: 0 },
  tabs: { display: "flex", background: "#fff", padding: "10px 14px", overflowX: "auto", gap: 6, borderBottom: "0.5px solid #e2e8f0" },
   tab: { padding: "8px 16px", fontSize: 13, color: "#8a9bb0", background: "none", border: "1px solid #e2e8f0", borderRadius: 8, cursor: "pointer", fontWeight: 400, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" },
