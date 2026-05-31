@@ -334,21 +334,7 @@ function App() {
     }
 
 
-// Check if there's already an active order for this room
-const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString()
 
-const { data: activeOrders } = await supabase
-  .from("orders")
-  .select("id, status")
-  .eq("hotel_id", resolvedHotelId)
-  .eq("room_id", resolvedRoom)
-  .in("status", ["hold", "pending"])
-  .limit(1)
-
-if (activeOrders && activeOrders.length > 0) {
-  alert("You can only place another order after the first order is marked as Preparing")
-  return
-}
 
     
     const { data: order, error: orderError } = await supabase
