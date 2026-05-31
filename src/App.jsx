@@ -401,21 +401,22 @@ if (activeOrders && activeOrders.length > 0) {
     })
   }
 
-  function startHoldCountdown(orderId) {
-    if (countdownRef.current) clearInterval(countdownRef.current)
-    setHoldCountdown(60)
-    setHoldActive(true)
-    let seconds = 60
-    countdownRef.current = setInterval(() => {
-      seconds -= 1
-      setHoldCountdown(seconds)
-      if (seconds <= 0) {
-        clearInterval(countdownRef.current)
-        countdownRef.current = null
-        setHoldActive(false)
-      }
-    }, 1000)
-  }
+function startHoldCountdown(orderId) {
+  if (countdownRef.current) clearInterval(countdownRef.current)
+  setHoldCountdown(60)
+  setHoldActive(true)
+  let seconds = 60
+  countdownRef.current = setInterval(async () => {
+    seconds -= 1
+    setHoldCountdown(seconds)
+    if (seconds <= 0) {
+      clearInterval(countdownRef.current)
+      countdownRef.current = null
+      setHoldActive(false)
+      await supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
+    }
+  }, 1000)
+}
 
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0)
   const categories = [...new Set(menuItems.map(i => i.category))]
