@@ -466,15 +466,18 @@ function startHoldCountdown(orderId) {
             return (
               <div
                 key={order.id}
-                onClick={() => {
-                  setPlacedOrder({ ...order, items: order.order_items.map(i => ({ ...i, name: i.menu_items?.name, qty: i.quantity })), prepTime: 15 })
-                  setOrderStatus(order.status)
-                  if (order.rating || localStorage.getItem(`rated_${order.id}`)) setRatingSubmitted(true)
-                  else setRatingSubmitted(false)
-                  setOrderPlaced(true)
-                  setShowOrdersList(false)
-                  watchOrderStatus(order.id)
-                }}
+onClick={() => {
+  setPlacedOrder({ ...order, items: order.order_items.map(i => ({ ...i, name: i.menu_items?.name, qty: i.quantity })), prepTime: 15 })
+  setOrderStatus(order.status)
+  if (order.rating || localStorage.getItem(`rated_${order.id}`)) setRatingSubmitted(true)
+  else setRatingSubmitted(false)
+  setHoldActive(false)
+  setHoldCountdown(0)
+  if (countdownRef.current) clearInterval(countdownRef.current)
+  setOrderPlaced(true)
+  setShowOrdersList(false)
+  watchOrderStatus(order.id)
+}}
                 style={{ background: t.heroBg, border: `1px solid ${t.heroBorder}`, borderRadius: 12, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
@@ -580,7 +583,7 @@ function startHoldCountdown(orderId) {
           </div>
         </div>
 
-        {holdActive && (
+{holdActive && holdCountdown > 0 && orderStatus !== "delivered" && orderStatus !== "cancelled" && orderStatus !== "rejected" && (
           <div style={{ textAlign: "center", marginBottom: 16 }}>
             <p style={{ color: "#C9A84C", fontSize: 13, marginBottom: 8, letterSpacing: 1 }}>
               Order confirms in {holdCountdown}s
@@ -752,12 +755,19 @@ function startHoldCountdown(orderId) {
 
       <div style={s.menuFooter}>
         {hasLastOrder && (
-          <button style={s.viewOrderBtn} onClick={async () => {
-            setOrderPlaced(false)
-            setPlacedOrder(null)
-            await fetchRoomOrders()
-            setShowOrdersList(true)
-          }}>My Orders</button>
+          <button style={s.viewOrderBtn} 
+
+onClick={async () => {
+  setOrderPlaced(false)
+  setPlacedOrder(null)
+  setHoldActive(false)
+  setHoldCountdown(0)
+  if (countdownRef.current) clearInterval(countdownRef.current)
+  await fetchRoomOrders()
+  setShowOrdersList(true)
+}}
+
+          >My Orders</button>
         )}
         <p style={s.footerNote}>All prices inclusive of taxes · Please inform staff of any allergies</p>
       </div>
