@@ -1076,7 +1076,7 @@ function downloadCSV() {
     const orderedAt = new Date(order.created_at)
     const deliveredAt = new Date(order.delivered_at)
     const actualMins = Math.round((deliveredAt - orderedAt) / 60000)
-    const estimatedMins = order.order_items.reduce((max, i) => Math.max(max, i.prep_time || 15), 0)
+    const estimatedMins = order.order_items.reduce((max, i) => Math.max(max, i.menu_items?.prep_time || 15), 0)
     const onTime = actualMins <= estimatedMins
     return (
       <p style={{ fontSize: 10, color: onTime ? "#2e7d32" : "#c0392b", margin: "2px 0 0", fontWeight: 500 }}>
