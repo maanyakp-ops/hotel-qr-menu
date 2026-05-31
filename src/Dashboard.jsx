@@ -445,7 +445,7 @@ async function fetchReportOrders() {
   end.setHours(23, 59, 59, 999)
   const { data } = await supabase
   .from("orders")
-  .select(`*, delivered_at, order_items(quantity, price, menu_item_id, menu_items(name))`)
+  .select(`*, delivered_at, order_items(quantity, price, prep_time, menu_item_id, menu_items(name, prep_time))`)
     .eq("hotel_id", hotel.id)
     .gte("created_at", start.toISOString())
     .lte("created_at", end.toISOString())
@@ -648,7 +648,7 @@ function downloadCSV() {
   const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
   const mins = Math.floor((Date.now() - new Date(order.created_at)) / 60000)
   return (
-    <div key={order.id} style={d.card}>
+    <div key={order.id} style={{ ...d.card, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
       <div style={d.cardHeader}>
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
@@ -713,7 +713,7 @@ function downloadCSV() {
 {done.map(order => {
   const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
   return (
-    <div key={order.id} style={{ ...d.card, opacity: 0.6 }}>
+<div key={order.id} style={{ ...d.card, opacity: 0.6, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
       <div style={d.cardHeader}>
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
@@ -755,7 +755,7 @@ function downloadCSV() {
 {cancelled.map(order => {
   const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
   return (
-    <div key={order.id} style={{ ...d.card, opacity: 0.6 }}>
+  <div key={order.id} style={{ ...d.card, opacity: 0.6, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
       <div style={d.cardHeader}>
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
@@ -1060,17 +1060,25 @@ function downloadCSV() {
           <p style={{ fontSize: 11, color: "#8a9bb0", margin: 0 }}>🕐 {time}</p>
         </div>
         <div style={{ textAlign: "right" }}>
-          <span style={
-            order.status === "delivered" ? d.badgeDone :
-            order.status === "cancelled" || order.status === "rejected" ? d.badgeCancelled :
-            order.status === "preparing" ? d.badgePrep : d.badgePending
-          }>{order.status}</span>
-          {order.delivered_at && (
-            <p style={{ fontSize: 11, color: "#2e7d32", margin: "4px 0 0" }}>
-              ✓ {new Date(order.delivered_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
-            </p>
-          )}
-        </div>
+  <span style={
+    order.status === "delivered" ? d.badgeDone :
+    order.status === "cancelled" || order.status === "rejected" ? d.badgeCancelled :
+    order.status === "preparing" ? d.badgePrep : d.badgePending
+  }>{order.status}</span>
+  <p style={{ fontSize: 10, color: "#8a9bb0", margin: "4px 0 0" }}>🕐 Ordered: {time}</p>
+  {order.delivered_at && (() => {
+    const orderedAt = new Date(order.created_at)
+    const deliveredAt = new Date(order.delivered_at)
+    const actualMins = Math.round((deliveredAt - orderedAt) / 60000)
+    const estimatedMins = order.order_items.reduce((max, i) => Math.max(max, i.prep_time || 15), 0)
+    const onTime = actualMins <= estimatedMins
+    return (
+      <p style={{ fontSize: 10, color: onTime ? "#2e7d32" : "#c0392b", margin: "2px 0 0", fontWeight: 500 }}>
+        {onTime ? "✓" : "⚠"} Delivered: {deliveredAt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} ({actualMins} min)
+      </p>
+    )
+  })()}
+</div>
       </div>
       <div style={{ borderTop: "0.5px solid #e2e8f0", borderBottom: "0.5px solid #e2e8f0", padding: "10px 0", margin: "10px 0", display: "flex", flexDirection: "column", gap: 5 }}>
         {order.order_items.map((item, i) => (
