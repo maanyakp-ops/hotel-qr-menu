@@ -5,6 +5,7 @@ import { QRCodeSVG as QRCode } from "qrcode.react"
 
 export default function Dashboard({ onBack }) {
   const today = new Date().toISOString().split("T")[0]
+  const [darkMode, setDarkMode] = useState(false)
   const [orders, setOrders] = useState([])
   const [menuItems, setMenuItems] = useState([])
   const [hotel, setHotel] = useState(null)
@@ -522,8 +523,8 @@ function downloadCSV() {
   const tabContentStyle = { animation: "fadeSlide 0.2s ease" }
 
   return (
-    <div style={d.page}>
-<div style={d.topbar}>
+    <div style={{ ...d.page, background: darkMode ? "#0f1923" : "#f4f6f9", color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
+<div style={{ ...d.topbar, background: darkMode ? "#0a1219" : "#1c2b3a" }}>
   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
     <div style={{ width: 32, height: 32, borderRadius: 8, background: "#2d3f52", display: "flex", alignItems: "center", justifyContent: "center", color: "#7eb3f5", fontSize: 16 }}>🏨</div>
     <div>
@@ -565,7 +566,7 @@ function downloadCSV() {
   </div>
 )}
 
-      <div style={d.tabs}>
+      <div style={{ ...d.tabs, background: darkMode ? "#111f2c" : "#fff", borderBottom: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
         <button style={tab === "orders"   ? d.tabActive : d.tab} onClick={() => setTab("orders")}>Orders</button>
         <button style={tab === "menu"     ? d.tabActive : d.tab} onClick={() => setTab("menu")}>Menu</button>
         <button style={tab === "reports"  ? d.tabActive : d.tab} onClick={() => setTab("reports")}>Reports</button>
@@ -574,7 +575,7 @@ function downloadCSV() {
         {isAdmin && <button style={tab === "admin" ? d.tabActive : d.tab} onClick={() => setTab("admin")}>Hotels</button>}
       </div>
 
-<div style={d.body}>
+<div style={{ ...d.body, background: darkMode ? "#0f1923" : "#f4f6f9" }}>
   <style>{`@keyframes fadeSlide { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }`}</style>
 
         {/* ORDERS TAB */}
@@ -1283,6 +1284,19 @@ function downloadCSV() {
         {/* SETTINGS TAB */}
 {tab === "settings" && (
   <div style={tabContentStyle}>
+    <p style={d.sectionLabel}>Dashboard Appearance</p>
+<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: darkMode ? "#1c2b3a" : "#fff", border: "0.5px solid #e2e8f0", borderRadius: 12, padding: "14px 16px", marginBottom: 24 }}>
+  <div>
+    <p style={{ fontSize: 14, fontWeight: 500, color: darkMode ? "#e8f0f8" : "#1c2b3a", margin: "0 0 3px" }}>Dark Mode</p>
+    <p style={{ fontSize: 12, color: "#8a9bb0", margin: 0 }}>Switch dashboard to dark theme</p>
+  </div>
+  <div
+    onClick={() => setDarkMode(!darkMode)}
+    style={{ width: 44, height: 24, borderRadius: 20, background: darkMode ? "#7eb3f5" : "#e2e8f0", cursor: "pointer", position: "relative", transition: "background 0.2s" }}
+  >
+    <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#fff", position: "absolute", top: 3, left: darkMode ? 23 : 3, transition: "left 0.2s" }} />
+  </div>
+</div>
             <p style={d.sectionLabel}>Menu Theme</p>
             <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
               Choose how your menu looks to guests. Changes apply immediately.
