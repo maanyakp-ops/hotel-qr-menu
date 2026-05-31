@@ -523,20 +523,45 @@ function downloadCSV() {
 
   return (
     <div style={d.page}>
-      <div style={d.topbar}>
-        <button onClick={onBack} style={d.backBtn}>← Back</button>
-        <span style={d.brand}>{isAdmin ? "⚡ Admin Panel" : hotel?.name || "Dashboard"}</span>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={d.live}><span style={d.dot} />Live</span>
-          <button onClick={handleLogout} style={d.logoutBtn}>Logout</button>
-        </div>
-      </div>
+<div style={d.topbar}>
+  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+    <div style={{ width: 32, height: 32, borderRadius: 8, background: "#2d3f52", display: "flex", alignItems: "center", justifyContent: "center", color: "#7eb3f5", fontSize: 16 }}>🏨</div>
+    <div>
+      <div style={{ color: "#e8f0f8", fontSize: 14, fontWeight: 500 }}>{isAdmin ? "⚡ Admin Panel" : hotel?.name || "Dashboard"}</div>
+      <div style={{ color: "#5a7a9a", fontSize: 11 }}>Dashboard</div>
+    </div>
+  </div>
+  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(111,207,151,0.12)", border: "0.5px solid rgba(111,207,151,0.3)", borderRadius: 20, padding: "4px 10px" }}>
+      <span style={d.dot} />
+      <span style={{ color: "#6fcf97", fontSize: 11, fontWeight: 500 }}>Live</span>
+    </div>
+    <button onClick={handleLogout} style={d.logoutBtn}>Logout</button>
+  </div>
+</div>
 
-      {tab !== "reports" && (
-  <div style={d.metrics}>
-    <div style={d.metric}><p style={d.metricVal}>{orders.length}</p><p style={d.metricLabel}>Orders today</p></div>
-    <div style={d.metric}><p style={d.metricVal}>{active.length}</p><p style={d.metricLabel}>Active now</p></div>
-    <div style={d.metric}><p style={d.metricVal}>₹{(revenue / 1000).toFixed(1)}k</p><p style={d.metricLabel}>Revenue</p></div>
+{tab !== "reports" && (
+  <div style={{ ...d.metrics, gridTemplateColumns: "repeat(4,1fr)" }}>
+    <div style={d.metric}>
+      <p style={d.metricVal}>{orders.length}</p>
+      <p style={d.metricLabel}>Orders today</p>
+    </div>
+    <div style={d.metric}>
+      <p style={d.metricVal}>{active.length}</p>
+      <p style={d.metricLabel}>Active now</p>
+    </div>
+    <div style={d.metric}>
+      <p style={d.metricVal}>₹{(revenue / 1000).toFixed(1)}k</p>
+      <p style={d.metricLabel}>Revenue</p>
+    </div>
+    <div style={d.metric}>
+      <p style={d.metricVal}>
+        {orders.filter(o => o.rating).length > 0
+          ? (orders.reduce((sum, o) => sum + (o.rating || 0), 0) / orders.filter(o => o.rating).length).toFixed(1) + " ★"
+          : "—"}
+      </p>
+      <p style={d.metricLabel}>Avg rating</p>
+    </div>
   </div>
 )}
 
@@ -618,52 +643,65 @@ function downloadCSV() {
             {active.length > 0 && (
               <>
                 <p style={d.sectionLabel}>Active Orders</p>
-                {active.map(order => {
-                  const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
-                  const mins = Math.floor((Date.now() - new Date(order.created_at)) / 60000)
-                  return (
-                    <div key={order.id} style={d.card}>
-                      <div style={d.cardHeader}>
-                        <div>
-                          <span style={d.room}>Room {order.room_id}</span>
-                          {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name} {order.guest_phone ? `· ${order.guest_phone}` : ""}</p>}
-                        </div>
-                        <span style={order.status === "pending" ? d.badgePending : order.status === "on_the_way" ? d.badgeOnWay : d.badgePrep}>
-                          {order.status === "pending" ? "Pending" : order.status === "on_the_way" ? "On the Way" : "Preparing"}
-                        </span>
-                      </div>
-                      <div style={d.items}>
-                        {order.order_items.map((item, i) => (
-                          <div key={i} style={d.itemRow}>
-                            <span>{item.menu_items?.name} x{item.quantity}</span>
-                            <span>₹{item.price * item.quantity}</span>
-                          </div>
-                        ))}
-                        {order.special_instructions && (
-                          <div style={{ background: "#f4f6f9", borderRadius: 8, padding: "6px 10px", marginTop: 4 }}>
-                            <p style={{ fontSize: 12, color: "#5a7184", margin: 0 }}>📝 {order.special_instructions}</p>
-                          </div>
-                        )}
-                      </div>
-                      <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
-                      <div style={d.actions}>
-                        {order.status === "pending" && (
-                          <>
-                            <button style={d.btnPrepare} onClick={() => updateStatus(order.id, "preparing")}>Mark as Preparing</button>
-                            <button style={d.btnReject} onClick={() => { setRejectingOrder(order.id); setRejectReason("") }}>Reject</button>
-                          </>
-                        )}
-                        {order.status === "preparing" && (
-  <button style={d.btnOnWay} onClick={() => updateStatus(order.id, "on_the_way")}>Mark as On the Way</button>
-)}
-{order.status === "on_the_way" && (
-  <button style={d.btnDeliver} onClick={() => updateStatus(order.id, "delivered")}>Mark as Delivered</button>
-)}
-                        <span style={d.timeAgo}>{mins < 1 ? "Just now" : `${mins} min ago`}</span>
-                      </div>
-                    </div>
-                  )
-                })}
+{active.map(order => {
+  const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+  const mins = Math.floor((Date.now() - new Date(order.created_at)) / 60000)
+  return (
+    <div key={order.id} style={d.card}>
+      <div style={d.cardHeader}>
+        <div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
+            🚪 Room {order.room_id}
+          </div>
+          {order.guest_name && (
+            <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 2px", display: "flex", alignItems: "center", gap: 4 }}>
+              👤 {order.guest_name}{order.guest_phone ? ` · ${order.guest_phone}` : ""}
+            </p>
+          )}
+          <p style={{ fontSize: 11, color: "#8a9bb0", margin: 0 }}>
+            🕐 {mins < 1 ? "Just now" : `${mins} min ago`}
+          </p>
+        </div>
+        <span style={order.status === "pending" ? d.badgePending : order.status === "on_the_way" ? d.badgeOnWay : d.badgePrep}>
+          {order.status === "pending" ? "Pending" : order.status === "on_the_way" ? "On the Way" : "Preparing"}
+        </span>
+      </div>
+      <div style={{ borderTop: "0.5px solid #e2e8f0", borderBottom: "0.5px solid #e2e8f0", padding: "10px 0", margin: "10px 0", display: "flex", flexDirection: "column", gap: 5 }}>
+        {order.order_items.map((item, i) => (
+          <div key={i} style={d.itemRow}>
+            <span>{item.menu_items?.name} x{item.quantity}</span>
+            <span style={{ color: "#1c2b3a", fontWeight: 500 }}>₹{item.price * item.quantity}</span>
+          </div>
+        ))}
+      </div>
+      {order.special_instructions && (
+        <div style={{ background: "#f4f6f9", borderRadius: 8, padding: "7px 10px", marginBottom: 10, fontSize: 12, color: "#8a9bb0", display: "flex", gap: 6 }}>
+          📝 {order.special_instructions}
+        </div>
+      )}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
+          <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total</span>
+          ₹{orderTotal}
+        </span>
+        <div style={d.actions}>
+          {order.status === "pending" && (
+            <>
+              <button style={d.btnPrepare} onClick={() => updateStatus(order.id, "preparing")}>👨‍🍳 Mark Preparing</button>
+              <button style={d.btnReject} onClick={() => { setRejectingOrder(order.id); setRejectReason("") }}>✕ Reject</button>
+            </>
+          )}
+          {order.status === "preparing" && (
+            <button style={d.btnOnWay} onClick={() => updateStatus(order.id, "on_the_way")}>🛵 On the Way</button>
+          )}
+          {order.status === "on_the_way" && (
+            <button style={d.btnDeliver} onClick={() => updateStatus(order.id, "delivered")}>✓ Delivered</button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+})}
               </>
             )}
             {active.length === 0 && <p style={d.empty}>No active orders. Waiting...</p>}
@@ -671,54 +709,74 @@ function downloadCSV() {
             {done.length > 0 && (
               <>
                 <p style={d.sectionLabel}>Delivered</p>
-                {done.map(order => {
-                  const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
-                  return (
-                    <div key={order.id} style={{ ...d.card, opacity: 0.5 }}>
-                      <div style={d.cardHeader}>
-                        <div>
-                          <span style={d.room}>Room {order.room_id}</span>
-                          {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name}</p>}
-                        </div>
-                        <span style={d.badgeDone}>✓ Delivered</span>
-                      </div>
-                      <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
-{order.rating && (
-  <div style={{ marginTop: 6 }}>
-    <span style={{ color: "#f5a623", fontSize: 14 }}>
-      {"★".repeat(order.rating)}{"☆".repeat(5 - order.rating)}
-    </span>
-    {order.rating_comment && (
-      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "4px 0 0" }}>
-        "{order.rating_comment}"
-      </p>
-    )}
-  </div>
-)}
-                    </div>
-                  )
-                })}
+{done.map(order => {
+  const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+  return (
+    <div key={order.id} style={{ ...d.card, opacity: 0.6 }}>
+      <div style={d.cardHeader}>
+        <div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
+            🚪 Room {order.room_id}
+          </div>
+          {order.guest_name && (
+            <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 0" }}>
+              👤 {order.guest_name}
+            </p>
+          )}
+        </div>
+        <span style={d.badgeDone}>✓ Delivered</span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+        <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
+          <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total</span>
+          ₹{orderTotal}
+        </span>
+        {order.rating && (
+          <div style={{ textAlign: "right" }}>
+            <span style={{ color: "#f5a623", fontSize: 15 }}>
+              {"★".repeat(order.rating)}{"☆".repeat(5 - order.rating)}
+            </span>
+            {order.rating_comment && (
+              <p style={{ fontSize: 12, color: "#8a9bb0", margin: "4px 0 0" }}>"{order.rating_comment}"</p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+})}
               </>
             )}
 
             {cancelled.length > 0 && (
               <>
                 <p style={d.sectionLabel}>Cancelled / Rejected</p>
-                {cancelled.map(order => {
-                  const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
-                  return (
-                    <div key={order.id} style={{ ...d.card, opacity: 0.5 }}>
-                      <div style={d.cardHeader}>
-                        <div>
-                          <span style={d.room}>Room {order.room_id}</span>
-                          {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name}</p>}
-                        </div>
-                        <span style={d.badgeCancelled}>{order.status === "cancelled" ? "Cancelled" : "Rejected"}</span>
-                      </div>
-                      <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
-                    </div>
-                  )
-                })}
+{cancelled.map(order => {
+  const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+  return (
+    <div key={order.id} style={{ ...d.card, opacity: 0.6 }}>
+      <div style={d.cardHeader}>
+        <div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
+            🚪 Room {order.room_id}
+          </div>
+          {order.guest_name && (
+            <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 0" }}>
+              👤 {order.guest_name}
+            </p>
+          )}
+        </div>
+        <span style={d.badgeCancelled}>{order.status === "cancelled" ? "Cancelled" : "Rejected"}</span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+        <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
+          <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total</span>
+          ₹{orderTotal}
+        </span>
+      </div>
+    </div>
+  )
+})}
               </>
             )}
           </div>
@@ -983,55 +1041,66 @@ function downloadCSV() {
     {/* Orders list */}
     <p style={d.sectionLabel}>All Orders ({reportOrders.length})</p>
     {reportOrders.length === 0 && <p style={d.empty}>No orders for this date.</p>}
-    {reportOrders.map(order => {
-      const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
-      const time = new Date(order.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
-      return (
-        <div key={order.id} style={d.card}>
-          <div style={d.cardHeader}>
-            <div>
-              <span style={d.room}>Room {order.room_id}</span>
-              {order.guest_name && <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>{order.guest_name} {order.guest_phone ? `· ${order.guest_phone}` : ""}</p>}
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <span style={
-                order.status === "delivered" ? d.badgeDone :
-                order.status === "cancelled" || order.status === "rejected" ? d.badgeCancelled :
-                order.status === "preparing" ? d.badgePrep : d.badgePending
-              }>{order.status}</span>
-              <p style={{ fontSize: 10, color: "#8a9bb0", margin: "4px 0 0" }}>🕐 Ordered: {time}</p>
-{order.delivered_at && (
-  <p style={{ fontSize: 10, color: "#2e7d32", margin: "2px 0 0" }}>
-    ✓ Delivered: {new Date(order.delivered_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
-  </p>
-)}
-            </div>
+{reportOrders.map(order => {
+  const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+  const time = new Date(order.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+  return (
+    <div key={order.id} style={d.card}>
+      <div style={d.cardHeader}>
+        <div>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
+            🚪 Room {order.room_id}
           </div>
-          <div style={d.items}>
-            {order.order_items.map((item, i) => (
-              <div key={i} style={d.itemRow}>
-                <span>{item.menu_items?.name} x{item.quantity}</span>
-                <span>₹{item.price * item.quantity}</span>
-              </div>
-            ))}
-            {order.special_instructions && (
-              <p style={{ fontSize: 11, color: "#8a9bb0", margin: "4px 0 0" }}>📝 {order.special_instructions}</p>
+          {order.guest_name && (
+            <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 2px" }}>
+              👤 {order.guest_name}{order.guest_phone ? ` · ${order.guest_phone}` : ""}
+            </p>
+          )}
+          <p style={{ fontSize: 11, color: "#8a9bb0", margin: 0 }}>🕐 {time}</p>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <span style={
+            order.status === "delivered" ? d.badgeDone :
+            order.status === "cancelled" || order.status === "rejected" ? d.badgeCancelled :
+            order.status === "preparing" ? d.badgePrep : d.badgePending
+          }>{order.status}</span>
+          {order.delivered_at && (
+            <p style={{ fontSize: 11, color: "#2e7d32", margin: "4px 0 0" }}>
+              ✓ {new Date(order.delivered_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+            </p>
+          )}
+        </div>
+      </div>
+      <div style={{ borderTop: "0.5px solid #e2e8f0", borderBottom: "0.5px solid #e2e8f0", padding: "10px 0", margin: "10px 0", display: "flex", flexDirection: "column", gap: 5 }}>
+        {order.order_items.map((item, i) => (
+          <div key={i} style={d.itemRow}>
+            <span>{item.menu_items?.name} x{item.quantity}</span>
+            <span style={{ color: "#1c2b3a", fontWeight: 500 }}>₹{item.price * item.quantity}</span>
+          </div>
+        ))}
+        {order.special_instructions && (
+          <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 0" }}>📝 {order.special_instructions}</p>
+        )}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
+          <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total</span>
+          ₹{orderTotal}
+        </span>
+        {order.rating && (
+          <div style={{ textAlign: "right" }}>
+            <span style={{ color: "#f5a623", fontSize: 15 }}>
+              {"★".repeat(order.rating)}{"☆".repeat(5 - order.rating)}
+            </span>
+            {order.rating_comment && (
+              <p style={{ fontSize: 12, color: "#8a9bb0", margin: "4px 0 0" }}>"{order.rating_comment}"</p>
             )}
           </div>
-          <div style={d.totalRow}><span>Total</span><span>₹{orderTotal}</span></div>
-          {order.rating && (
-  <div style={{ marginTop: 8, paddingTop: 8, borderTop: "0.5px solid #eee" }}>
-    <span style={{ color: "#f5a623", fontSize: 16 }}>
-      {"★".repeat(order.rating)}{"☆".repeat(5 - order.rating)}
-    </span>
-    {order.rating_comment && (
-      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "4px 0 0" }}>"{order.rating_comment}"</p>
-    )}
-  </div>
-)}
-        </div>
-      )
-    })}
+        )}
+      </div>
+    </div>
+  )
+})}
 
     {/* Download CSV */}
     {reportOrders.length > 0 && (
@@ -1391,28 +1460,29 @@ const d = {
   logoutBtn: { background: "none", border: "0.5px solid #3a3a3c", color: "#6e6e73", borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer" },
   metrics: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, padding: 14 },
   metric: { background: "#fff", borderRadius: 12, padding: "12px 10px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
-  metricVal: { fontSize: 20, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px" },
-  metricLabel: { fontSize: 10, color: "#8a9bb0", margin: 0 },
-  tabs: { display: "flex", borderBottom: "1px solid #e2e8f0", background: "#fff", padding: "0 14px" },
-  tab: { padding: "11px 16px", fontSize: 13, color: "#8a9bb0", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontWeight: 400, display: "flex", alignItems: "center", gap: 6 },
-  tabActive: { padding: "11px 16px", fontSize: 13, color: "#1c2b3a", background: "none", border: "none", borderBottom: "2px solid #1c2b3a", cursor: "pointer", fontWeight: 500, display: "flex", alignItems: "center", gap: 6 },
+  metricVal: { fontSize: 24, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px" },
+  metricLabel: { fontSize: 13, color: "#8a9bb0", margin: 0 },
+ tabs: { display: "flex", background: "#fff", padding: "10px 14px", overflowX: "auto", gap: 6, borderBottom: "0.5px solid #e2e8f0" },
+  tab: { padding: "8px 16px", fontSize: 13, color: "#8a9bb0", background: "none", border: "1px solid #e2e8f0", borderRadius: 8, cursor: "pointer", fontWeight: 400, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" },
+  tabActive: { padding: "8px 16px", fontSize: 13, color: "#fff", background: "#1c2b3a", border: "1px solid #1c2b3a", borderRadius: 8, cursor: "pointer", fontWeight: 500, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" },
   body: { padding: "0 14px 40px" },
-  sectionLabel: { fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#8a9bb0", fontWeight: 500, margin: "16px 0 8px" },
+  sectionLabel: { fontSize: 12, letterSpacing: "1.5px", textTransform: "uppercase", color: "#8a9bb0", fontWeight: 500, margin: "16px 0 8px" },
   card: { background: "#fff", borderRadius: 14, padding: "14px 16px", marginBottom: 8, border: "0.5px solid #e2e8f0" },
   cardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
-  room: { fontSize: 14, fontWeight: 600, color: "#1c2b3a", margin: 0 },
+  room: { fontSize: 16, fontWeight: 600, color: "#1c2b3a", margin: 0 },
   badgePending: { background: "#fff3e0", color: "#b45309", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
   badgePrep: { background: "#e0f2fe", color: "#0369a1", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
   badgeDone: { background: "#e8f5e9", color: "#2e7d32", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
   badgeCancelled: { background: "#fce4e4", color: "#c0392b", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
   items: { marginBottom: 8 },
-  itemRow: { display: "flex", justifyContent: "space-between", fontSize: 13, color: "#8a9bb0", marginBottom: 4 },
-  totalRow: { display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600, color: "#1c2b3a", borderTop: "0.5px solid #eee", paddingTop: 8, marginBottom: 10 },
+  itemRow: { display: "flex", justifyContent: "space-between", fontSize: 15, color: "#8a9bb0", marginBottom: 4 },
+  totalRow: { display: "flex", justifyContent: "space-between", fontSize: 16, fontWeight: 600, color: "#1c2b3a", borderTop: "0.5px solid #eee", paddingTop: 8, marginBottom: 10 },
   actions: { display: "flex", alignItems: "center", gap: 10 },
-  btnPrepare: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
-  btnDeliver: { background: "#e0f2fe", color: "#0369a1", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
-  btnReject: { background: "#c0392b", color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },  timeAgo: { fontSize: 11, color: "#8a9bb0", margin: 0 },
-  empty: { textAlign: "center", color: "#8a9bb0", marginTop: 30, fontSize: 14 },
+  btnPrepare: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 14, fontWeight: 500, cursor: "pointer" },
+  btnDeliver: { background: "#e0f2fe", color: "#0369a1", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 14, fontWeight: 500, cursor: "pointer" },
+  btnReject: { background: "#c0392b", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 14, fontWeight: 500, cursor: "pointer" },
+  timeAgo: { fontSize: 13, color: "#8a9bb0", margin: 0 },
+  empty: { textAlign: "center", color: "#8a9bb0", marginTop: 30, fontSize: 16 },
   form: { background: "#fff", borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: "0 1px 6px rgba(0,0,0,0.07)", display: "flex", flexDirection: "column", gap: 8 },
   input: { background: "#f4f6f9", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#1c2b3a", outline: "none" },
   addBtn: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 500, cursor: "pointer" },
@@ -1461,6 +1531,6 @@ const d = {
   themeActiveBadge: { fontSize: 10, color: "#2e7d32", background: "#e8f5e9", padding: "2px 10px", borderRadius: 20, marginTop: 4 },
   btnVeg: { background: "#e8f5e9", color: "#2e7d32", border: "1px solid #a5d6a7", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
   btnNonVeg: { background: "#fce4e4", color: "#c0392b", border: "1px solid #ef9a9a", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 600, cursor: "pointer" },
-  btnOnWay: { background: "#ede7f6", color: "#5e35b1", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
+  btnOnWay: { background: "#ede7f6", color: "#5e35b1", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 14, fontWeight: 500, cursor: "pointer" },
   badgeOnWay: { background: "#ede7f6", color: "#5e35b1", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
 }
