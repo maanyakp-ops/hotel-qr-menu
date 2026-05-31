@@ -473,7 +473,6 @@ onClick={() => {
   else setRatingSubmitted(false)
   setHoldActive(false)
   setHoldCountdown(0)
-  if (countdownRef.current) clearInterval(countdownRef.current)
   setOrderPlaced(true)
   setShowOrdersList(false)
   watchOrderStatus(order.id)
@@ -762,7 +761,6 @@ onClick={async () => {
   setPlacedOrder(null)
   setHoldActive(false)
   setHoldCountdown(0)
-  if (countdownRef.current) clearInterval(countdownRef.current)
   await fetchRoomOrders()
   setShowOrdersList(true)
 }}
