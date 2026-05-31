@@ -82,6 +82,16 @@ export default function Dashboard({ onBack }) {
     if (hotel) fetchOrders(hotel.id, showAll)
   }, [showAll])
 
+useEffect(() => {
+  function handleVisibilityChange() {
+    if (document.visibilityState === "visible" && hotel) {
+      fetchOrders(hotel.id, showAll)
+    }
+  }
+  document.addEventListener("visibilitychange", handleVisibilityChange)
+  return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
+}, [hotel, showAll])
+
   function suggestDescription(name, category, target) {
     if (!name) return
     const n = name.toLowerCase()
@@ -509,6 +519,8 @@ function downloadCSV() {
 
   if (loading) return <div style={d.center}>Loading...</div>
 
+  const tabContentStyle = { animation: "fadeSlide 0.2s ease" }
+
   return (
     <div style={d.page}>
       <div style={d.topbar}>
@@ -537,11 +549,12 @@ function downloadCSV() {
         {isAdmin && <button style={tab === "admin" ? d.tabActive : d.tab} onClick={() => setTab("admin")}>Hotels</button>}
       </div>
 
-      <div style={d.body}>
+<div style={d.body}>
+  <style>{`@keyframes fadeSlide { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }`}</style>
 
         {/* ORDERS TAB */}
         {tab === "orders" && (
-          <>
+        <div style={tabContentStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 8px" }}>
               <p style={{ ...d.sectionLabel, margin: 0 }}>
                 {showAll ? "All Orders" : "Today's Orders"}
@@ -708,12 +721,12 @@ function downloadCSV() {
                 })}
               </>
             )}
-          </>
+          </div>
         )}
 
         {/* MENU TAB */}
         {tab === "menu" && (
-          <>
+  <div style={tabContentStyle}>
             <div style={{ marginTop: 16, marginBottom: 8 }}>
               <button style={d.templateToggleBtn} onClick={() => setShowTemplates(!showTemplates)}>
                 {showTemplates ? "✕ Close Templates" : "⚡ Start from a template"}
@@ -821,7 +834,7 @@ function downloadCSV() {
                 ))}
               </div>
             ))}
-          </>
+          </div>
         )}
 
         {/* EDIT MODAL */}
@@ -910,7 +923,7 @@ function downloadCSV() {
 
         {/* REPORTS TAB */}
 {tab === "reports" && (
-  <>
+  <div style={tabContentStyle}>
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 8px" }}>
       <p style={{ ...d.sectionLabel, margin: 0 }}>Daily Report</p>
       <input
@@ -1195,12 +1208,12 @@ function downloadCSV() {
         )}
       </>
     )}
-  </>
+  </div>
 )}
 
         {/* SETTINGS TAB */}
-        {tab === "settings" && (
-          <>
+{tab === "settings" && (
+  <div style={tabContentStyle}>
             <p style={d.sectionLabel}>Menu Theme</p>
             <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
               Choose how your menu looks to guests. Changes apply immediately.
@@ -1274,7 +1287,7 @@ function downloadCSV() {
   </button>
 </div>
 
-          </>
+          </div>
         )}
 
         {/* TEMPLATE PREVIEW MODAL */}
@@ -1381,11 +1394,11 @@ const d = {
   metricVal: { fontSize: 20, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px" },
   metricLabel: { fontSize: 10, color: "#8a9bb0", margin: 0 },
   tabs: { display: "flex", borderBottom: "1px solid #e2e8f0", background: "#fff", padding: "0 14px" },
-  tab: { padding: "12px 20px", fontSize: 13, color: "#8a9bb0", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontWeight: 500 },
-  tabActive: { padding: "12px 20px", fontSize: 13, color: "#1c2b3a", background: "none", border: "none", borderBottom: "2px solid #1c2b3a", cursor: "pointer", fontWeight: 600 },
+  tab: { padding: "11px 16px", fontSize: 13, color: "#8a9bb0", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontWeight: 400, display: "flex", alignItems: "center", gap: 6 },
+  tabActive: { padding: "11px 16px", fontSize: 13, color: "#1c2b3a", background: "none", border: "none", borderBottom: "2px solid #1c2b3a", cursor: "pointer", fontWeight: 500, display: "flex", alignItems: "center", gap: 6 },
   body: { padding: "0 14px 40px" },
   sectionLabel: { fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#8a9bb0", fontWeight: 500, margin: "16px 0 8px" },
-  card: { background: "#fff", borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: "0 1px 6px rgba(0,0,0,0.07)" },
+  card: { background: "#fff", borderRadius: 14, padding: "14px 16px", marginBottom: 8, border: "0.5px solid #e2e8f0" },
   cardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
   room: { fontSize: 14, fontWeight: 600, color: "#1c2b3a", margin: 0 },
   badgePending: { background: "#fff3e0", color: "#b45309", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
@@ -1393,13 +1406,12 @@ const d = {
   badgeDone: { background: "#e8f5e9", color: "#2e7d32", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
   badgeCancelled: { background: "#fce4e4", color: "#c0392b", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
   items: { marginBottom: 8 },
-  itemRow: { display: "flex", justifyContent: "space-between", fontSize: 13, color: "#555", marginBottom: 4 },
+  itemRow: { display: "flex", justifyContent: "space-between", fontSize: 13, color: "#8a9bb0", marginBottom: 4 },
   totalRow: { display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 600, color: "#1c2b3a", borderTop: "0.5px solid #eee", paddingTop: 8, marginBottom: 10 },
   actions: { display: "flex", alignItems: "center", gap: 10 },
   btnPrepare: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
   btnDeliver: { background: "#e0f2fe", color: "#0369a1", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
-  btnReject: { background: "#fce4e4", color: "#c0392b", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
-  timeAgo: { fontSize: 11, color: "#8a9bb0", margin: 0 },
+  btnReject: { background: "#c0392b", color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },  timeAgo: { fontSize: 11, color: "#8a9bb0", margin: 0 },
   empty: { textAlign: "center", color: "#8a9bb0", marginTop: 30, fontSize: 14 },
   form: { background: "#fff", borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: "0 1px 6px rgba(0,0,0,0.07)", display: "flex", flexDirection: "column", gap: 8 },
   input: { background: "#f4f6f9", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#1c2b3a", outline: "none" },
