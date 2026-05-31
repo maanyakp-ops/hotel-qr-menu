@@ -97,6 +97,12 @@ useEffect(() => {
 
 useEffect(() => {
   if (!hotel || tab !== "orders") return
+  const interval = setInterval(() => fetchOrders(hotel.id, showAll), 5000)
+  return () => clearInterval(interval)
+}, [hotel, tab, showAll])
+
+useEffect(() => {
+  if (!hotel || tab !== "orders") return
   const interval = setInterval(() => fetchOrders(hotel.id, showAll), 15000)
   return () => clearInterval(interval)
 }, [hotel, tab, showAll])
