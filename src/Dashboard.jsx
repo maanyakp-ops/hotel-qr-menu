@@ -281,55 +281,54 @@ useEffect(() => {
     setTemplateItemEdits({})
     setEditingTemplateItem(null)
   }
-  async function loadHotel() {
-    document.addEventListener("click", () => {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)()
-      ctx.resume()
-    }, { once: true })
+async function loadHotel() {
+  document.addEventListener("click", () => {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    ctx.resume()
+  }, { once: true })
 
-    const { data: { user } } = await supabase.auth.getUser()
-    const { data: hotelData } = await supabase
-      .from("hotels")
-      .select("*")
-      .eq("user_id", user.id)
-      .single()
-    setHotel(hotelData)
-    
-    setIsAdmin(hotelData?.is_admin || false)
-    fetchOrders(hotelData.id)
-    fetchMenu(hotelData.id)
-    if (hotelData?.is_admin) fetchAllHotels()
-    
-    
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: hotelData } = await supabase
+    .from("hotels")
+    .select("*")
+    .eq("user_id", user.id)
+    .single()
+  setHotel(hotelData)
+  setIsAdmin(hotelData?.is_admin || false)
+  fetchOrders(hotelData.id)
+  fetchMenu(hotelData.id)
+  if (hotelData?.is_admin) fetchAllHotels()
 
+  setTimeout(() => {
     const sub = supabase.channel("orders-channel-" + hotelData.id)
-  .on("postgres_changes", {
-    event: "INSERT",
-    schema: "public",
-    table: "orders",
-    filter: `hotel_id=eq.${hotelData.id}`
-  }, (payload) => {
-    if (payload.new.status === "hold") return
-    fetchOrders(hotelData.id)
-    playOrderSound()
-    showBadge()
-  })
-  .on("postgres_changes", {
-    event: "UPDATE",
-    schema: "public",
-    table: "orders",
-    filter: `hotel_id=eq.${hotelData.id}`
-  }, (payload) => {
-    if (payload.new.status === "hold") return
-    fetchOrders(hotelData.id)
-    if (payload.new.status === "pending") {
-      playOrderSound()
-      showBadge()
-    }
-  })
-  .subscribe()
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "orders",
+        filter: `hotel_id=eq.${hotelData.id}`
+      }, (payload) => {
+        if (payload.new.status === "hold") return
+        fetchOrders(hotelData.id)
+        playOrderSound()
+        showBadge()
+      })
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "orders",
+        filter: `hotel_id=eq.${hotelData.id}`
+      }, (payload) => {
+        if (payload.new.status === "hold") return
+        fetchOrders(hotelData.id)
+        if (payload.new.status === "pending") {
+          playOrderSound()
+          showBadge()
+        }
+      })
+      .subscribe()
     return () => supabase.removeChannel(sub)
-  }
+  }, 1000)
+}
 
   async function fetchOrders(hotelId, all = false) {
     const today = new Date()
