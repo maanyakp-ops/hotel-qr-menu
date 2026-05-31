@@ -31,10 +31,12 @@ export default function Dashboard({ onBack }) {
   const [roomCheckIn, setRoomCheckIn] = useState(today)
   const [roomCheckOut, setRoomCheckOut] = useState(today)
   const [guestSearchPhone, setGuestSearchPhone] = useState("")
+  const [editingTemplateItem, setEditingTemplateItem] = useState(null)
+  const [templateItemEdits, setTemplateItemEdits] = useState({})
   function playOrderSound() {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)()
-    const oscillator = ctx.createOscillator()
-    const gain = ctx.createGain()
+  const ctx = new (window.AudioContext || window.webkitAudioContext)()
+  const oscillator = ctx.createOscillator()
+  const gain = ctx.createGain()
     oscillator.connect(gain)
     gain.connect(ctx.destination)
     oscillator.frequency.setValueAtTime(880, ctx.currentTime)
@@ -265,6 +267,9 @@ useEffect(() => {
   async function applyTemplate() {
     const items = selectedItems.map(i => ({
       ...menuTemplates[previewTemplate].items[i],
+      ...templateItemEdits[i],
+      price: parseFloat(templateItemEdits[i]?.price ?? menuTemplates[previewTemplate].items[i].price),
+      prep_time: parseInt(templateItemEdits[i]?.prep_time ?? menuTemplates[previewTemplate].items[i].prep_time) || 15,
       hotel_id: hotel.id,
       available: true,
       is_special: false
@@ -273,8 +278,9 @@ useEffect(() => {
     fetchMenu(hotel.id)
     setPreviewTemplate(null)
     setShowTemplates(false)
+    setTemplateItemEdits({})
+    setEditingTemplateItem(null)
   }
-
   async function loadHotel() {
     document.addEventListener("click", () => {
       const ctx = new (window.AudioContext || window.webkitAudioContext)()
@@ -1402,26 +1408,103 @@ function downloadCSV() {
                 Uncheck items you don't want to add.
               </p>
               {menuTemplates[previewTemplate].items.map((item, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: "1px solid #f0f0f0" }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.includes(i)}
-                    onChange={() => setSelectedItems(prev =>
-                      prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
-                    )}
-                    style={{ marginTop: 3, accentColor: "#1c2b3a", flexShrink: 0 }}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>{item.name}</div>
-                    <div style={{ fontSize: 11, color: "#8a9bb0" }}>{item.category} · ₹{item.price} · {item.prep_time} min</div>
-                    {item.description && <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>{item.description}</div>}
-                  </div>
-                </div>
-              ))}
+  <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid #f0f0f0" }}>
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+      <input
+        type="checkbox"
+        checked={selectedItems.includes(i)}
+        onChange={() => setSelectedItems(prev =>
+          prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
+        )}
+        style={{ marginTop: 3, accentColor: "#1c2b3a", flexShrink: 0 }}
+      />
+      <div style={{ flex: 1 }}>
+        {editingTemplateItem === i ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <input
+              style={d.input}
+              value={templateItemEdits[i]?.name ?? item.name}
+              onChange={e => setTemplateItemEdits(prev => ({ ...prev, [i]: { ...prev[i], name: e.target.value } }))}
+              placeholder="Name"
+            />
+            <div style={{ display: "flex", gap: 6 }}>
+              <input
+                style={{ ...d.input, flex: 1 }}
+                type="number"
+                value={templateItemEdits[i]?.price ?? item.price}
+                onChange={e => setTemplateItemEdits(prev => ({ ...prev, [i]: { ...prev[i], price: e.target.value } }))}
+                placeholder="Price"
+              />
+              <input
+                style={{ ...d.input, flex: 1 }}
+                type="number"
+                value={templateItemEdits[i]?.prep_time ?? item.prep_time}
+                onChange={e => setTemplateItemEdits(prev => ({ ...prev, [i]: { ...prev[i], prep_time: e.target.value } }))}
+                placeholder="Prep time"
+              />
+            </div>
+            <input
+              style={d.input}
+              value={templateItemEdits[i]?.description ?? item.description}
+              onChange={e => setTemplateItemEdits(prev => ({ ...prev, [i]: { ...prev[i], description: e.target.value } }))}
+              placeholder="Description"
+            />
+            <button
+              style={{ ...d.saveBtn, padding: "6px 12px", fontSize: 11 }}
+              onClick={() => setEditingTemplateItem(null)}
+            >
+              Done
+            </button>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>
+                {templateItemEdits[i]?.name ?? item.name}
+              </div>
+              <button
+                style={{ background: "none", border: "none", fontSize: 13, cursor: "pointer", color: "#8a9bb0", padding: "0 4px" }}
+                onClick={() => setEditingTemplateItem(i)}
+              >
+                ✏️
+              </button>
+            </div>
+            <div style={{ fontSize: 11, color: "#8a9bb0" }}>
+              {item.category} · ₹{templateItemEdits[i]?.price ?? item.price} · {templateItemEdits[i]?.prep_time ?? item.prep_time} min
+            </div>
+            {(templateItemEdits[i]?.description ?? item.description) && (
+              <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>
+                {templateItemEdits[i]?.description ?? item.description}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  </div>
+))}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
-                <span style={{ fontSize: 12, color: "#8a9bb0" }}>{selectedItems.length} items selected</span>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button style={d.cancelBtn} onClick={() => setPreviewTemplate(null)}>Cancel</button>
+  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+    <span style={{ fontSize: 12, color: "#8a9bb0" }}>{selectedItems.length} items selected</span>
+    {selectedItems.length > 0 && (
+      <button
+        style={{ ...d.cancelBtn, fontSize: 11, padding: "4px 10px", border: "1px solid #e2e8f0", borderRadius: 8 }}
+        onClick={() => setSelectedItems([])}
+      >
+        Deselect All
+      </button>
+    )}
+    {selectedItems.length === 0 && (
+      <button
+        style={{ ...d.cancelBtn, fontSize: 11, padding: "4px 10px", border: "1px solid #e2e8f0", borderRadius: 8 }}
+        onClick={() => setSelectedItems(menuTemplates[previewTemplate].items.map((_, i) => i))}
+      >
+        Select All
+      </button>
+    )}
+  </div>
+  <div style={{ display: "flex", gap: 8 }}>
+    <button style={d.cancelBtn} onClick={() => { setPreviewTemplate(null); setTemplateItemEdits({}); setEditingTemplateItem(null) }}>Cancel</button>
                   <button style={{ ...d.saveBtn, opacity: selectedItems.length === 0 ? 0.4 : 1 }} onClick={applyTemplate} disabled={selectedItems.length === 0}>
                     Add {selectedItems.length} Items
                   </button>
