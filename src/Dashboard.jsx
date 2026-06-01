@@ -21,6 +21,7 @@ export default function Dashboard({ onBack }) {
   const [previewTemplate, setPreviewTemplate] = useState(null)
   const [selectedItems, setSelectedItems] = useState([])
   const [savingTheme, setSavingTheme] = useState(false)
+const [dashFontScale, setDashFontScale] = useState(1)
   const [themeSaved, setThemeSaved] = useState(false)
   const [rejectingOrder, setRejectingOrder] = useState(null)
   const [rejectReason, setRejectReason] = useState("")
@@ -536,7 +537,7 @@ const themes = [
   const tabContentStyle = { animation: "fadeSlide 0.2s ease" }
 
   return (
-    <div style={{ ...d.page, background: darkMode ? "#0f1923" : "#f4f6f9", color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
+    <div style={{ ...d.page, background: darkMode ? "#0f1923" : "#f4f6f9", color: darkMode ? "#e8f0f8" : "#1c2b3a", fontSize: `${dashFontScale}rem` }}>
 <div style={{ ...d.topbar, background: darkMode ? "#0a1219" : "#1c2b3a" }}>
   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
     <div style={{ width: 32, height: 32, borderRadius: 8, background: "#2d3f52", display: "flex", alignItems: "center", justifyContent: "center", color: "#7eb3f5", fontSize: 16 }}>🏨</div>
@@ -1417,6 +1418,7 @@ const themes = [
       const next = sizes[(sizes.indexOf(current) + 1) % sizes.length]
       await supabase.from("hotels").update({ font_size: next }).eq("id", hotel.id)
       setHotel(prev => ({ ...prev, font_size: next }))
+      setDashFontScale(next === "small" ? 0.85 : next === "large" ? 1.2 : 1)
     }}
     style={{ width: 56, height: 26, borderRadius: 13, background: "#1c2b3a", cursor: "pointer", position: "relative", transition: "background 0.2s" }}
   >
@@ -1427,7 +1429,7 @@ const themes = [
       transition: "left 0.2s"
     }} />
   </div>
-  <span style={{ fontSize: 20, color: "#1c2b3a", fontWeight: 700 }}>A</span>
+  <span style={{ fontSize: 20, color: "#1c2b3a", fontWeight: 700 }}>A+</span>
   <span style={{ fontSize: 12, color: "#8a9bb0", marginLeft: 4 }}>
     {hotel?.font_size === "small" ? "Small" : hotel?.font_size === "large" ? "Large" : "Medium"}
   </span>
