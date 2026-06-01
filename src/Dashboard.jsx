@@ -317,20 +317,25 @@ async function loadHotel() {
         schema: "public",
         table: "orders",
         filter: `hotel_id=eq.${hotelData.id}`
-      }, (payload) => {
+      },(payload) => {
         if (payload.new.status === "hold") return
+        console.log("New order:", payload.new.id)
+        setNewOrderIds(prev => {
+          const updated = { ...prev, [payload.new.id]: true }
+          console.log("newOrderIds updated:", updated)
+          return updated
+        })
         fetchOrders(hotelData.id)
         playOrderSound()
         showBadge()
-        setNewOrderIds(prev => ({ ...prev, [payload.new.id]: true }))
-  setTimeout(() => {
-    setNewOrderIds(prev => {
-      const next = { ...prev }
-      delete next[payload.new.id]
-      return next
-    })
-  }, 8000)
-})
+        setTimeout(() => {
+          setNewOrderIds(prev => {
+            const next = { ...prev }
+            delete next[payload.new.id]
+            return next
+          })
+        }, 8000)
+      })
 
       .on("postgres_changes", {
         event: "UPDATE",
