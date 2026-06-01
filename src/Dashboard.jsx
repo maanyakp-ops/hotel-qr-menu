@@ -1358,7 +1358,34 @@ function downloadCSV() {
                 ✓ Theme saved! Guests will see it immediately.
               </p>
             )}
-
+<p style={{ ...d.sectionLabel, marginTop: 28 }}>Menu Font Size</p>
+<p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
+  Controls how large text appears on the guest menu.
+</p>
+<div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+  <span style={{ fontSize: 13, color: "#8a9bb0" }}>A</span>
+  <div
+    onClick={async () => {
+      const sizes = ["small", "medium", "large"]
+      const current = hotel?.font_size || "medium"
+      const next = sizes[(sizes.indexOf(current) + 1) % sizes.length]
+      await supabase.from("hotels").update({ font_size: next }).eq("id", hotel.id)
+      setHotel(prev => ({ ...prev, font_size: next }))
+    }}
+    style={{ width: 56, height: 26, borderRadius: 13, background: "#1c2b3a", cursor: "pointer", position: "relative", transition: "background 0.2s" }}
+  >
+    <div style={{
+      width: 20, height: 20, borderRadius: "50%", background: "#7eb3f5",
+      position: "absolute", top: 3,
+      left: hotel?.font_size === "large" ? 33 : hotel?.font_size === "small" ? 3 : 18,
+      transition: "left 0.2s"
+    }} />
+  </div>
+  <span style={{ fontSize: 20, color: "#1c2b3a", fontWeight: 700 }}>A</span>
+  <span style={{ fontSize: 12, color: "#8a9bb0", marginLeft: 4 }}>
+    {hotel?.font_size === "small" ? "Small" : hotel?.font_size === "large" ? "Large" : "Medium"}
+  </span>
+</div>
 <p style={{ ...d.sectionLabel, marginTop: 28 }}>Room Range</p>
 <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
   Set the starting room number. Rooms will go from this number up to {" "}
