@@ -610,7 +610,7 @@ onClick={() => {
     🟢 Veg Only
   </button>
   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-  <span style={{ fontSize: 10, color: s.accent, fontWeight: 700 }}>A</span>
+  <span style={{ fontSize: 10, color: t.accent, fontWeight: 700 }}>A−</span>
   <div
     onClick={async () => {
       const sizeOrder = ["small", "medium", "large"]
@@ -619,23 +619,23 @@ onClick={() => {
       await supabase.from("hotels").update({ font_size: next }).eq("id", resolvedHotelId)
       setHotelInfo(prev => ({ ...prev, font_size: next }))
     }}
-    style={{ width: 40, height: 20, borderRadius: 10, background: '#C9A84C33', cursor: "pointer", position: "relative" }}
+    style={{ width: 40, height: 20, borderRadius: 10, background: t.accent, cursor: "pointer", position: "relative" }}
   >
     <div style={{
-      width: 16, height: 16, borderRadius: "50%", background: s.accent,
+      width: 16, height: 16, borderRadius: "50%", background: '#fff',
       position: "absolute", top: 2,
       left: hotelInfo?.font_size === "large" ? 22 : hotelInfo?.font_size === "small" ? 2 : 12,
       transition: "left 0.2s"
     }} />
   </div>
-  <span style={{ fontSize: 17, color: s.accent, fontWeight: 700 }}>A</span>
+  <span style={{ fontSize: 17, color: t.accent, fontWeight: 700 }}>A+</span>
 </div>
 </div>
 
       {categories.length > 0 && (
         <div style={s.tabs}>
           {categories.map(cat => (
-            <button key={cat} style={activeTab === cat ? s.tabActive : s.tab} onClick={() => setActiveTab(cat)}>{cat}</button>
+            <button key={cat} style={activeTab === cat ? { ...s.tabActive, fontSize: 11 * fontScale } : { ...s.tab, fontSize: 11 * fontScale }} onClick={() => setActiveTab(cat)}>{cat}</button>
           ))}
         </div>
       )}
@@ -669,11 +669,11 @@ onClick={() => {
                       <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
                       {item.name}
                     </div>
-                    {item.description && <div style={s.itemDesc}>{item.description}</div>}
+                    {item.description && <div style={{ ...s.itemDesc, fontSize: 12 * fontScale }}>{item.description}</div>}
                     <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
                   </div>
                   <div style={s.itemRight}>
-                    <div style={s.itemPrice}>₹ {item.price}</div>
+                    <div style={{ ...s.itemPrice, fontSize: s.itemPrice.fontSize * fontScale }}>₹ {item.price}</div>
                     {item.out_of_stock ? (
                       <span style={s.outOfStock}>Out of Stock</span>
                     ) : cartItem ? (
@@ -683,7 +683,7 @@ onClick={() => {
                         <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
                       </div>
                     ) : (
-                      <button style={s.addBtn} onClick={() => addToCart(item)}>+ Add</button>
+                      <button style={{ ...s.addBtn, fontSize: 11 * fontScale }} onClick={() => addToCart(item)}>+ Add</button>
                     )}
                   </div>
                 </div>
@@ -705,11 +705,11 @@ onClick={() => {
                   <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
                   {item.name}
                 </div>
-                {item.description && <div style={s.itemDesc}>{item.description}</div>}
+                {item.description && <div style={{ ...s.itemDesc, fontSize: 12 * fontScale }}>{item.description}</div>}
                 <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
               </div>
               <div style={s.itemRight}>
-                <div style={s.itemPrice}>₹ {item.price}</div>
+                <div style={{ ...s.itemPrice, fontSize: s.itemPrice.fontSize * fontScale }}>₹ {item.price}</div>
                 {item.out_of_stock ? (
                   <span style={s.outOfStock}>Out of Stock</span>
                 ) : cartItem ? (
@@ -719,7 +719,7 @@ onClick={() => {
                     <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
                   </div>
                 ) : (
-                  <button style={s.addBtn} onClick={() => addToCart(item)}>+ Add</button>
+                  <button style={{ ...s.addBtn, fontSize: 11 * fontScale }} onClick={() => addToCart(item)}>+ Add</button>
                 )}
               </div>
             </div>
