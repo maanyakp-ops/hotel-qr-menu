@@ -157,109 +157,109 @@ useEffect(() => {
     else setEditItem(prev => ({ ...prev, description: desc }))
   }
 
-  const menuTemplates = {
-    breakfast: {
-      label: "Breakfast",
-      emoji: "🍳",
-      items: [
-        { name: "Poha", category: "Breakfast", price: 60, prep_time: 10, description: "Light, fluffy flattened rice with mustard seeds and fresh coriander." },
-        { name: "Upma", category: "Breakfast", price: 70, prep_time: 10, description: "Savory semolina porridge with vegetables and curry leaves." },
-        { name: "Idli Sambhar", category: "Breakfast", price: 90, prep_time: 10, description: "Steamed rice cakes served with hot sambhar and coconut chutney." },
-        { name: "Bread Toast", category: "Breakfast", price: 40, prep_time: 5, description: "Crispy toasted bread served with butter and jam." },
-        { name: "Masala Omelette", is_veg: false, category: "Breakfast", price: 70, prep_time: 10, description: "Farm fresh eggs with onions, tomatoes and green chilli." },
-        { name: "Aloo Paratha", category: "Breakfast", price: 80, prep_time: 15, description: "Stuffed whole wheat flatbread with spiced potato filling." },
-        { name: "Continental Breakfast", category: "Breakfast", price: 250, prep_time: 15, description: "Croissant, toast, eggs, juice and coffee served together." },
-        { name: "Fresh Fruit Platter", category: "Breakfast", price: 180, prep_time: 10, description: "Seasonal fresh fruits, elegantly arranged." },
-        { name: "Pancakes", category: "Breakfast", price: 120, prep_time: 15, description: "Fluffy pancakes served with maple syrup and butter." },
-      ]
-    },
-    starters: {
-      label: "Starters",
-      emoji: "🥗",
-      items: [
-        { name: "Paneer Tikka", category: "Starters", price: 220, prep_time: 20, description: "Tandoor-charred paneer with bell peppers and mint chutney." },
-        { name: "Veg Spring Rolls", category: "Starters", price: 130, prep_time: 15, description: "Crispy rolls filled with stir-fried vegetables." },
-        { name: "Samosa", category: "Starters", price: 50, prep_time: 5, description: "Crispy fried pastry filled with spiced potatoes." },
-        { name: "Hara Bhara Kabab", category: "Starters", price: 160, prep_time: 15, description: "Soft spinach and pea patties with a crispy coating." },
-        { name: "Chicken Tikka", is_veg: false, category: "Starters", price: 280, prep_time: 20, description: "Juicy chicken marinated in spices, grilled in tandoor." },
-        { name: "Fish Fingers", is_veg: false, category: "Starters", price: 260, prep_time: 20, description: "Crispy battered fish fingers served with tartar sauce." },
-        { name: "Veg Seekh Kabab", category: "Starters", price: 180, prep_time: 20, description: "Spiced vegetable skewers grilled to perfection." },
-        { name: "Chilli Paneer", category: "Starters", price: 200, prep_time: 15, description: "Indo-Chinese style paneer tossed with peppers and sauces." },
-      ]
-    },
-    maincourse: {
-      label: "Main Course",
-      emoji: "🍛",
-      items: [
-        { name: "Dal Makhani", category: "Main Course", price: 180, prep_time: 25, description: "Slow-cooked black lentils in a rich, buttery tomato gravy." },
-        { name: "Paneer Butter Masala", category: "Main Course", price: 210, prep_time: 20, description: "Soft paneer in a velvety, spiced tomato-butter sauce." },
-        { name: "Butter Chicken", is_veg: false, category: "Main Course", price: 280, prep_time: 25, description: "Tender chicken in a rich, aromatic tomato-butter gravy." },
-        { name: "Veg Biryani", category: "Main Course", price: 220, prep_time: 30, description: "Fragrant basmati rice layered with spiced vegetables and saffron." },
-        { name: "Chicken Biryani", is_veg: false, category: "Main Course", price: 280, prep_time: 30, description: "Aromatic basmati rice slow-cooked with tender chicken." },
-        { name: "Dal Tadka", category: "Main Course", price: 140, prep_time: 20, description: "Yellow lentils tempered with cumin, garlic and dried chilli." },
-        { name: "Butter Naan", category: "Main Course", price: 50, prep_time: 10, description: "Leavened bread baked in tandoor, finished with butter." },
-        { name: "Garlic Naan", category: "Main Course", price: 60, prep_time: 10, description: "Tandoor-baked naan topped with roasted garlic and coriander." },
-        { name: "Jeera Rice", category: "Main Course", price: 120, prep_time: 15, description: "Fragrant basmati rice tempered with cumin seeds." },
-        { name: "Roti", category: "Main Course", price: 20, prep_time: 5, description: "Freshly made whole wheat flatbread." },
-        { name: "Mutton Rogan Josh", is_veg: false, category: "Main Course", price: 360, prep_time: 35, description: "Slow-cooked mutton in a bold Kashmiri spiced gravy." },
-      ]
-    },
-    soups: {
-      label: "Soups & Salads",
-      emoji: "🥣",
-      items: [
-        { name: "Tomato Soup", category: "Soups & Salads", price: 110, prep_time: 10, description: "Creamy, slow-cooked tomato soup with croutons." },
-        { name: "Sweet Corn Soup", category: "Soups & Salads", price: 120, prep_time: 10, description: "Thick, comforting sweet corn soup with a hint of pepper." },
-        { name: "Hot & Sour Soup", category: "Soups & Salads", price: 120, prep_time: 10, description: "Indo-Chinese style tangy and spicy broth with vegetables." },
-        { name: "Manchow Soup", category: "Soups & Salads", price: 130, prep_time: 12, description: "Spicy noodle soup topped with crispy fried noodles." },
-        { name: "Green Salad", category: "Soups & Salads", price: 90, prep_time: 5, description: "Fresh garden vegetables with lemon dressing." },
-        { name: "Caesar Salad", category: "Soups & Salads", price: 160, prep_time: 10, description: "Crisp romaine, croutons and parmesan with Caesar dressing." },
-        { name: "Fruit Salad", category: "Soups & Salads", price: 120, prep_time: 5, description: "Seasonal fresh fruits with a squeeze of lime." },
-      ]
-    },
-    beverages: {
-      label: "Beverages",
-      emoji: "☕",
-      items: [
-        { name: "Masala Chai", category: "Beverages", price: 40, prep_time: 5, description: "Hot, aromatic tea brewed with ginger and spices." },
-        { name: "Coffee", category: "Beverages", price: 50, prep_time: 5, description: "Freshly brewed hot coffee." },
-        { name: "Cold Coffee", category: "Beverages", price: 90, prep_time: 5, description: "Chilled blended coffee with ice cream." },
-        { name: "Fresh Lime Soda", category: "Beverages", price: 70, prep_time: 3, description: "Freshly squeezed lime with soda, sweet or salted." },
-        { name: "Fresh Orange Juice", category: "Beverages", price: 120, prep_time: 5, description: "Freshly squeezed orange juice, served chilled." },
-        { name: "Mango Lassi", category: "Beverages", price: 90, prep_time: 5, description: "Thick, creamy yogurt blended with fresh mango pulp." },
-        { name: "Buttermilk", category: "Beverages", price: 50, prep_time: 3, description: "Chilled spiced buttermilk with curry leaves and ginger." },
-        { name: "Cold Drink", category: "Beverages", price: 50, prep_time: 2, description: "Chilled soft drink of your choice." },
-        { name: "Mineral Water", category: "Beverages", price: 30, prep_time: 1, description: "500ml chilled mineral water bottle." },
-        { name: "Mocktail of the Day", category: "Beverages", price: 160, prep_time: 8, description: "Chef's special non-alcoholic blend, served chilled." },
-      ]
-    },
-    snacks: {
-      label: "Snacks",
-      emoji: "🍟",
-      items: [
-        { name: "French Fries", category: "Snacks", price: 100, prep_time: 12, description: "Golden, crispy fries served with ketchup." },
-        { name: "Veg Sandwich", category: "Snacks", price: 90, prep_time: 10, description: "Grilled sandwich with fresh vegetables and cheese." },
-        { name: "Bread Pakoda", category: "Snacks", price: 60, prep_time: 10, description: "Golden fried bread stuffed with spiced filling." },
-        { name: "Pav Bhaji", category: "Snacks", price: 110, prep_time: 15, description: "Spiced mashed vegetable curry served with buttered pav." },
-        { name: "Veg Burger", category: "Snacks", price: 120, prep_time: 12, description: "Crispy veg patty with fresh toppings in a soft bun." },
-        { name: "Chicken Sandwich", is_veg: false, category: "Snacks", price: 150, prep_time: 12, description: "Grilled chicken with lettuce and sauce in toasted bread." },
-        { name: "Nachos with Salsa", category: "Snacks", price: 130, prep_time: 8, description: "Crispy nachos served with fresh tomato salsa and sour cream." },
-      ]
-    },
-    desserts: {
-      label: "Desserts",
-      emoji: "🍮",
-      items: [
-        { name: "Gulab Jamun", category: "Desserts", price: 100, prep_time: 5, description: "Soft milk dumplings soaked in rose-scented sugar syrup." },
-        { name: "Chocolate Brownie", category: "Desserts", price: 160, prep_time: 8, description: "Warm dark chocolate brownie served with vanilla ice cream." },
-        { name: "Ice Cream", category: "Desserts", price: 120, prep_time: 3, description: "Choice of vanilla, chocolate or strawberry, served with wafer." },
-        { name: "Rasgulla", category: "Desserts", price: 90, prep_time: 5, description: "Soft spongy cottage cheese balls in light sugar syrup." },
-        { name: "Kheer", category: "Desserts", price: 110, prep_time: 5, description: "Creamy rice pudding with cardamom and dry fruits." },
-        { name: "Gajar Halwa", category: "Desserts", price: 120, prep_time: 8, description: "Slow-cooked carrot pudding with ghee and nuts." },
-        { name: "Cheesecake", category: "Desserts", price: 180, prep_time: 5, description: "Creamy baked cheesecake with a buttery biscuit base." },
-      ]
-    },
-  }
+const menuTemplates = {
+  breakfast: {
+    label: "Breakfast",
+    emoji: "🍳",
+    items: [
+      { name: "Poha", category: "Breakfast", price: 60, prep_time: 10, description: "Light, fluffy flattened rice with mustard seeds and fresh coriander.", image_url: "https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=400&q=80" },
+      { name: "Upma", category: "Breakfast", price: 70, prep_time: 10, description: "Savory semolina porridge with vegetables and curry leaves.", image_url: "https://images.unsplash.com/photo-1694825802979-6c30db36de04?w=400&q=80" },
+      { name: "Idli Sambhar", category: "Breakfast", price: 90, prep_time: 10, description: "Steamed rice cakes served with hot sambhar and coconut chutney.", image_url: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80" },
+      { name: "Bread Toast", category: "Breakfast", price: 40, prep_time: 5, description: "Crispy toasted bread served with butter and jam.", image_url: "https://images.unsplash.com/photo-1484723091739-30990ff14f86?w=400&q=80" },
+      { name: "Masala Omelette", is_veg: false, category: "Breakfast", price: 70, prep_time: 10, description: "Farm fresh eggs with onions, tomatoes and green chilli.", image_url: "https://images.unsplash.com/photo-1510693206972-df098062cb71?w=400&q=80" },
+      { name: "Aloo Paratha", category: "Breakfast", price: 80, prep_time: 15, description: "Stuffed whole wheat flatbread with spiced potato filling.", image_url: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&q=80" },
+      { name: "Continental Breakfast", category: "Breakfast", price: 250, prep_time: 15, description: "Croissant, toast, eggs, juice and coffee served together.", image_url: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400&q=80" },
+      { name: "Fresh Fruit Platter", category: "Breakfast", price: 180, prep_time: 10, description: "Seasonal fresh fruits, elegantly arranged.", image_url: "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=400&q=80" },
+      { name: "Pancakes", category: "Breakfast", price: 120, prep_time: 15, description: "Fluffy pancakes served with maple syrup and butter.", image_url: "https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=400&q=80" },
+    ]
+  },
+  starters: {
+    label: "Starters",
+    emoji: "🥗",
+    items: [
+      { name: "Paneer Tikka", category: "Starters", price: 220, prep_time: 20, description: "Tandoor-charred paneer with bell peppers and mint chutney.", image_url: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=400&q=80" },
+      { name: "Veg Spring Rolls", category: "Starters", price: 130, prep_time: 15, description: "Crispy rolls filled with stir-fried vegetables.", image_url: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&q=80" },
+      { name: "Samosa", category: "Starters", price: 50, prep_time: 5, description: "Crispy fried pastry filled with spiced potatoes.", image_url: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400&q=80" },
+      { name: "Hara Bhara Kabab", category: "Starters", price: 160, prep_time: 15, description: "Soft spinach and pea patties with a crispy coating.", image_url: "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400&q=80" },
+      { name: "Chicken Tikka", is_veg: false, category: "Starters", price: 280, prep_time: 20, description: "Juicy chicken marinated in spices, grilled in tandoor.", image_url: "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400&q=80" },
+      { name: "Fish Fingers", is_veg: false, category: "Starters", price: 260, prep_time: 20, description: "Crispy battered fish fingers served with tartar sauce.", image_url: "https://images.unsplash.com/photo-1519984388953-d2406bc725e1?w=400&q=80" },
+      { name: "Veg Seekh Kabab", category: "Starters", price: 180, prep_time: 20, description: "Spiced vegetable skewers grilled to perfection.", image_url: "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400&q=80" },
+      { name: "Chilli Paneer", category: "Starters", price: 200, prep_time: 15, description: "Indo-Chinese style paneer tossed with peppers and sauces.", image_url: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400&q=80" },
+    ]
+  },
+  maincourse: {
+    label: "Main Course",
+    emoji: "🍛",
+    items: [
+      { name: "Dal Makhani", category: "Main Course", price: 180, prep_time: 25, description: "Slow-cooked black lentils in a rich, buttery tomato gravy.", image_url: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&q=80" },
+      { name: "Paneer Butter Masala", category: "Main Course", price: 210, prep_time: 20, description: "Soft paneer in a velvety, spiced tomato-butter sauce.", image_url: "https://images.unsplash.com/photo-1631292784640-2b24be784d5d?w=400&q=80" },
+      { name: "Butter Chicken", is_veg: false, category: "Main Course", price: 280, prep_time: 25, description: "Tender chicken in a rich, aromatic tomato-butter gravy.", image_url: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400&q=80" },
+      { name: "Veg Biryani", category: "Main Course", price: 220, prep_time: 30, description: "Fragrant basmati rice layered with spiced vegetables and saffron.", image_url: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&q=80" },
+      { name: "Chicken Biryani", is_veg: false, category: "Main Course", price: 280, prep_time: 30, description: "Aromatic basmati rice slow-cooked with tender chicken.", image_url: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=400&q=80" },
+      { name: "Dal Tadka", category: "Main Course", price: 140, prep_time: 20, description: "Yellow lentils tempered with cumin, garlic and dried chilli.", image_url: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=80" },
+      { name: "Butter Naan", category: "Main Course", price: 50, prep_time: 10, description: "Leavened bread baked in tandoor, finished with butter.", image_url: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=400&q=80" },
+      { name: "Garlic Naan", category: "Main Course", price: 60, prep_time: 10, description: "Tandoor-baked naan topped with roasted garlic and coriander.", image_url: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&q=80" },
+      { name: "Jeera Rice", category: "Main Course", price: 120, prep_time: 15, description: "Fragrant basmati rice tempered with cumin seeds.", image_url: "https://images.unsplash.com/photo-1516684732162-798a0062be99?w=400&q=80" },
+      { name: "Roti", category: "Main Course", price: 20, prep_time: 5, description: "Freshly made whole wheat flatbread.", image_url: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&q=80" },
+      { name: "Mutton Rogan Josh", is_veg: false, category: "Main Course", price: 360, prep_time: 35, description: "Slow-cooked mutton in a bold Kashmiri spiced gravy.", image_url: "https://images.unsplash.com/photo-1545247181-516773cae754?w=400&q=80" },
+    ]
+  },
+  soups: {
+    label: "Soups & Salads",
+    emoji: "🥣",
+    items: [
+      { name: "Tomato Soup", category: "Soups & Salads", price: 110, prep_time: 10, description: "Creamy, slow-cooked tomato soup with croutons.", image_url: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&q=80" },
+      { name: "Sweet Corn Soup", category: "Soups & Salads", price: 120, prep_time: 10, description: "Thick, comforting sweet corn soup with a hint of pepper.", image_url: "https://images.unsplash.com/photo-1588566565463-180a5b5f5a3e?w=400&q=80" },
+      { name: "Hot & Sour Soup", category: "Soups & Salads", price: 120, prep_time: 10, description: "Indo-Chinese style tangy and spicy broth with vegetables.", image_url: "https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?w=400&q=80" },
+      { name: "Manchow Soup", category: "Soups & Salads", price: 130, prep_time: 12, description: "Spicy noodle soup topped with crispy fried noodles.", image_url: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80" },
+      { name: "Green Salad", category: "Soups & Salads", price: 90, prep_time: 5, description: "Fresh garden vegetables with lemon dressing.", image_url: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&q=80" },
+      { name: "Caesar Salad", category: "Soups & Salads", price: 160, prep_time: 10, description: "Crisp romaine, croutons and parmesan with Caesar dressing.", image_url: "https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400&q=80" },
+      { name: "Fruit Salad", category: "Soups & Salads", price: 120, prep_time: 5, description: "Seasonal fresh fruits with a squeeze of lime.", image_url: "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=400&q=80" },
+    ]
+  },
+  beverages: {
+    label: "Beverages",
+    emoji: "☕",
+    items: [
+      { name: "Masala Chai", category: "Beverages", price: 40, prep_time: 5, description: "Hot, aromatic tea brewed with ginger and spices.", image_url: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=80" },
+      { name: "Coffee", category: "Beverages", price: 50, prep_time: 5, description: "Freshly brewed hot coffee.", image_url: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&q=80" },
+      { name: "Cold Coffee", category: "Beverages", price: 90, prep_time: 5, description: "Chilled blended coffee with ice cream.", image_url: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=80" },
+      { name: "Fresh Lime Soda", category: "Beverages", price: 70, prep_time: 3, description: "Freshly squeezed lime with soda, sweet or salted.", image_url: "https://images.unsplash.com/photo-1523677011781-c91d1bbe2f9e?w=400&q=80" },
+      { name: "Fresh Orange Juice", category: "Beverages", price: 120, prep_time: 5, description: "Freshly squeezed orange juice, served chilled.", image_url: "https://images.unsplash.com/photo-1534353473418-4cfa0c6e06c4?w=400&q=80" },
+      { name: "Mango Lassi", category: "Beverages", price: 90, prep_time: 5, description: "Thick, creamy yogurt blended with fresh mango pulp.", image_url: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&q=80" },
+      { name: "Buttermilk", category: "Beverages", price: 50, prep_time: 3, description: "Chilled spiced buttermilk with curry leaves and ginger.", image_url: "https://images.unsplash.com/photo-1568649929103-28ffbefaca1e?w=400&q=80" },
+      { name: "Cold Drink", category: "Beverages", price: 50, prep_time: 2, description: "Chilled soft drink of your choice.", image_url: "https://images.unsplash.com/photo-1581636625402-29b2a704ef13?w=400&q=80" },
+      { name: "Mineral Water", category: "Beverages", price: 30, prep_time: 1, description: "500ml chilled mineral water bottle.", image_url: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400&q=80" },
+      { name: "Mocktail of the Day", category: "Beverages", price: 160, prep_time: 8, description: "Chef's special non-alcoholic blend, served chilled.", image_url: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=400&q=80" },
+    ]
+  },
+  snacks: {
+    label: "Snacks",
+    emoji: "🍟",
+    items: [
+      { name: "French Fries", category: "Snacks", price: 100, prep_time: 12, description: "Golden, crispy fries served with ketchup.", image_url: "https://images.unsplash.com/photo-1576107232684-1279f390859f?w=400&q=80" },
+      { name: "Veg Sandwich", category: "Snacks", price: 90, prep_time: 10, description: "Grilled sandwich with fresh vegetables and cheese.", image_url: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400&q=80" },
+      { name: "Bread Pakoda", category: "Snacks", price: 60, prep_time: 10, description: "Golden fried bread stuffed with spiced filling.", image_url: "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400&q=80" },
+      { name: "Pav Bhaji", category: "Snacks", price: 110, prep_time: 15, description: "Spiced mashed vegetable curry served with buttered pav.", image_url: "https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400&q=80" },
+      { name: "Veg Burger", category: "Snacks", price: 120, prep_time: 12, description: "Crispy veg patty with fresh toppings in a soft bun.", image_url: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=400&q=80" },
+      { name: "Chicken Sandwich", is_veg: false, category: "Snacks", price: 150, prep_time: 12, description: "Grilled chicken with lettuce and sauce in toasted bread.", image_url: "https://images.unsplash.com/photo-1521390188846-e2a3a97453a0?w=400&q=80" },
+      { name: "Nachos with Salsa", category: "Snacks", price: 130, prep_time: 8, description: "Crispy nachos served with fresh tomato salsa and sour cream.", image_url: "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400&q=80" },
+    ]
+  },
+  desserts: {
+    label: "Desserts",
+    emoji: "🍮",
+    items: [
+      { name: "Gulab Jamun", category: "Desserts", price: 100, prep_time: 5, description: "Soft milk dumplings soaked in rose-scented sugar syrup.", image_url: "https://images.unsplash.com/photo-1666361009712-a8ae8d5d0ea3?w=400&q=80" },
+      { name: "Chocolate Brownie", category: "Desserts", price: 160, prep_time: 8, description: "Warm dark chocolate brownie served with vanilla ice cream.", image_url: "https://images.unsplash.com/photo-1564355808539-22fda35bed7e?w=400&q=80" },
+      { name: "Ice Cream", category: "Desserts", price: 120, prep_time: 3, description: "Choice of vanilla, chocolate or strawberry, served with wafer.", image_url: "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400&q=80" },
+      { name: "Rasgulla", category: "Desserts", price: 90, prep_time: 5, description: "Soft spongy cottage cheese balls in light sugar syrup.", image_url: "https://images.unsplash.com/photo-1666361009712-a8ae8d5d0ea3?w=400&q=80" },
+      { name: "Kheer", category: "Desserts", price: 110, prep_time: 5, description: "Creamy rice pudding with cardamom and dry fruits.", image_url: "https://images.unsplash.com/photo-1574484284002-952d92456975?w=400&q=80" },
+      { name: "Gajar Halwa", category: "Desserts", price: 120, prep_time: 8, description: "Slow-cooked carrot pudding with ghee and nuts.", image_url: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80" },
+      { name: "Cheesecake", category: "Desserts", price: 180, prep_time: 5, description: "Creamy baked cheesecake with a buttery biscuit base.", image_url: "https://images.unsplash.com/photo-1524351199678-941a58a3df50?w=400&q=80" },
+    ]
+  },
+}
   
   function openTemplatePreview(templateKey) {
     setPreviewTemplate(templateKey)

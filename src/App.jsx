@@ -619,7 +619,7 @@ onClick={() => {
       await supabase.from("hotels").update({ font_size: next }).eq("id", resolvedHotelId)
       setHotelInfo(prev => ({ ...prev, font_size: next }))
     }}
-    style={{ width: 40, height: 20, borderRadius: 10, background: s.accentMuted, cursor: "pointer", position: "relative" }}
+    style={{ width: 40, height: 20, borderRadius: 10, background: '#C9A84C33', cursor: "pointer", position: "relative" }}
   >
     <div style={{
       width: 16, height: 16, borderRadius: "50%", background: s.accent,
