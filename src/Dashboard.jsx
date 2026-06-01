@@ -34,7 +34,7 @@ const [dashFontScale, setDashFontScale] = useState(1)
   const [guestSearchPhone, setGuestSearchPhone] = useState("")
   const [editingTemplateItem, setEditingTemplateItem] = useState(null)
   const [templateItemEdits, setTemplateItemEdits] = useState({})
-  const [newOrderIds, setNewOrderIds] = useState(new Set())
+  const [newOrderIds, setNewOrderIds] = useState({})
 
 function playOrderSound() {
   const ctx = new (window.AudioContext || window.webkitAudioContext)()
@@ -322,11 +322,15 @@ async function loadHotel() {
         fetchOrders(hotelData.id)
         playOrderSound()
         showBadge()
-         setNewOrderIds(prev => new Set([...prev, payload.new.id]))
-        setTimeout(() => {
-        setNewOrderIds(prev => { const n = new Set(prev); n.delete(payload.new.id); return n })
-        }, 8000)
-         })
+        setNewOrderIds(prev => ({ ...prev, [payload.new.id]: true }))
+  setTimeout(() => {
+    setNewOrderIds(prev => {
+      const next = { ...prev }
+      delete next[payload.new.id]
+      return next
+    })
+  }, 8000)
+})
 
       .on("postgres_changes", {
         event: "UPDATE",
@@ -678,16 +682,17 @@ const themes = [
   const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
   const mins = Math.floor((Date.now() - new Date(order.created_at)) / 60000)
   return (
-  <div key={order.id} style={{
+<div key={order.id} style={{
   ...d.card,
-  background: newOrderIds.has(order.id)
+  background: newOrderIds[order.id]
     ? (darkMode ? "#1a1200" : "#fffbeb")
     : (darkMode ? "#111f2c" : "#fff"),
-  border: newOrderIds.has(order.id)
-    ? "1.5px solid #C9A84C"
+  border: newOrderIds[order.id]
+    ? "2px solid #C9A84C"
     : (darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0"),
-  boxShadow: newOrderIds.has(order.id) ? "0 0 0 3px rgba(201,168,76,0.15), 0 4px 20px rgba(201,168,76,0.1)" : "none",
-  animation: newOrderIds.has(order.id) ? "newOrderPulse 1s ease 2" : "none",
+  boxShadow: newOrderIds[order.id] ? "0 0 20px rgba(201,168,76,0.3)" : "none",
+  animation: newOrderIds[order.id] ? "newOrderPulse 2s ease-in-out infinite" : "none",
+  transition: "all 0.3s ease",
 }}>
       <div style={d.cardHeader}>
         <div>
