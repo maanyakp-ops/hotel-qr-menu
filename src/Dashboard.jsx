@@ -34,20 +34,28 @@ const [dashFontScale, setDashFontScale] = useState(1)
   const [guestSearchPhone, setGuestSearchPhone] = useState("")
   const [editingTemplateItem, setEditingTemplateItem] = useState(null)
   const [templateItemEdits, setTemplateItemEdits] = useState({})
-  function playOrderSound() {
+  const [newOrderIds, setNewOrderIds] = useState(new Set())
+
+function playOrderSound() {
   const ctx = new (window.AudioContext || window.webkitAudioContext)()
-  const oscillator = ctx.createOscillator()
-  const gain = ctx.createGain()
-    oscillator.connect(gain)
+  
+  const times = [0, 0.18, 0.36]
+  times.forEach(t => {
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
     gain.connect(ctx.destination)
-    oscillator.frequency.setValueAtTime(880, ctx.currentTime)
-    oscillator.frequency.setValueAtTime(660, ctx.currentTime + 0.1)
-    oscillator.frequency.setValueAtTime(880, ctx.currentTime + 0.2)
-    gain.gain.setValueAtTime(0.3, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5)
-    oscillator.start(ctx.currentTime)
-    oscillator.stop(ctx.currentTime + 0.5)
-  }
+    osc.type = "square"
+    osc.frequency.setValueAtTime(880, ctx.currentTime + t)
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + t + 0.06)
+    osc.frequency.setValueAtTime(880, ctx.currentTime + t + 0.12)
+    gain.gain.setValueAtTime(0, ctx.currentTime + t)
+    gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + t + 0.01)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.16)
+    osc.start(ctx.currentTime + t)
+    osc.stop(ctx.currentTime + t + 0.18)
+  })
+}
 
   function showBadge() {
     const original = document.title
@@ -314,7 +322,12 @@ async function loadHotel() {
         fetchOrders(hotelData.id)
         playOrderSound()
         showBadge()
-      })
+         setNewOrderIds(prev => new Set([...prev, payload.new.id]))
+        setTimeout(() => {
+        setNewOrderIds(prev => { const n = new Set(prev); n.delete(payload.new.id); return n })
+        }, 8000)
+         })
+
       .on("postgres_changes", {
         event: "UPDATE",
         schema: "public",
@@ -590,7 +603,10 @@ const themes = [
       </div>
 
       <div style={{ ...d.body, background: darkMode ? "#0f1923" : "#f4f6f9", fontSize: `${dashFontScale * 13}px` }}>
-  <style>{`@keyframes fadeSlide { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }`}</style>
+  <style>{`
+  @keyframes fadeSlide { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes newOrderPulse { 0% { box-shadow: 0 0 0 0 rgba(201,168,76,0.5); } 70% { box-shadow: 0 0 0 10px rgba(201,168,76,0); } 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); } }
+`}</style>
 
         {/* ORDERS TAB */}
         {tab === "orders" && (
@@ -662,7 +678,17 @@ const themes = [
   const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
   const mins = Math.floor((Date.now() - new Date(order.created_at)) / 60000)
   return (
-    <div key={order.id} style={{ ...d.card, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+  <div key={order.id} style={{
+  ...d.card,
+  background: newOrderIds.has(order.id)
+    ? (darkMode ? "#1a1200" : "#fffbeb")
+    : (darkMode ? "#111f2c" : "#fff"),
+  border: newOrderIds.has(order.id)
+    ? "1.5px solid #C9A84C"
+    : (darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0"),
+  boxShadow: newOrderIds.has(order.id) ? "0 0 0 3px rgba(201,168,76,0.15), 0 4px 20px rgba(201,168,76,0.1)" : "none",
+  animation: newOrderIds.has(order.id) ? "newOrderPulse 1s ease 2" : "none",
+}}>
       <div style={d.cardHeader}>
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
