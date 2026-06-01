@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { supabase } from "./supabase"
+import { useEffect } from "react"
 
 export default function Auth({ onLogin }) {
   const [mode, setMode] = useState("login") // "login" | "signup" | "details"
@@ -14,6 +15,13 @@ export default function Auth({ onLogin }) {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+    useEffect(() => {
+    const link = document.createElement("link")
+    link.href = "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@400;500;600&display=swap"
+    link.rel = "stylesheet"
+    document.head.appendChild(link)
+  }, [])
 
   async function handleLogin() {
     setLoading(true)
@@ -203,28 +211,29 @@ export default function Auth({ onLogin }) {
 }
 
 const s = {
-  page: { minHeight: "100vh", background: "#0a1219", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px", fontFamily: "-apple-system, sans-serif" },
-  card: { background: "#111f2c", borderRadius: 20, padding: "32px 28px", width: "100%", maxWidth: 420, boxShadow: "0 4px 32px rgba(0,0,0,0.4)", display: "flex", flexDirection: "column", gap: 10, border: "0.5px solid #1c2b3a" },
+  page: { minHeight: "100vh", background: "#0D0C0A", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 16px", fontFamily: "'Jost', -apple-system, sans-serif", position: "relative" },
+  card: { background: "#141310", borderRadius: 4, padding: "36px 32px", width: "100%", maxWidth: 420, border: "1px solid #2E2B22", display: "flex", flexDirection: "column", gap: 12, position: "relative", zIndex: 1 },
   brand: { textAlign: "center", marginBottom: 8 },
-  brandIcon: { fontSize: 40, marginBottom: 6 },
-  brandTitle: { fontSize: 24, fontWeight: 700, color: "#e8f0f8", margin: "0 0 4px" },
-  brandSub: { fontSize: 12, color: "#4a6a8a", margin: 0 },
-  heading: { fontSize: 18, fontWeight: 600, color: "#e8f0f8", margin: "4px 0 0", textAlign: "center" },
-  subheading: { fontSize: 12, color: "#4a6a8a", margin: "-4px 0 4px", textAlign: "center" },
-  label: { fontSize: 12, fontWeight: 600, color: "#7eb3f5", margin: "4px 0 -4px" },
-  hint: { fontSize: 11, color: "#4a6a8a", margin: "-8px 0 -4px" },
-  input: { background: "#0a1219", border: "1px solid #1c2b3a", borderRadius: 10, padding: "11px 14px", fontSize: 13, color: "#e8f0f8", outline: "none", width: "100%", boxSizing: "border-box" },
-  btn: { background: "#7eb3f5", color: "#0a1219", border: "none", borderRadius: 10, padding: "13px", fontSize: 14, fontWeight: 700, cursor: "pointer", width: "100%" },
-  backBtn: { background: "#0a1219", color: "#7eb3f5", border: "1px solid #1c2b3a", borderRadius: 10, padding: "13px 20px", fontSize: 13, fontWeight: 500, cursor: "pointer" },
-  error: { background: "rgba(192,57,43,0.15)", color: "#e57373", border: "1px solid rgba(192,57,43,0.3)", borderRadius: 8, padding: "10px 14px", fontSize: 13, margin: "0" },
-  switch: { textAlign: "center", fontSize: 13, color: "#4a6a8a", margin: "4px 0 0" },
-  link: { color: "#7eb3f5", fontWeight: 600, cursor: "pointer", textDecoration: "underline" },
+  brandIcon: { fontSize: 36, marginBottom: 8 },
+  brandTitle: { fontFamily: "'Cormorant Garamond', serif", fontSize: 28, fontWeight: 300, color: "#EDE8DC", margin: "0 0 4px", letterSpacing: 2 },
+  brandSub: { fontSize: 11, color: "#7A6230", margin: 0, letterSpacing: 1 },
+  heading: { fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 300, color: "#EDE8DC", margin: "4px 0 0", textAlign: "center", letterSpacing: 1 },
+  subheading: { fontSize: 11, color: "#7A6230", margin: "-4px 0 4px", textAlign: "center", letterSpacing: 0.5 },
+  label: { fontSize: 10, fontWeight: 600, color: "#C9A84C", margin: "4px 0 -6px", letterSpacing: 2, textTransform: "uppercase" },
+  hint: { fontSize: 11, color: "#7A6230", margin: "-6px 0 -4px" },
+  input: { background: "#0D0C0A", border: "1px solid #2E2B22", borderRadius: 2, padding: "12px 14px", fontSize: 13, color: "#EDE8DC", outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "'Jost', sans-serif" },
+  btn: { background: "#C9A84C", color: "#0D0C0A", border: "none", borderRadius: 2, padding: "14px", fontSize: 13, fontWeight: 600, cursor: "pointer", width: "100%", letterSpacing: 1, fontFamily: "'Jost', sans-serif" },
+  backBtn: { background: "none", color: "#9A927E", border: "1px solid #2E2B22", borderRadius: 2, padding: "14px 20px", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "'Jost', sans-serif" },
+  error: { background: "rgba(192,57,43,0.1)", color: "#e57373", border: "1px solid rgba(192,57,43,0.25)", borderRadius: 2, padding: "10px 14px", fontSize: 12, margin: "0", letterSpacing: 0.3 },
+  switch: { textAlign: "center", fontSize: 12, color: "#7A6230", margin: "4px 0 0" },
+  link: { color: "#C9A84C", fontWeight: 600, cursor: "pointer", textDecoration: "none" },
   stepRow: { display: "flex", alignItems: "center", justifyContent: "center", gap: 0, margin: "4px 0 8px" },
-  stepActive: { width: 32, height: 32, borderRadius: "50%", background: "#7eb3f5", color: "#0a1219", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, flexShrink: 0 },
-  stepInactive: { width: 32, height: 32, borderRadius: "50%", background: "#1c2b3a", color: "#4a6a8a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, flexShrink: 0 },
-  stepDone: { width: 32, height: 32, borderRadius: "50%", background: "rgba(111,207,151,0.15)", color: "#6fcf97", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, flexShrink: 0 },
-  stepLine: { flex: 1, height: 2, background: "#1c2b3a", maxWidth: 60 },
-  toggleRow: { display: "flex", gap: 10 },
-  toggleActive: { flex: 1, background: "#7eb3f5", color: "#0a1219", border: "none", borderRadius: 10, padding: "11px", fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  toggleInactive: { flex: 1, background: "#0a1219", color: "#4a6a8a", border: "1px solid #1c2b3a", borderRadius: 10, padding: "11px", fontSize: 13, cursor: "pointer" },
+  stepActive: { width: 32, height: 32, borderRadius: "50%", background: "none", border: "1px solid #C9A84C", color: "#C9A84C", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, flexShrink: 0, fontFamily: "'Cormorant Garamond', serif" },
+  stepInactive: { width: 32, height: 32, borderRadius: "50%", background: "none", border: "1px solid #2E2B22", color: "#7A6230", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, flexShrink: 0 },
+  stepDone: { width: 32, height: 32, borderRadius: "50%", background: "none", border: "1px solid #C9A84C33", color: "#C9A84C", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, flexShrink: 0 },
+  stepLine: { flex: 1, height: 1, background: "#2E2B22", maxWidth: 60 },
+  toggleRow: { display: "flex", gap: 8 },
+  toggleActive: { flex: 1, background: "#C9A84C", color: "#0D0C0A", border: "none", borderRadius: 2, padding: "12px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'Jost', sans-serif" },
+  toggleInactive: { flex: 1, background: "none", color: "#9A927E", border: "1px solid #2E2B22", borderRadius: 2, padding: "12px", fontSize: 13, cursor: "pointer", fontFamily: "'Jost', sans-serif" },
+  pricingNote: { textAlign: "center", fontSize: 11, color: "#7A6230", margin: "4px 0 0", letterSpacing: 0.5 },
 }
