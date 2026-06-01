@@ -509,12 +509,10 @@ function downloadCSV() {
 }
 
   // ─── THEME PICKER ───────────────────────────────────────────────
-  const themes = [
-    { key: "dark-gold",     label: "Dark Gold",     swatches: ["#0D0C0A", "#141310", "#C9A84C", "#EDE8DC"] },
-    { key: "cafe-warm",     label: "Café Warm",     swatches: ["#FAF6F0", "#3D2B1F", "#C4A882", "#D9C9B0"] },
-    { key: "royal-emerald", label: "Royal Emerald", swatches: ["#0E1F18", "#0A1912", "#B8963E", "#E8D5A3"] },
-    { key: "clean-app",     label: "Clean App",     swatches: ["#F5F5F5", "#FFFFFF", "#111111", "#888888"] },
-  ]
+const themes = [
+  { key: "dark-gold", label: "Dark Gold", swatches: ["#0D0C0A", "#141310", "#C9A84C", "#EDE8DC"] },
+  { key: "la-belle",  label: "La Belle",  swatches: ["#fffaf8", "#ffffff", "#e88d95", "#f5c4cb"] },
+]
 
   async function saveTheme(themeKey) {
     setSavingTheme(true)
