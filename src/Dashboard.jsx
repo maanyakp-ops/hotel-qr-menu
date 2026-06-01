@@ -537,7 +537,7 @@ const themes = [
   const tabContentStyle = { animation: "fadeSlide 0.2s ease" }
 
   return (
-    <div style={{ ...d.page, background: darkMode ? "#0f1923" : "#f4f6f9", color: darkMode ? "#e8f0f8" : "#1c2b3a", fontSize: `${dashFontScale}rem` }}>
+    <div style={{ ...d.page, background: darkMode ? "#0f1923" : "#f4f6f9", color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
 <div style={{ ...d.topbar, background: darkMode ? "#0a1219" : "#1c2b3a" }}>
   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
     <div style={{ width: 32, height: 32, borderRadius: 8, background: "#2d3f52", display: "flex", alignItems: "center", justifyContent: "center", color: "#7eb3f5", fontSize: 16 }}>🏨</div>
@@ -589,7 +589,7 @@ const themes = [
         {isAdmin && <button style={tab === "admin" ? d.tabActive : d.tab} onClick={() => setTab("admin")}>Hotels</button>}
       </div>
 
-<div style={{ ...d.body, background: darkMode ? "#0f1923" : "#f4f6f9" }}>
+      <div style={{ ...d.body, background: darkMode ? "#0f1923" : "#f4f6f9", fontSize: `${dashFontScale * 13}px` }}>
   <style>{`@keyframes fadeSlide { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }`}</style>
 
         {/* ORDERS TAB */}
@@ -1405,9 +1405,9 @@ const themes = [
                 ✓ Theme saved! Guests will see it immediately.
               </p>
             )}
-<p style={{ ...d.sectionLabel, marginTop: 28 }}>Menu Font Size</p>
+<p style={{ ...d.sectionLabel, marginTop: 28 }}>Dashboard Font Size</p>
 <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
-  Controls how large text appears on the guest menu.
+  Controls how large text appears on this dashboard.
 </p>
 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
   <span style={{ fontSize: 13, color: "#8a9bb0" }}>A</span>
