@@ -647,34 +647,27 @@ onClick={() => {
   >
     🟢 Veg Only
   </button>
-  {["small", "medium", "large"].map(size => {
-    const active = (hotelInfo?.font_size || "medium") === size
-    const sizes = { small: 11, medium: 14, large: 18 }
-    return (
-      <button
-        key={size}
-        onClick={async () => {
-          await supabase.from("hotels").update({ font_size: size }).eq("id", resolvedHotelId)
-          setHotelInfo(prev => ({ ...prev, font_size: size }))
-        }}
-        style={{
-          background: active ? s.btnBg : "none",
-          border: `1px solid ${s.accentMuted}`,
-          color: active ? s.btnColor : s.accent,
-          borderRadius: 20,
-          width: 32, height: 32,
-          fontSize: sizes[size],
-          fontWeight: 700,
-          cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          padding: 0,
-          lineHeight: 1,
-        }}
-      >
-        A
-      </button>
-    )
-  })}
+  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+  <span style={{ fontSize: 10, color: s.accent, fontWeight: 700 }}>A</span>
+  <div
+    onClick={async () => {
+      const sizeOrder = ["small", "medium", "large"]
+      const current = hotelInfo?.font_size || "medium"
+      const next = sizeOrder[(sizeOrder.indexOf(current) + 1) % sizeOrder.length]
+      await supabase.from("hotels").update({ font_size: next }).eq("id", resolvedHotelId)
+      setHotelInfo(prev => ({ ...prev, font_size: next }))
+    }}
+    style={{ width: 40, height: 20, borderRadius: 10, background: s.accentMuted, cursor: "pointer", position: "relative" }}
+  >
+    <div style={{
+      width: 16, height: 16, borderRadius: "50%", background: s.accent,
+      position: "absolute", top: 2,
+      left: hotelInfo?.font_size === "large" ? 22 : hotelInfo?.font_size === "small" ? 2 : 12,
+      transition: "left 0.2s"
+    }} />
+  </div>
+  <span style={{ fontSize: 17, color: s.accent, fontWeight: 700 }}>A</span>
+</div>
 </div>
 
       {categories.length > 0 && (
