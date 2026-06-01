@@ -197,7 +197,7 @@ function App() {
   const hasLastOrder = !!localStorage.getItem(`lastOrder_${resolvedRoom}`)
   const s = getStyles(hotelInfo?.theme || 'dark-gold')
   const t = themeConfigs[hotelInfo?.theme || 'dark-gold'] || themeConfigs['dark-gold']  // ← add this
-
+  const fontScale = hotelInfo?.font_size === "small" ? 0.85 : hotelInfo?.font_size === "large" ? 1.2 : 1
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -640,14 +640,42 @@ onClick={() => {
         <div style={s.heroOrnament}>✦ &nbsp; ✦ &nbsp; ✦</div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: "1rem", marginBottom: "0.5rem", background: s.tabsBg, padding: "8px 0" }}>
-        <button
-          style={{ background: vegOnly ? "#2e7d32" : "none", border: "1px solid #2e7d32", color: vegOnly ? "#fff" : "#2e7d32", borderRadius: 20, padding: "5px 16px", fontSize: 11, cursor: "pointer", fontFamily: s.bodyFont, letterSpacing: 1 }}
-          onClick={() => setVegOnly(!vegOnly)}
-        >
-          🟢 Veg Only
-        </button>
-      </div>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: "1rem", marginBottom: "0.5rem", background: s.tabsBg, padding: "8px 0" }}>
+  <button
+    style={{ background: vegOnly ? "#2e7d32" : "none", border: "1px solid #2e7d32", color: vegOnly ? "#fff" : "#2e7d32", borderRadius: 20, padding: "5px 16px", fontSize: 11, cursor: "pointer", fontFamily: s.bodyFont, letterSpacing: 1 }}
+    onClick={() => setVegOnly(!vegOnly)}
+  >
+    🟢 Veg Only
+  </button>
+  {["small", "medium", "large"].map(size => {
+    const active = (hotelInfo?.font_size || "medium") === size
+    const sizes = { small: 11, medium: 14, large: 18 }
+    return (
+      <button
+        key={size}
+        onClick={async () => {
+          await supabase.from("hotels").update({ font_size: size }).eq("id", resolvedHotelId)
+          setHotelInfo(prev => ({ ...prev, font_size: size }))
+        }}
+        style={{
+          background: active ? s.btnBg : "none",
+          border: `1px solid ${s.accentMuted}`,
+          color: active ? s.btnColor : s.accent,
+          borderRadius: 20,
+          width: 32, height: 32,
+          fontSize: sizes[size],
+          fontWeight: 700,
+          cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: 0,
+          lineHeight: 1,
+        }}
+      >
+        A
+      </button>
+    )
+  })}
+</div>
 
       {categories.length > 0 && (
         <div style={s.tabs}>
@@ -679,7 +707,7 @@ onClick={() => {
                 <div key={item.id} style={s.specialItem}>
                   <div style={s.specialBadge}>Chef's Special</div>
                   <div style={s.itemLeft}>
-                    <div style={{ ...s.itemName, display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>
                       <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
                       {item.name}
                     </div>
@@ -712,7 +740,7 @@ onClick={() => {
           return (
             <div key={item.id} style={s.menuItem}>
               <div style={s.itemLeft}>
-                <div style={{ ...s.itemName, display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
                   {item.name}
                 </div>
