@@ -405,6 +405,7 @@ async function loadHotel() {
       description: editItem.description || null,
       is_special: editItem.is_special || false,
       is_veg: editItem.is_veg !== false ? true : false,
+      image_url: editItem.image_url || null,
     }).eq("id", editItem.id)
     setEditItem(null)
     fetchMenu(hotel.id)
@@ -426,11 +427,12 @@ async function loadHotel() {
       price: parseFloat(newItem.price),
       prep_time: parseInt(newItem.prep_time) || 15,
       description: newItem.description || null,
+      image_url: newItem.image_url || null,
       is_special: newItem.is_special || false,
       available: true,
       is_veg: newItem.is_veg !== false ? true : false,
     })
-    setNewItem({ name: "", category: "", price: "", prep_time: "15", description: "", is_special: false })
+    setNewItem({ name: "", category: "", price: "", prep_time: "15", description: "", is_special: false, image_url: "" })
     fetchMenu(hotel.id)
     setAdding(false)
   }
@@ -818,6 +820,31 @@ const themes = [
 
             <p style={d.sectionLabel}>Add New Item</p>
             <div style={d.form}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+  <p style={{ fontSize: 11, color: "#8a9bb0", margin: 0 }}>Item Photo (optional)</p>
+  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+    {newItem.image_url && (
+      <img src={newItem.image_url} style={{ width: 60, height: 60, borderRadius: 8, objectFit: "cover", border: "1px solid #e2e8f0" }} />
+    )}
+    <label style={{ background: "#f0f4ff", border: "1px solid #dce4f0", borderRadius: 8, padding: "8px 14px", fontSize: 12, cursor: "pointer", color: "#1c2b3a", fontWeight: 500 }}>
+      {newItem.image_url ? "Change Photo" : "📷 Upload Photo"}
+      <input type="file" accept="image/*" style={{ display: "none" }} onChange={async e => {
+        const file = e.target.files[0]
+        if (!file) return
+        const ext = file.name.split(".").pop()
+        const path = `${hotel.id}/${Date.now()}.${ext}`
+        const { error } = await supabase.storage.from("menu-images").upload(path, file)
+        if (error) { alert("Upload failed"); return }
+        const { data } = supabase.storage.from("menu-images").getPublicUrl(path)
+        setNewItem(prev => ({ ...prev, image_url: data.publicUrl }))
+      }} />
+    </label>
+    {newItem.image_url && (
+      <button type="button" style={{ background: "none", border: "none", color: "#c0392b", fontSize: 12, cursor: "pointer" }} onClick={() => setNewItem(prev => ({ ...prev, image_url: "" }))}>Remove</button>
+    )}
+  </div>
+</div>
+
               <input style={d.input} placeholder="Item name" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
               <select
   style={d.input}
@@ -912,6 +939,27 @@ const themes = [
           <div style={d.modalOverlay}>
             <div style={d.modal}>
               <p style={d.modalTitle}>Edit Item</p>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+  {editItem.image_url && (
+    <img src={editItem.image_url} style={{ width: 60, height: 60, borderRadius: 8, objectFit: "cover", border: "1px solid #e2e8f0" }} />
+  )}
+  <label style={{ background: "#f0f4ff", border: "1px solid #dce4f0", borderRadius: 8, padding: "8px 14px", fontSize: 12, cursor: "pointer", color: "#1c2b3a", fontWeight: 500 }}>
+    {editItem.image_url ? "Change Photo" : "📷 Upload Photo"}
+    <input type="file" accept="image/*" style={{ display: "none" }} onChange={async e => {
+      const file = e.target.files[0]
+      if (!file) return
+      const ext = file.name.split(".").pop()
+      const path = `${hotel.id}/${Date.now()}.${ext}`
+      const { error } = await supabase.storage.from("menu-images").upload(path, file)
+      if (error) { alert("Upload failed"); return }
+      const { data } = supabase.storage.from("menu-images").getPublicUrl(path)
+      setEditItem(prev => ({ ...prev, image_url: data.publicUrl }))
+    }} />
+  </label>
+  {editItem.image_url && (
+    <button type="button" style={{ background: "none", border: "none", color: "#c0392b", fontSize: 12, cursor: "pointer" }} onClick={() => setEditItem(prev => ({ ...prev, image_url: null }))}>Remove</button>
+  )}
+</div>
               <input style={d.input} placeholder="Item name" value={editItem.name} onChange={e => setEditItem({ ...editItem, name: e.target.value })} />
               <select
   style={d.input}

@@ -660,8 +660,11 @@ onClick={() => {
               const cartItem = cart.find(i => i.id === item.id)
               return (
                 <div key={item.id} style={s.specialItem}>
-                  <div style={s.specialBadge}>Chef's Special</div>
-                  <div style={s.itemLeft}>
+  <div style={s.specialBadge}>Chef's Special</div>
+  {item.image_url && (
+    <img src={item.image_url} style={{ width: 72, height: 72, borderRadius: t.itemRadius || 8, objectFit: "cover", flexShrink: 0 }} />
+  )}
+  <div style={s.itemLeft}>
                   <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>
                       <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
                       {item.name}
@@ -694,7 +697,10 @@ onClick={() => {
           const cartItem = cart.find(i => i.id === item.id)
           return (
             <div key={item.id} style={s.menuItem}>
-              <div style={s.itemLeft}>
+  {item.image_url && (
+    <img src={item.image_url} style={{ width: 72, height: 72, borderRadius: t.itemRadius || 8, objectFit: "cover", flexShrink: 0 }} />
+  )}
+  <div style={s.itemLeft}>
               <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
                   {item.name}
