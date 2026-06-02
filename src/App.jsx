@@ -361,6 +361,7 @@ function App() {
   }
 
 function startHoldCountdown(orderId, startSeconds = 60) {
+  let seconds = startSeconds
   if (countdownRef.current) clearInterval(countdownRef.current)
 setHoldCountdown(startSeconds)
 setHoldActive(true)
@@ -431,8 +432,19 @@ onClick={() => {
   setOrderStatus(order.status)
   if (order.rating || localStorage.getItem(`rated_${order.id}`)) setRatingSubmitted(true)
   else setRatingSubmitted(false)
-if (order.status === "hold") {
+const expiry = Number(
+  localStorage.getItem(`holdExpiry_${order.id}`)
+)
+
+const remaining = Math.max(
+  0,
+  Math.ceil((expiry - Date.now()) / 1000)
+)
+
+if (order.status === "hold" && remaining > 0) {
+  setHoldCountdown(remaining)
   setHoldActive(true)
+  startHoldCountdown(order.id, remaining)
 } else {
   setHoldActive(false)
 }
@@ -749,22 +761,8 @@ if (order.status === "hold") {
 onClick={async () => {
   setOrderPlaced(false)
   setPlacedOrder(null)
-const expiry = Number(
-  localStorage.getItem(`holdExpiry_${order.id}`)
-)
-
-const remaining = Math.max(
-  0,
-  Math.ceil((expiry - Date.now()) / 1000)
-)
-
-if (order.status === "hold" && remaining > 0) {
-  setHoldCountdown(remaining)
-  setHoldActive(true)
-  startHoldCountdown(order.id, remaining)
-} else {
   setHoldActive(false)
-}
+  setHoldCountdown(0)
   await fetchRoomOrders()
   setShowOrdersList(true)
 }}
