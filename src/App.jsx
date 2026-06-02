@@ -340,7 +340,6 @@ function App() {
     setCart([])
     localStorage.setItem(`lastOrder_${resolvedRoom}`, JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
     forceUpdate(n => n + 1)
-    const holdExpiresAt = Date.now() + 60000
 
 localStorage.setItem(
   `holdExpiry_${order.id}`,
