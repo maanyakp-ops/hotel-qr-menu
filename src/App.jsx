@@ -294,13 +294,13 @@ function App() {
       alert("Please enter a valid 10-digit phone number.")
       return
     }
-
+    const holdExpiresAt = Date.now() + 60000
      const { data: existingOrders } = await supabase
     .from("orders")
     .select("id, status")
     .eq("hotel_id", resolvedHotelId)
     .eq("room_id", resolvedRoom)
-    .in("status", ["pending", "hold", "preparing", "on_the_way"])
+    .in("status", ["pending", "hold"])
   if (existingOrders && existingOrders.length > 0) {
     alert("You already have an active order. Please wait for it to be delivered before placing a new one.")
     return
@@ -360,11 +360,11 @@ function App() {
     })
   }
 
-function startHoldCountdown(orderId) {
+function startHoldCountdown(orderId, startSeconds = 60) {
   if (countdownRef.current) clearInterval(countdownRef.current)
-  setHoldCountdown(60)
-  setHoldActive(true)
-  let seconds = 60
+setHoldCountdown(startSeconds)
+setHoldActive(true)
+let seconds = startSeconds
   countdownRef.current = setInterval(async () => {
     seconds -= 1
     setHoldCountdown(seconds)
@@ -373,6 +373,7 @@ function startHoldCountdown(orderId) {
       countdownRef.current = null
       setHoldActive(false)
       await supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
+      localStorage.removeItem(`holdExpiry_${orderId}`)
     }
   }, 1000)
 }
@@ -430,8 +431,11 @@ onClick={() => {
   setOrderStatus(order.status)
   if (order.rating || localStorage.getItem(`rated_${order.id}`)) setRatingSubmitted(true)
   else setRatingSubmitted(false)
+if (order.status === "hold") {
+  setHoldActive(true)
+} else {
   setHoldActive(false)
-  setHoldCountdown(0)
+}
   setOrderPlaced(true)
   setShowOrdersList(false)
   watchOrderStatus(order.id)
@@ -745,8 +749,22 @@ onClick={() => {
 onClick={async () => {
   setOrderPlaced(false)
   setPlacedOrder(null)
+const expiry = Number(
+  localStorage.getItem(`holdExpiry_${order.id}`)
+)
+
+const remaining = Math.max(
+  0,
+  Math.ceil((expiry - Date.now()) / 1000)
+)
+
+if (order.status === "hold" && remaining > 0) {
+  setHoldCountdown(remaining)
+  setHoldActive(true)
+  startHoldCountdown(order.id, remaining)
+} else {
   setHoldActive(false)
-  setHoldCountdown(0)
+}
   await fetchRoomOrders()
   setShowOrdersList(true)
 }}
