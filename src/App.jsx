@@ -295,6 +295,17 @@ function App() {
       return
     }
 
+     const { data: existingOrders } = await supabase
+    .from("orders")
+    .select("id, status")
+    .eq("hotel_id", resolvedHotelId)
+    .eq("room_id", resolvedRoom)
+    .in("status", ["pending", "hold", "preparing", "on_the_way"])
+  if (existingOrders && existingOrders.length > 0) {
+    alert("You already have an active order. Please wait for it to be delivered before placing a new one.")
+    return
+  }
+
 
 
 

@@ -34,7 +34,7 @@ const [dashFontScale, setDashFontScale] = useState(1)
   const [guestSearchPhone, setGuestSearchPhone] = useState("")
   const [editingTemplateItem, setEditingTemplateItem] = useState(null)
   const [templateItemEdits, setTemplateItemEdits] = useState({})
-  const [newOrderIds, setNewOrderIds] = useState({})
+  
 
 function playOrderSound() {
   const ctx = new (window.AudioContext || window.webkitAudioContext)()
@@ -310,49 +310,27 @@ async function loadHotel() {
   fetchMenu(hotelData.id)
   if (hotelData?.is_admin) fetchAllHotels()
 
-  setTimeout(() => {
-    const sub = supabase.channel("orders-channel-" + hotelData.id)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "orders",
-        filter: `hotel_id=eq.${hotelData.id}`
-      },(payload) => {
-        if (payload.new.status === "hold") return
-        console.log("New order:", payload.new.id)
-        setNewOrderIds(prev => {
-          const updated = { ...prev, [payload.new.id]: true }
-          console.log("newOrderIds updated:", updated)
-          return updated
-        })
-        fetchOrders(hotelData.id)
-        playOrderSound()
-        showBadge()
-        setTimeout(() => {
-          setNewOrderIds(prev => {
-            const next = { ...prev }
-            delete next[payload.new.id]
-            return next
-          })
-        }, 8000)
-      })
+setTimeout(() => {
+  const sub = supabase.channel("orders-channel-" + hotelData.id)
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "orders",
+      filter: `hotel_id=eq.${hotelData.id}`
+    }, (payload) => {
+      if (payload.new.status === "hold") return
+      console.log("🔔 NEW ORDER RECEIVED:", payload.new.id)
+      
+      fetchOrders(hotelData.id)
+      playOrderSound()
+      showBadge()
+    })
+    .subscribe((status) => {
+      console.log("Subscription status:", status)
+    })
 
-      .on("postgres_changes", {
-        event: "UPDATE",
-        schema: "public",
-        table: "orders",
-        filter: `hotel_id=eq.${hotelData.id}`
-      }, (payload) => {
-        if (payload.new.status === "hold") return
-        fetchOrders(hotelData.id)
-        if (payload.new.status === "pending") {
-          playOrderSound()
-          showBadge()
-        }
-      })
-      .subscribe()
-    return () => supabase.removeChannel(sub)
-  }, 1000)
+  return () => supabase.removeChannel(sub)
+}, 1000)
 }
 
   async function fetchOrders(hotelId, all = false) {
@@ -614,7 +592,7 @@ const themes = [
       <div style={{ ...d.body, background: darkMode ? "#0f1923" : "#f4f6f9", fontSize: `${dashFontScale * 13}px` }}>
   <style>{`
   @keyframes fadeSlide { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes newOrderPulse { 0% { box-shadow: 0 0 0 0 rgba(201,168,76,0.5); } 70% { box-shadow: 0 0 0 10px rgba(201,168,76,0); } 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); } }
+  
 `}</style>
 
         {/* ORDERS TAB */}
@@ -687,18 +665,14 @@ const themes = [
   const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
   const mins = Math.floor((Date.now() - new Date(order.created_at)) / 60000)
   return (
-<div key={order.id} style={{
-  ...d.card,
-  background: newOrderIds[order.id]
-    ? (darkMode ? "#1a1200" : "#fffbeb")
-    : (darkMode ? "#111f2c" : "#fff"),
-  border: newOrderIds[order.id]
-    ? "2px solid #C9A84C"
-    : (darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0"),
-  boxShadow: newOrderIds[order.id] ? "0 0 20px rgba(201,168,76,0.3)" : "none",
-  animation: newOrderIds[order.id] ? "newOrderPulse 2s ease-in-out infinite" : "none",
-  transition: "all 0.3s ease",
-}}>
+<div
+  key={order.id}
+  style={{
+    ...d.card,
+    background: darkMode ? "#111f2c" : "#fff",
+    border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0"
+  }}
+>
       <div style={d.cardHeader}>
         <div>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
