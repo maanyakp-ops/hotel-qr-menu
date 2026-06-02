@@ -137,6 +137,7 @@ function App() {
   const [showGuestForm, setShowGuestForm] = useState(false)
   const [guestName, setGuestName] = useState("")
   const [guestPhone, setGuestPhone] = useState("")
+  const [guestEmail, setGuestEmail] = useState("")
   const [guestInstructions, setGuestInstructions] = useState("")
   const [orderStatus, setOrderStatus] = useState(null)
   const [activeTab, setActiveTab] = useState(null)
@@ -294,6 +295,10 @@ function App() {
       alert("Please enter a valid 10-digit phone number.")
       return
     }
+    if (guestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+      alert("Please enter a valid email address.")
+      return
+    }
     const holdExpiresAt = Date.now() + 60000
      const { data: existingOrders } = await supabase
     .from("orders")
@@ -319,6 +324,7 @@ function App() {
         payment_method: "cash",
         guest_name: guestName,
         guest_phone: guestPhone,
+        guest_email: guestEmail || null,
         special_instructions: guestInstructions || null
       })
       .select().single()
@@ -625,6 +631,7 @@ if (order.status === "hold" && remaining > 0) {
             <p style={s.modalSub}>Enter your details to place the order</p>
             <input style={s.modalInput} placeholder="Your name *" value={guestName} onChange={e => setGuestName(e.target.value)} />
             <input style={s.modalInput} placeholder="Phone number *" type="tel" inputMode="numeric" maxLength={10} value={guestPhone} onChange={e => setGuestPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} />
+            <input style={s.modalInput} placeholder="Email (optional)" type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} />
             <textarea style={{ ...s.modalInput, height: 80, resize: "none" }} placeholder="Special instructions — e.g. less spicy, no onion" value={guestInstructions} onChange={e => setGuestInstructions(e.target.value)} />
             <button style={s.modalBtn} onClick={placeOrder}>Confirm Order</button>
             <button style={s.modalCancel} onClick={() => setShowGuestForm(false)}>Cancel</button>
