@@ -1,6 +1,3 @@
-import DemoSection from "./DemoSection"
-
-
 export default function Landing() {
   return (
     <div style={l.page}>
@@ -128,8 +125,6 @@ export default function Landing() {
           ))}
         </div>
       </div>
-
-      <DemoSection />
 
       {/* Features */}
       <div style={l.featuresSection}>
