@@ -1026,17 +1026,40 @@
           {tab === "qr" && (
             <>
               {hotel?.status !== "active"
-                ? <p style={d.empty}>Your account is pending approval. QR codes will appear once approved.</p>
-                : hotel?.room_count === 0
-                ? <p style={d.empty}>No rooms assigned yet. Contact support to get your rooms activated.</p>
-                : (
-                  <>
-                    <p style={d.sectionLabel}>{hotel.room_count} rooms assigned</p>
-                    <p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 16px" }}>
-                      Download each QR and print it for the corresponding room.
-                    </p>
-                    {Array.from({ length: hotel.room_count }, (_, i) => {
-                      const roomNumber = i + (hotel.room_start || 101)
+  ? <p style={d.empty}>Your account is pending approval. QR codes will appear once approved.</p>
+  : (hotel?.room_ranges || []).length === 0
+  ? <p style={d.empty}>No room ranges configured yet. Add them in Settings.</p>
+  : (
+    <>
+      <p style={d.sectionLabel}>
+        {(hotel?.room_ranges || []).reduce((sum, r) => sum + (r.end - r.start + 1), 0)} total rooms
+      </p>
+      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 16px" }}>
+        Download QR codes for each room.
+      </p>
+                    {(() => {
+  const allRooms = []
+  (hotel?.room_ranges || []).forEach(range => {
+    for (let i = range.start; i <= range.end; i++) {
+      allRooms.push(i)
+    }
+  })
+  return allRooms.map(roomNumber => {
+    const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
+    return (
+      <div key={roomNumber} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+        <div style={d.qrInfo}>
+          <p style={d.qrRoom}>Room {roomNumber}</p>
+          <p style={d.qrUrl}>{url}</p>
+        </div>
+        <div style={d.qrBox}>
+          <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
+          <button style={d.downloadBtn} onClick={() => downloadQR(roomNumber)}>Download</button>
+        </div>
+      </div>
+    )
+  })
+})()}
                       const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
                       return (
                         <div key={roomNumber} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}> 
@@ -1451,43 +1474,81 @@
       {hotel?.font_size === "small" ? "Small" : hotel?.font_size === "large" ? "Large" : "Medium"}
     </span>
   </div>
-  <p style={{ ...d.sectionLabel, marginTop: 28 }}>Room Range</p>
-  <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
-    Set the starting room number. Rooms will go from this number up to {" "}
-    <strong>{(hotel?.room_start || 101) + (hotel?.room_count || 0) - 1}</strong>.
-  </p>
-  <div style={d.form}>
-    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-      <div style={{ flex: 1 }}>
-        <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 6px" }}>Start room</p>
-        <input
-          style={d.input}
-          type="number"
-          value={hotel?.room_start || 101}
-          onChange={e => setHotel(prev => ({ ...prev, room_start: parseInt(e.target.value) || 101 }))}
-        />
-      </div>
-      <div style={{ flex: 1 }}>
-        <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 6px" }}>End room</p>
-        <input
-          style={{ ...d.input, background: "#f0f0f0", color: "#aaa" }}
-          type="number"
-          value={(hotel?.room_start || 101) + (hotel?.room_count || 0) - 1}
-          disabled
-        />
-      </div>
+  <p style={{ ...d.sectionLabel, marginTop: 28 }}>Room Ranges</p>
+<p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
+  Add room ranges for each floor. Example: Floor 1: 101-110, Floor 2: 201-210
+</p>
+
+{(hotel?.room_ranges || []).map((range, idx) => (
+  <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
+    <div style={{ flex: 1, display: "flex", gap: 8 }}>
+      <input
+        style={{ ...d.input, flex: 1 }}
+        type="number"
+        placeholder="Floor"
+        value={range.floor}
+        onChange={e => {
+          const updated = [...(hotel.room_ranges || [])]
+          updated[idx].floor = parseInt(e.target.value) || 1
+          setHotel(prev => ({ ...prev, room_ranges: updated }))
+        }}
+      />
+      <input
+        style={{ ...d.input, flex: 1 }}
+        type="number"
+        placeholder="Start room"
+        value={range.start}
+        onChange={e => {
+          const updated = [...(hotel.room_ranges || [])]
+          updated[idx].start = parseInt(e.target.value) || 101
+          setHotel(prev => ({ ...prev, room_ranges: updated }))
+        }}
+      />
+      <input
+        style={{ ...d.input, flex: 1 }}
+        type="number"
+        placeholder="End room"
+        value={range.end}
+        onChange={e => {
+          const updated = [...(hotel.room_ranges || [])]
+          updated[idx].end = parseInt(e.target.value) || 110
+          setHotel(prev => ({ ...prev, room_ranges: updated }))
+        }}
+      />
     </div>
     <button
-      style={d.saveBtn}
+      style={{ ...d.btnDelete, background: "#c0392b", color: "#fff", padding: "8px 12px", fontSize: 12 }}
       onClick={async () => {
-        await supabase.from("hotels").update({ room_start: hotel.room_start }).eq("id", hotel.id)
-        setThemeSaved(true)
-        setTimeout(() => setThemeSaved(false), 2500)
+        const updated = (hotel.room_ranges || []).filter((_, i) => i !== idx)
+        await supabase.from("hotels").update({ room_ranges: updated }).eq("id", hotel.id)
+        setHotel(prev => ({ ...prev, room_ranges: updated }))
       }}
     >
-      Save Room Range
+      Remove
     </button>
   </div>
+))}
+
+<button
+  style={{ ...d.addBtn, marginBottom: 24 }}
+  onClick={() => {
+    const updated = [...(hotel?.room_ranges || []), { floor: (hotel?.room_ranges?.length || 0) + 1, start: 101, end: 110 }]
+    setHotel(prev => ({ ...prev, room_ranges: updated }))
+  }}
+>
+  + Add Floor Range
+</button>
+
+<button
+  style={d.saveBtn}
+  onClick={async () => {
+    await supabase.from("hotels").update({ room_ranges: hotel.room_ranges }).eq("id", hotel.id)
+    setThemeSaved(true)
+    setTimeout(() => setThemeSaved(false), 2500)
+  }}
+>
+  Save Room Ranges
+</button>
 
             </div>
           )}
