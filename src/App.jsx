@@ -340,6 +340,13 @@ function App() {
     setCart([])
     localStorage.setItem(`lastOrder_${resolvedRoom}`, JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
     forceUpdate(n => n + 1)
+    const holdExpiresAt = Date.now() + 60000
+
+localStorage.setItem(
+  `holdExpiry_${order.id}`,
+  holdExpiresAt.toString()
+)
+
     watchOrderStatus(order.id)
     startHoldCountdown(order.id)
   }
@@ -360,11 +367,11 @@ function App() {
     })
   }
 
-function startHoldCountdown(orderId) {
+function startHoldCountdown(orderId, startSeconds = 60) {
   setHoldCountdown(60)
   setHoldActive(true)
 
-  let seconds = 60
+  let seconds = startSeconds
 
   const interval = setInterval(async () => {
     seconds -= 1
@@ -377,6 +384,7 @@ function startHoldCountdown(orderId) {
         .from("orders")
         .update({ status: "pending" })
         .eq("id", orderId)
+      localStorage.removeItem(`holdExpiry_${orderId}`)
 
       setHoldActive(false)
     }
