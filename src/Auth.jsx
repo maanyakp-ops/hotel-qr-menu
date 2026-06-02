@@ -7,6 +7,8 @@ export default function Auth({ onLogin }) {
   const [step1, setStep1] = useState({ email: "", password: "", hotelName: "" })
   const [details, setDetails] = useState({
     business_type: "hotel",
+    owner_name: "",
+    address: "",
     pin_code: "",
     gst_number: "",
     owner_phone: "",
@@ -49,7 +51,13 @@ export default function Auth({ onLogin }) {
   }
 
   async function handleSignup() {
-    if (!details.owner_phone || !details.contact_phone || !details.pin_code) {
+    if (
+      !details.owner_name ||
+      !details.address ||
+      !details.owner_phone ||
+      !details.contact_phone ||
+      !details.pin_code
+    ) {
       setError("Please fill in all required fields.")
       return
     }
@@ -70,6 +78,8 @@ export default function Auth({ onLogin }) {
       theme: "dark-gold",
       room_count: parseInt(details.room_count) || 0,
       business_type: details.business_type,
+      owner_name: details.owner_name,
+      address: details.address,
       pin_code: details.pin_code,
       gst_number: details.gst_number || null,
       owner_phone: details.owner_phone,
@@ -174,7 +184,31 @@ export default function Auth({ onLogin }) {
             <input style={s.input} placeholder={isHotel ? "e.g. 40" : "e.g. 20"} type="number"
               value={details.room_count}
               onChange={e => setDetails(p => ({ ...p, room_count: e.target.value }))} />
+<p style={s.label}>Owner's name *</p>
+<input
+  style={s.input}
+  placeholder="Owner's full name"
+  value={details.owner_name}
+  onChange={e =>
+    setDetails(p => ({ ...p, owner_name: e.target.value }))
+  }
+/>
 
+<p style={s.label}>
+  {isHotel ? "Hotel address *" : "Restaurant address *"}
+</p>
+<textarea
+  style={{
+    ...s.input,
+    minHeight: 80,
+    resize: "vertical"
+  }}
+  placeholder="Enter complete address"
+  value={details.address}
+  onChange={e =>
+    setDetails(p => ({ ...p, address: e.target.value }))
+  }
+/>
             <p style={s.label}>Owner's phone number *</p>
             <input style={s.input} placeholder="10-digit mobile number" type="tel" inputMode="numeric"
               maxLength={10} value={details.owner_phone}
