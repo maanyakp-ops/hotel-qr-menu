@@ -1060,25 +1060,11 @@
     )
   })
 })()}
-                      const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
-                      return (
-                        <div key={roomNumber} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}> 
-                          <div style={d.qrInfo}>
-                            <p style={d.qrRoom}>Room {roomNumber}</p>
-                            <p style={d.qrUrl}>{url}</p>
-                          </div>
-                          <div style={d.qrBox}>
-                            <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
-                            <button style={d.downloadBtn} onClick={() => downloadQR(roomNumber)}>Download</button>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </>
-                )
-              }
-            </>
-          )}
+</>
+)
+}
+</>
+)}
 
           {/* REPORTS TAB */}
   {tab === "reports" && (
