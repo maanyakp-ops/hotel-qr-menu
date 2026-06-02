@@ -302,7 +302,7 @@ function App() {
     .eq("room_id", resolvedRoom)
     .in("status", ["pending", "hold"])
   if (existingOrders && existingOrders.length > 0) {
-    alert("You already have an active order. Please wait for it to be delivered before placing a new one.")
+    alert("You already have an active order. Please wait for it to be Marked as Preparing before placing a new one.")
     return
   }
 
