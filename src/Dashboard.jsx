@@ -1394,6 +1394,7 @@ async function loadHotel() {
                       .header { text-align: center; border-bottom: 2px solid #1c2b3a; padding-bottom: 16px; margin-bottom: 16px; }
                       .hotel-name { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
                       .hotel-meta { font-size: 12px; color: #555; line-height: 1.8; }
+                      ${hotel?.reception_contact ? `📞 ${hotel.reception_contact}<br>` : ""}
                       .bill-title { font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin: 16px 0 8px; }
                       .guest-info { font-size: 13px; margin-bottom: 16px; line-height: 1.8; }
                       .order-block { border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 10px; }
