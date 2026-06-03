@@ -27,7 +27,7 @@ export default function Landing() {
           </p>
           <div style={l.heroButtons}>
             <a href="/signup" style={l.primaryBtn}>Get Started →</a>
-            <a href="/menu/a5b9bed4-9c40-4856-b4ed-371e800beaf0/101" style={l.secondaryBtn}>See Live Demo</a>
+            <a href="/demo" style={l.secondaryBtn}>See Live Demo</a>
           </div>
           <p style={l.heroNote}>✓ Setup in 10 minutes &nbsp;·&nbsp; ✓ No app download needed &nbsp;·&nbsp; ✓ Cancel anytime</p>
         </div>

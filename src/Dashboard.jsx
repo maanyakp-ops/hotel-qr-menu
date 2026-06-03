@@ -1521,6 +1521,7 @@
   </div>
 ))}
 
+
 <button
   style={{ ...d.addBtn, marginBottom: 24 }}
   onClick={() => {
@@ -1531,6 +1532,47 @@
 >
   + Add Floor Range
 </button>
+
+{/* ADD NEW CODE HERE */}
+<p style={{ ...d.sectionLabel, marginTop: 28 }}>Hotel Details for Bill</p>
+<p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
+  These details will appear on printed checkout bills.
+</p>
+
+<input
+  style={d.input}
+  placeholder="Hotel Address"
+  value={hotel?.address || ""}
+  onChange={e => setHotel(prev => ({ ...prev, address: e.target.value }))}
+/>
+<input
+  style={d.input}
+  placeholder="GST Number"
+  value={hotel?.gst_number || ""}
+  onChange={e => setHotel(prev => ({ ...prev, gst_number: e.target.value }))}
+/>
+<input
+  style={d.input}
+  placeholder="Reception Contact Number"
+  value={hotel?.reception_contact || ""}
+  onChange={e => setHotel(prev => ({ ...prev, reception_contact: e.target.value }))}
+/>
+
+<button
+  style={d.saveBtn}
+  onClick={async () => {
+    await supabase.from("hotels").update({ 
+      address: hotel.address,
+      gst_number: hotel.gst_number,
+      reception_contact: hotel.reception_contact
+    }).eq("id", hotel.id)
+    setThemeSaved(true)
+    setTimeout(() => setThemeSaved(false), 2500)
+  }}
+>
+  Save Hotel Details
+</button>
+
 
 <button
   style={d.saveBtn}

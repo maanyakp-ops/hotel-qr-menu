@@ -5,6 +5,7 @@ import App from "./App"
 import Landing from "./Landing"
 import Auth from "./Auth"
 import Dashboard from "./Dashboard"
+import Demo from "./Demo"
 
 function AuthPage() {
   const navigate = useNavigate()
@@ -28,6 +29,7 @@ createRoot(document.getElementById("root")).render(
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/menu" element={<App />} />
         <Route path="/menu/:hotelId/:roomNumber" element={<App />} />
+        <Route path="/demo" element={<Demo />} /><Route path="/demo" element={<Demo />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
