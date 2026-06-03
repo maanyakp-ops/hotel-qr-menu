@@ -2,17 +2,12 @@ import {
   Receipt,
   ChefHat,
   Bike,
-  CheckCircle2
-} from "lucide-react"
-import {
   CheckCircle2,
   XCircle,
   Ban,
   Clock3,
-  ChefHat,
-  Bike,
   PackageCheck
-} from "lucide-react"
+} from "lucide-react";
 import { useEffect, useState, useRef } from "react"
 import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
