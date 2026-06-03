@@ -69,7 +69,8 @@ function getStyles(themeKey) {
     itemMeta: { fontSize: 11, color: t.accentMuted },
     itemRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, minWidth: 80 },
     itemPrice: { fontFamily: t.titleFont, fontSize: isClean ? 15 : 18, fontWeight: isClean ? 700 : 400, color: t.priceColor, whiteSpace: "nowrap" },
-    addBtn: { background: t.addBtnBg, border: t.addBtnBorder, color: t.addBtnColor, borderRadius: (isClean || themeKey === 'la-belle') ? 20 : 2,padding: isClean ? "5px 14px" : "4px 12px", fontSize: 11, letterSpacing: 1, cursor: "pointer", fontFamily: t.bodyFont, whiteSpace: "nowrap" },
+    itemGst: { fontSize: 9, color: t.textSecondary, letterSpacing: 0.5, whiteSpace: "nowrap", marginTop: -6 },
+    addBtn: { background: t.addBtnBg, border: t.addBtnBorder, color: t.addBtnColor, borderRadius: (isClean || themeKey === 'la-belle') ? 20 : 2, padding: isClean ? "5px 14px" : "4px 12px", fontSize: 11, letterSpacing: 1, cursor: "pointer", fontFamily: t.bodyFont, whiteSpace: "nowrap" },
     qtyRow: { display: "flex", alignItems: "center", gap: 8 },
     qtyBtn: { background: (isClean || themeKey === 'la-belle') ? t.accent : 'none', border: t.qtyBtnBorder, color: (isClean || themeKey === 'la-belle') ? '#fff' : t.qtyBtnColor, borderRadius: (isClean || themeKey === 'la-belle') ? "50%" : 2, width: 26, height: 26, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
     qtyNum: { color: t.textPrimary, fontSize: 14, fontWeight: 400, minWidth: 16, textAlign: "center" },
@@ -85,6 +86,7 @@ function getStyles(themeKey) {
     cartBar: { position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 680, background: t.cartBg, borderTop: `1px solid ${t.cartBorder}`, padding: "14px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", boxSizing: "border-box" },
     cartCount: { color: t.cartCountColor, fontSize: 12, letterSpacing: 1, margin: "0 0 2px", fontFamily: t.bodyFont },
     cartTotal: { color: t.cartTotalColor, fontFamily: t.titleFont, fontSize: 20, margin: 0 },
+    cartGstNote: { color: t.textSecondary, fontSize: 10, margin: "0", letterSpacing: 0.5 },
     placeBtn: { background: t.btnBg, color: t.btnColor, border: "none", borderRadius: isClean ? 10 : 2, padding: "10px 24px", fontSize: 12, fontWeight: 500, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase", fontFamily: t.bodyFont },
     modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 100 },
     modal: { background: t.modalBg, borderTop: `1px solid ${t.modalBorder}`, padding: "28px 24px 40px", width: "100%", maxWidth: 680 },
@@ -93,6 +95,17 @@ function getStyles(themeKey) {
     modalInput: { width: "100%", background: t.inputBg, border: `1px solid ${t.inputBorder}`, borderRadius: isClean ? 8 : 0, padding: "12px 14px", color: t.inputColor, fontSize: 13, marginBottom: 10, boxSizing: "border-box", outline: "none", fontFamily: t.bodyFont },
     modalBtn: { width: "100%", background: t.btnBg, color: t.btnColor, border: "none", padding: "13px", fontSize: 12, fontWeight: 500, cursor: "pointer", marginBottom: 10, letterSpacing: 2, textTransform: "uppercase", fontFamily: t.bodyFont, borderRadius: isClean ? 10 : 0 },
     modalCancel: { width: "100%", background: "none", color: t.textSecondary, border: "none", padding: "10px", fontSize: 12, cursor: "pointer", letterSpacing: 1, fontFamily: t.bodyFont },
+    // Cart summary inside modal
+    cartSummaryBox: { background: t.inputBg, border: `1px solid ${t.inputBorder}`, padding: "14px 16px", marginBottom: 16, borderRadius: isClean ? 8 : 2 },
+    cartSummaryTitle: { color: t.textSecondary, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", margin: "0 0 10px" },
+    cartSummaryRow: { display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 13 },
+    cartSummaryItemName: { color: t.textPrimary, fontFamily: t.titleFont, flex: 1 },
+    cartSummaryItemPrice: { color: t.textSecondary, fontSize: 11, marginLeft: 8 },
+    cartSummaryItemGst: { color: t.accentMuted, fontSize: 10, marginLeft: 4 },
+    cartDivider: { height: 1, background: t.heroBorder, margin: "10px 0" },
+    cartSummarySubtotal: { display: "flex", justifyContent: "space-between", fontSize: 12, color: t.textSecondary, marginBottom: 4 },
+    cartSummaryGst: { display: "flex", justifyContent: "space-between", fontSize: 12, color: t.accentMuted, marginBottom: 4 },
+    cartSummaryGrandTotal: { display: "flex", justifyContent: "space-between", fontSize: 16, color: t.textPrimary, fontFamily: t.titleFont, marginTop: 6 },
     confirmation: { background: t.pageBg, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontFamily: t.bodyFont, padding: 24 },
     confirmIcon: { fontSize: 64, marginBottom: 20 },
     confirmTitle: { color: t.textPrimary, fontFamily: t.titleFont, fontSize: 32, fontWeight: isClean ? 700 : 300, margin: "0 0 10px" },
@@ -112,6 +125,9 @@ function getStyles(themeKey) {
     summaryRow: { display: "flex", justifyContent: "space-between", marginBottom: 10 },
     summaryItem: { color: t.textPrimary, fontFamily: t.titleFont, fontSize: 15 },
     summaryPrice: { color: t.accent, fontFamily: t.titleFont, fontSize: 15 },
+    summaryDivider: { height: 1, background: t.heroBorder, margin: "8px 0" },
+    summarySubRow: { display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12, color: t.textSecondary },
+    summaryGstRow: { display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12, color: t.accentMuted },
     summaryTotal: { display: "flex", justifyContent: "space-between", borderTop: `1px solid ${t.heroBorder}`, paddingTop: 12, marginTop: 8, color: t.textPrimary, fontFamily: t.titleFont, fontSize: 18 },
     confirmBtn: { background: t.btnBg, color: t.btnColor, border: "none", padding: "12px 32px", fontSize: 11, fontWeight: 500, cursor: "pointer", letterSpacing: 2, textTransform: "uppercase", fontFamily: t.bodyFont, borderRadius: isClean ? 10 : 0 },
     cancelOrderBtn: { background: "none", border: "1px solid #8B2020", color: "#E07070", padding: "10px 28px", fontSize: 11, cursor: "pointer", marginBottom: 12, letterSpacing: 1, textTransform: "uppercase", fontFamily: t.bodyFont },
@@ -123,6 +139,54 @@ function getStyles(themeKey) {
     specialsDivider: { height: 1, background: `linear-gradient(90deg, transparent, ${t.accent}, transparent)`, margin: "0.5rem 2rem 1.5rem", opacity: 0.3 },
   }
 }
+
+// ─── GST HELPERS ────────────────────────────────────────────────────────────
+
+/** Returns the GST amount for a single cart item (base price × qty × rate) */
+function itemGstAmount(item) {
+  const rate = item.gst_rate || 0
+  return Math.round(item.price * item.qty * (rate / 100) * 100) / 100
+}
+
+/** Returns the GST amount for a stored order item (price already × qty) */
+function orderItemGst(item) {
+  const rate = item.gst_rate || 0
+  return Math.round(item.price * item.quantity * (rate / 100) * 100) / 100
+}
+
+/** Summarise GST breakdown from cart: { subtotal, gstLines: [{rate, amount}], totalGst, grandTotal } */
+function calcCartGst(cart) {
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0)
+  const byRate = {}
+  cart.forEach(i => {
+    const rate = i.gst_rate || 0
+    if (!byRate[rate]) byRate[rate] = 0
+    byRate[rate] += Math.round(i.price * i.qty * (rate / 100) * 100) / 100
+  })
+  const gstLines = Object.entries(byRate)
+    .filter(([, amt]) => amt > 0)
+    .map(([rate, amount]) => ({ rate: Number(rate), amount }))
+  const totalGst = gstLines.reduce((s, l) => s + l.amount, 0)
+  return { subtotal, gstLines, totalGst, grandTotal: Math.round((subtotal + totalGst) * 100) / 100 }
+}
+
+/** Same but from stored order_items (have .quantity and .gst_rate) */
+function calcOrderGst(orderItems) {
+  const subtotal = orderItems.reduce((s, i) => s + i.price * i.quantity, 0)
+  const byRate = {}
+  orderItems.forEach(i => {
+    const rate = i.gst_rate || 0
+    if (!byRate[rate]) byRate[rate] = 0
+    byRate[rate] += Math.round(i.price * i.quantity * (rate / 100) * 100) / 100
+  })
+  const gstLines = Object.entries(byRate)
+    .filter(([, amt]) => amt > 0)
+    .map(([rate, amount]) => ({ rate: Number(rate), amount }))
+  const totalGst = gstLines.reduce((s, l) => s + l.amount, 0)
+  return { subtotal, gstLines, totalGst, grandTotal: Math.round((subtotal + totalGst) * 100) / 100 }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 
 function App() {
   const [orderPlaced, setOrderPlaced] = useState(false)
@@ -159,8 +223,12 @@ function App() {
   const resolvedRoom = roomNumber || "101"
   const hasLastOrder = !!localStorage.getItem(`lastOrder_${resolvedRoom}`)
   const s = getStyles(hotelInfo?.theme || 'dark-gold')
-  const t = themeConfigs[hotelInfo?.theme || 'dark-gold'] || themeConfigs['dark-gold']  // ← add this
+  const t = themeConfigs[hotelInfo?.theme || 'dark-gold'] || themeConfigs['dark-gold']
   const fontScale = hotelInfo?.font_size === "small" ? 0.85 : hotelInfo?.font_size === "large" ? 1.2 : 1
+
+  // GST summary for current cart
+  const gstSummary = calcCartGst(cart)
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -227,7 +295,7 @@ function App() {
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
     const { data } = await supabase
       .from("orders")
-      .select(`*, order_items(quantity, price, menu_items(name))`)
+      .select(`*, order_items(quantity, price, gst_rate, menu_items(name))`)
       .eq("hotel_id", resolvedHotelId)
       .eq("room_id", resolvedRoom)
       .or(`status.neq.hold,created_at.gte.${new Date(Date.now() - 2 * 60 * 1000).toISOString()}`)
@@ -300,21 +368,17 @@ function App() {
       return
     }
     const holdExpiresAt = Date.now() + 60000
-     const { data: existingOrders } = await supabase
-    .from("orders")
-    .select("id, status")
-    .eq("hotel_id", resolvedHotelId)
-    .eq("room_id", resolvedRoom)
-    .in("status", ["pending", "hold"])
-  if (existingOrders && existingOrders.length > 0) {
-    alert("You already have an active order. Please wait for it to be Marked as Preparing before placing a new one.")
-    return
-  }
+    const { data: existingOrders } = await supabase
+      .from("orders")
+      .select("id, status")
+      .eq("hotel_id", resolvedHotelId)
+      .eq("room_id", resolvedRoom)
+      .in("status", ["pending", "hold"])
+    if (existingOrders && existingOrders.length > 0) {
+      alert("You already have an active order. Please wait for it to be Marked as Preparing before placing a new one.")
+      return
+    }
 
-
-
-
-    
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
@@ -329,15 +393,18 @@ function App() {
       })
       .select().single()
     if (orderError) { console.error(orderError); alert("Something went wrong."); return }
+
     const { error: itemsError } = await supabase
       .from("order_items")
       .insert(cart.map(item => ({
         order_id: order.id,
         menu_item_id: item.id,
         quantity: item.qty,
-        price: item.price
+        price: item.price,
+        gst_rate: item.gst_rate || 0   // ← store GST rate per line item
       })))
     if (itemsError) { console.error(itemsError); return }
+
     const orderData = { ...order, items: cart, prepTime: maxPrepTime }
     setPlacedOrder(orderData)
     setOrderStatus("pending")
@@ -346,12 +413,7 @@ function App() {
     setCart([])
     localStorage.setItem(`lastOrder_${resolvedRoom}`, JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
     forceUpdate(n => n + 1)
-
-localStorage.setItem(
-  `holdExpiry_${order.id}`,
-  holdExpiresAt.toString()
-)
-
+    localStorage.setItem(`holdExpiry_${order.id}`, holdExpiresAt.toString())
     watchOrderStatus(order.id)
     startHoldCountdown(order.id)
   }
@@ -372,29 +434,21 @@ localStorage.setItem(
     })
   }
 
-function startHoldCountdown(orderId, startSeconds = 60) {
-  setHoldCountdown(60)
-  setHoldActive(true)
-
-  let seconds = startSeconds
-
-  const interval = setInterval(async () => {
-    seconds -= 1
-    setHoldCountdown(seconds)
-
-    if (seconds <= 0) {
-      clearInterval(interval)
-
-      await supabase
-        .from("orders")
-        .update({ status: "pending" })
-        .eq("id", orderId)
-      localStorage.removeItem(`holdExpiry_${orderId}`)
-
-      setHoldActive(false)
-    }
-  }, 1000)
-}
+  function startHoldCountdown(orderId, startSeconds = 60) {
+    setHoldCountdown(60)
+    setHoldActive(true)
+    let seconds = startSeconds
+    const interval = setInterval(async () => {
+      seconds -= 1
+      setHoldCountdown(seconds)
+      if (seconds <= 0) {
+        clearInterval(interval)
+        await supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
+        localStorage.removeItem(`holdExpiry_${orderId}`)
+        setHoldActive(false)
+      }
+    }, 1000)
+  }
 
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0)
   const categories = [...new Set(menuItems.map(i => i.category))]
@@ -417,6 +471,7 @@ function startHoldCountdown(orderId, startSeconds = 60) {
     </div>
   )
 
+  // ─── MY ORDERS LIST ──────────────────────────────────────────────────────
   if (showOrdersList) {
     return (
       <div style={{ ...s.page, padding: 0 }}>
@@ -437,42 +492,35 @@ function startHoldCountdown(orderId, startSeconds = 60) {
             <p style={{ color: t.textSecondary, textAlign: "center", marginTop: 40 }}>No orders found.</p>
           )}
           {roomOrders.map(order => {
-            const orderTotal = order.order_items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+            const { grandTotal } = calcOrderGst(order.order_items)
             const time = new Date(order.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
             const date = new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
             const statusColor = order.status === "delivered" ? "#2e7d32" : order.status === "cancelled" || order.status === "rejected" ? "#c0392b" : order.status === "preparing" || order.status === "on_the_way" ? "#0369a1" : "#b45309"
             return (
               <div
                 key={order.id}
-onClick={() => {
-  setPlacedOrder({ ...order, items: order.order_items.map(i => ({ ...i, name: i.menu_items?.name, qty: i.quantity })), prepTime: 15 })
-  setOrderStatus(order.status)
-  if (order.rating || localStorage.getItem(`rated_${order.id}`)) setRatingSubmitted(true)
-  else setRatingSubmitted(false)
-const expiry = Number(
-  localStorage.getItem(`holdExpiry_${order.id}`)
-)
-
-const remaining = Math.max(
-  0,
-  Math.ceil((expiry - Date.now()) / 1000)
-)
-
-if (order.status === "hold" && remaining > 0) {
-  setHoldCountdown(remaining)
-  setHoldActive(true)
-  startHoldCountdown(order.id, remaining)
-} else {
-  setHoldActive(false)
-}
-  setOrderPlaced(true)
-  setShowOrdersList(false)
-  watchOrderStatus(order.id)
-}}
+                onClick={() => {
+                  setPlacedOrder({ ...order, items: order.order_items.map(i => ({ ...i, name: i.menu_items?.name, qty: i.quantity })), prepTime: 15 })
+                  setOrderStatus(order.status)
+                  if (order.rating || localStorage.getItem(`rated_${order.id}`)) setRatingSubmitted(true)
+                  else setRatingSubmitted(false)
+                  const expiry = Number(localStorage.getItem(`holdExpiry_${order.id}`))
+                  const remaining = Math.max(0, Math.ceil((expiry - Date.now()) / 1000))
+                  if (order.status === "hold" && remaining > 0) {
+                    setHoldCountdown(remaining)
+                    setHoldActive(true)
+                    startHoldCountdown(order.id, remaining)
+                  } else {
+                    setHoldActive(false)
+                  }
+                  setOrderPlaced(true)
+                  setShowOrdersList(false)
+                  watchOrderStatus(order.id)
+                }}
                 style={{ background: t.heroBg, border: `1px solid ${t.heroBorder}`, borderRadius: 12, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ color: t.textPrimary, fontFamily: t.titleFont, fontSize: 16 }}>₹{orderTotal}</span>
+                  <span style={{ color: t.textPrimary, fontFamily: t.titleFont, fontSize: 16 }}>₹{grandTotal}</span>
                   <span style={{ fontSize: 11, color: statusColor, fontWeight: 500, textTransform: "capitalize" }}>
                     {order.status.replace("_", " ")}
                   </span>
@@ -489,7 +537,14 @@ if (order.status === "hold" && remaining > 0) {
     )
   }
 
+  // ─── ORDER CONFIRMATION ──────────────────────────────────────────────────
   if (orderPlaced && placedOrder) {
+    // Build GST summary from placed order items
+    const placedItems = placedOrder.items || []
+    // Items may be cart-style {price, qty, gst_rate} or order_items-style {price, quantity, gst_rate}
+    const normalised = placedItems.map(i => ({ ...i, qty: i.qty || i.quantity || 1 }))
+    const placedGst = calcCartGst(normalised)
+
     return (
       <div style={s.confirmation}>
         <div style={s.confirmIcon}>
@@ -560,21 +615,39 @@ if (order.status === "hold" && remaining > 0) {
           </div>
         )}
 
+        {/* ── ORDER SUMMARY WITH GST ── */}
         <div style={s.orderSummary}>
           <p style={s.summaryTitle}>Your Order</p>
-          {placedOrder.items.map((item, i) => (
+          {normalised.map((item, i) => (
             <div key={i} style={s.summaryRow}>
-              <span style={s.summaryItem}>{item.name} x{item.qty}</span>
+              <span style={s.summaryItem}>{item.name} ×{item.qty}</span>
               <span style={s.summaryPrice}>₹{item.price * item.qty}</span>
             </div>
           ))}
+          <div style={s.summaryDivider} />
+          <div style={s.summarySubRow}>
+            <span>Subtotal</span>
+            <span>₹{placedGst.subtotal}</span>
+          </div>
+          {placedGst.gstLines.map(line => (
+            <div key={line.rate} style={s.summaryGstRow}>
+              <span>GST @ {line.rate}%</span>
+              <span>₹{line.amount.toFixed(2)}</span>
+            </div>
+          ))}
+          {placedGst.totalGst === 0 && (
+            <div style={s.summaryGstRow}>
+              <span>GST</span>
+              <span>₹0</span>
+            </div>
+          )}
           <div style={s.summaryTotal}>
             <span>Total</span>
-            <span>₹{placedOrder.items.reduce((sum, i) => sum + i.price * i.qty, 0)}</span>
+            <span>₹{placedGst.grandTotal}</span>
           </div>
         </div>
 
-{holdActive && holdCountdown > 0 && orderStatus !== "delivered" && orderStatus !== "cancelled" && orderStatus !== "rejected" && (
+        {holdActive && holdCountdown > 0 && orderStatus !== "delivered" && orderStatus !== "cancelled" && orderStatus !== "rejected" && (
           <div style={{ textAlign: "center", marginBottom: 16 }}>
             <p style={{ color: "#C9A84C", fontSize: 13, marginBottom: 8, letterSpacing: 1 }}>
               Order confirms in {holdCountdown}s
@@ -622,18 +695,63 @@ if (order.status === "hold" && remaining > 0) {
     )
   }
 
+  // ─── MAIN MENU VIEW ──────────────────────────────────────────────────────
   return (
     <div style={s.page}>
+      {/* ── GUEST FORM MODAL WITH CART SUMMARY ── */}
       {showGuestForm && (
         <div style={s.modalOverlay}>
-          <div style={s.modal}>
+          <div style={{ ...s.modal, maxHeight: "90vh", overflowY: "auto" }}>
             <p style={s.modalTitle}>Almost there!</p>
             <p style={s.modalSub}>Enter your details to place the order</p>
+
+            {/* Cart summary with GST */}
+            <div style={s.cartSummaryBox}>
+              <p style={s.cartSummaryTitle}>Order Summary</p>
+              {cart.map((item, i) => {
+                const gstAmt = itemGstAmount(item)
+                return (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 7 }}>
+                    <span style={{ ...s.cartSummaryItemName, fontSize: 13 }}>
+                      {item.name} ×{item.qty}
+                    </span>
+                    <span style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
+                      <span style={{ color: t.textPrimary, fontSize: 13 }}>₹{item.price * item.qty}</span>
+                      {item.gst_rate > 0 && (
+                        <span style={{ color: t.accentMuted, fontSize: 10, marginLeft: 4 }}>+₹{gstAmt.toFixed(2)} GST</span>
+                      )}
+                    </span>
+                  </div>
+                )
+              })}
+              <div style={s.cartDivider} />
+              <div style={s.cartSummarySubtotal}>
+                <span>Subtotal</span>
+                <span>₹{gstSummary.subtotal}</span>
+              </div>
+              {gstSummary.gstLines.map(line => (
+                <div key={line.rate} style={s.cartSummaryGst}>
+                  <span>GST @ {line.rate}%</span>
+                  <span>₹{line.amount.toFixed(2)}</span>
+                </div>
+              ))}
+              {gstSummary.totalGst === 0 && (
+                <div style={s.cartSummaryGst}>
+                  <span>GST</span>
+                  <span>₹0</span>
+                </div>
+              )}
+              <div style={s.cartSummaryGrandTotal}>
+                <span>Grand Total</span>
+                <span>₹{gstSummary.grandTotal}</span>
+              </div>
+            </div>
+
             <input style={s.modalInput} placeholder="Your name *" value={guestName} onChange={e => setGuestName(e.target.value)} />
             <input style={s.modalInput} placeholder="Phone number *" type="tel" inputMode="numeric" maxLength={10} value={guestPhone} onChange={e => setGuestPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} />
             <input style={s.modalInput} placeholder="Email (optional)" type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} />
             <textarea style={{ ...s.modalInput, height: 80, resize: "none" }} placeholder="Special instructions — e.g. less spicy, no onion" value={guestInstructions} onChange={e => setGuestInstructions(e.target.value)} />
-            <button style={s.modalBtn} onClick={placeOrder}>Confirm Order</button>
+            <button style={s.modalBtn} onClick={placeOrder}>Confirm Order · ₹{gstSummary.grandTotal}</button>
             <button style={s.modalCancel} onClick={() => setShowGuestForm(false)}>Cancel</button>
           </div>
         </div>
@@ -648,34 +766,34 @@ if (order.status === "hold" && remaining > 0) {
       </div>
 
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: "1rem", marginBottom: "0.5rem", background: s.tabsBg, padding: "8px 0" }}>
-  <button
-    style={{ background: vegOnly ? "#2e7d32" : "none", border: "1px solid #2e7d32", color: vegOnly ? "#fff" : "#2e7d32", borderRadius: 20, padding: "5px 16px", fontSize: 11, cursor: "pointer", fontFamily: s.bodyFont, letterSpacing: 1 }}
-    onClick={() => setVegOnly(!vegOnly)}
-  >
-    🟢 Veg Only
-  </button>
-  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-  <span style={{ fontSize: 10, color: t.accent, fontWeight: 700 }}>A−</span>
-  <div
-    onClick={async () => {
-      const sizeOrder = ["small", "medium", "large"]
-      const current = hotelInfo?.font_size || "medium"
-      const next = sizeOrder[(sizeOrder.indexOf(current) + 1) % sizeOrder.length]
-      await supabase.from("hotels").update({ font_size: next }).eq("id", resolvedHotelId)
-      setHotelInfo(prev => ({ ...prev, font_size: next }))
-    }}
-    style={{ width: 40, height: 20, borderRadius: 10, background: t.accent, cursor: "pointer", position: "relative" }}
-  >
-    <div style={{
-      width: 16, height: 16, borderRadius: "50%", background: '#fff',
-      position: "absolute", top: 2,
-      left: hotelInfo?.font_size === "large" ? 22 : hotelInfo?.font_size === "small" ? 2 : 12,
-      transition: "left 0.2s"
-    }} />
-  </div>
-  <span style={{ fontSize: 17, color: t.accent, fontWeight: 700 }}>A+</span>
-</div>
-</div>
+        <button
+          style={{ background: vegOnly ? "#2e7d32" : "none", border: "1px solid #2e7d32", color: vegOnly ? "#fff" : "#2e7d32", borderRadius: 20, padding: "5px 16px", fontSize: 11, cursor: "pointer", fontFamily: s.bodyFont, letterSpacing: 1 }}
+          onClick={() => setVegOnly(!vegOnly)}
+        >
+          🟢 Veg Only
+        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ fontSize: 10, color: t.accent, fontWeight: 700 }}>A−</span>
+          <div
+            onClick={async () => {
+              const sizeOrder = ["small", "medium", "large"]
+              const current = hotelInfo?.font_size || "medium"
+              const next = sizeOrder[(sizeOrder.indexOf(current) + 1) % sizeOrder.length]
+              await supabase.from("hotels").update({ font_size: next }).eq("id", resolvedHotelId)
+              setHotelInfo(prev => ({ ...prev, font_size: next }))
+            }}
+            style={{ width: 40, height: 20, borderRadius: 10, background: t.accent, cursor: "pointer", position: "relative" }}
+          >
+            <div style={{
+              width: 16, height: 16, borderRadius: "50%", background: '#fff',
+              position: "absolute", top: 2,
+              left: hotelInfo?.font_size === "large" ? 22 : hotelInfo?.font_size === "small" ? 2 : 12,
+              transition: "left 0.2s"
+            }} />
+          </div>
+          <span style={{ fontSize: 17, color: t.accent, fontWeight: 700 }}>A+</span>
+        </div>
+      </div>
 
       {categories.length > 0 && (
         <div style={s.tabs}>
@@ -705,12 +823,12 @@ if (order.status === "hold" && remaining > 0) {
               const cartItem = cart.find(i => i.id === item.id)
               return (
                 <div key={item.id} style={s.specialItem}>
-  <div style={s.specialBadge}>Chef's Special</div>
-  {item.image_url && (
-    <img src={item.image_url} style={{ width: 72, height: 72, borderRadius: t.itemRadius || 8, objectFit: "cover", flexShrink: 0 }} />
-  )}
-  <div style={s.itemLeft}>
-                  <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={s.specialBadge}>Chef's Special</div>
+                  {item.image_url && (
+                    <img src={item.image_url} style={{ width: 72, height: 72, borderRadius: t.itemRadius || 8, objectFit: "cover", flexShrink: 0 }} />
+                  )}
+                  <div style={s.itemLeft}>
+                    <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>
                       <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
                       {item.name}
                     </div>
@@ -718,7 +836,10 @@ if (order.status === "hold" && remaining > 0) {
                     <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
                   </div>
                   <div style={s.itemRight}>
-                    <div style={{ ...s.itemPrice, fontSize: s.itemPrice.fontSize * fontScale }}>₹ {item.price}</div>
+                    <div style={{ ...s.itemPrice, fontSize: s.itemPrice.fontSize * fontScale }}>₹{item.price}</div>
+                    {item.gst_rate > 0 && (
+                      <div style={s.itemGst}>+{item.gst_rate}% GST</div>
+                    )}
                     {item.out_of_stock ? (
                       <span style={s.outOfStock}>Out of Stock</span>
                     ) : cartItem ? (
@@ -742,11 +863,11 @@ if (order.status === "hold" && remaining > 0) {
           const cartItem = cart.find(i => i.id === item.id)
           return (
             <div key={item.id} style={s.menuItem}>
-  {item.image_url && (
-    <img src={item.image_url} style={{ width: 72, height: 72, borderRadius: t.itemRadius || 8, objectFit: "cover", flexShrink: 0 }} />
-  )}
-  <div style={s.itemLeft}>
-              <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>
+              {item.image_url && (
+                <img src={item.image_url} style={{ width: 72, height: 72, borderRadius: t.itemRadius || 8, objectFit: "cover", flexShrink: 0 }} />
+              )}
+              <div style={s.itemLeft}>
+                <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ width: 8, height: 8, borderRadius: "50%", background: item.is_veg !== false ? "#2e7d32" : "#c0392b", display: "inline-block", flexShrink: 0 }} />
                   {item.name}
                 </div>
@@ -754,7 +875,10 @@ if (order.status === "hold" && remaining > 0) {
                 <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
               </div>
               <div style={s.itemRight}>
-                <div style={{ ...s.itemPrice, fontSize: s.itemPrice.fontSize * fontScale }}>₹ {item.price}</div>
+                <div style={{ ...s.itemPrice, fontSize: s.itemPrice.fontSize * fontScale }}>₹{item.price}</div>
+                {item.gst_rate > 0 && (
+                  <div style={s.itemGst}>+{item.gst_rate}% GST</div>
+                )}
                 {item.out_of_stock ? (
                   <span style={s.outOfStock}>Out of Stock</span>
                 ) : cartItem ? (
@@ -774,27 +898,29 @@ if (order.status === "hold" && remaining > 0) {
 
       <div style={s.menuFooter}>
         {hasLastOrder && (
-          <button style={s.viewOrderBtn} 
-
-onClick={async () => {
-  setOrderPlaced(false)
-  setPlacedOrder(null)
-  setHoldActive(false)
-  setHoldCountdown(0)
-  await fetchRoomOrders()
-  setShowOrdersList(true)
-}}
-
+          <button style={s.viewOrderBtn}
+            onClick={async () => {
+              setOrderPlaced(false)
+              setPlacedOrder(null)
+              setHoldActive(false)
+              setHoldCountdown(0)
+              await fetchRoomOrders()
+              setShowOrdersList(true)
+            }}
           >My Orders</button>
         )}
-        <p style={s.footerNote}>All prices inclusive of taxes · Please inform staff of any allergies</p>
+        <p style={s.footerNote}>All prices exclusive of GST · GST added at checkout · Please inform staff of any allergies</p>
       </div>
 
+      {/* ── CART BAR WITH GST BREAKDOWN ── */}
       {cart.length > 0 && (
         <div style={s.cartBar}>
           <div>
             <p style={s.cartCount}>{cart.reduce((s, i) => s + i.qty, 0)} items · ⏱ ~{maxPrepTime} min</p>
-            <p style={s.cartTotal}>₹ {total}</p>
+            <p style={s.cartTotal}>₹{gstSummary.grandTotal}</p>
+            <p style={s.cartGstNote}>
+              ₹{gstSummary.subtotal} + GST ₹{gstSummary.totalGst.toFixed(2)}
+            </p>
           </div>
           <button style={s.placeBtn} onClick={() => setShowGuestForm(true)}>Place Order</button>
         </div>
@@ -804,4 +930,3 @@ onClick={async () => {
 }
 
 export default App
-
