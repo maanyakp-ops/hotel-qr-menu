@@ -1554,52 +1554,68 @@ async function loadHotel() {
   + Add Floor Range
 </button>
 
-{/* ADD NEW CODE HERE */}
 <p style={{ ...d.sectionLabel, marginTop: 28 }}>Hotel Details for Bill</p>
 <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
   These details will appear on printed checkout bills.
 </p>
 
-<input
-  style={d.input}
-  placeholder="Hotel Address"
-  value={hotel?.address || ""}
-  onChange={e => setHotel(prev => ({ ...prev, address: e.target.value }))}
-/>
-<input
-  style={d.input}
-  placeholder="GST Number"
-  value={hotel?.gst_number || ""}
-  onChange={e => setHotel(prev => ({ ...prev, gst_number: e.target.value }))}
-/>
-<input
-  style={d.input}
-  placeholder="FSSAI Number"
-  value={hotel?.fssai_number || ""}
-  onChange={e => setHotel(prev => ({ ...prev, fssai_number: e.target.value }))}
-/>
-<input
-  style={d.input}
-  placeholder="Reception Contact Number"
-  value={hotel?.reception_contact || ""}
-  onChange={e => setHotel(prev => ({ ...prev, reception_contact: e.target.value }))}
-/>
+<div style={d.form}>
+  <div>
+    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 6px", fontWeight: 500 }}>Hotel Address</p>
+    <input
+      style={d.input}
+      placeholder="e.g. 123 Main Street, City"
+      value={hotel?.address || ""}
+      onChange={e => setHotel(prev => ({ ...prev, address: e.target.value }))}
+    />
+  </div>
 
-<button
-  style={d.saveBtn}
-  onClick={async () => {
-await supabase.from("hotels").update({ 
-  address: hotel.address,
-  gst_number: hotel.gst_number,
-  fssai_number: hotel.fssai_number,
-  reception_contact: hotel.reception_contact
-}).eq("id", hotel.id)
-    setThemeSaved(true)
-    setTimeout(() => setThemeSaved(false), 2500)
-  }}
->
-  Save Hotel Details
-</button>
+  <div>
+    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 6px", fontWeight: 500 }}>GST Number</p>
+    <input
+      style={d.input}
+      placeholder="e.g. 27ABCDE1234F1Z5"
+      value={hotel?.gst_number || ""}
+      onChange={e => setHotel(prev => ({ ...prev, gst_number: e.target.value }))}
+    />
+  </div>
+
+  <div>
+    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 6px", fontWeight: 500 }}>FSSAI Number</p>
+    <input
+      style={d.input}
+      placeholder="14-digit FSSAI number"
+      value={hotel?.fssai_number || ""}
+      onChange={e => setHotel(prev => ({ ...prev, fssai_number: e.target.value }))}
+    />
+  </div>
+
+  <div>
+    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 6px", fontWeight: 500 }}>Reception Contact Number</p>
+    <input
+      style={d.input}
+      placeholder="e.g. 9876543210"
+      value={hotel?.reception_contact || ""}
+      onChange={e => setHotel(prev => ({ ...prev, reception_contact: e.target.value }))}
+    />
+  </div>
+
+  <button
+    style={d.saveBtn}
+    onClick={async () => {
+      await supabase.from("hotels").update({ 
+        address: hotel.address,
+        gst_number: hotel.gst_number,
+        fssai_number: hotel.fssai_number,
+        reception_contact: hotel.reception_contact
+      }).eq("id", hotel.id)
+      setThemeSaved(true)
+      setTimeout(() => setThemeSaved(false), 2500)
+    }}
+  >
+    Save Hotel Details
+  </button>
+</div>
 
 
 <button
