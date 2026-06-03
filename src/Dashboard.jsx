@@ -1096,7 +1096,28 @@ async function loadHotel() {
           {/* REPORTS TAB */}
   {tab === "reports" && (
     <div style={tabContentStyle}>
-      {/* ROOM CHECKOUT SUMMARY */}
+      <p style={d.sectionLabel}>Room Checkout Summary</p>
+      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 12px" }}>Search by guest phone or room number.</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input style={{ ...d.input, flex: 1 }} placeholder="Guest phone number" type="tel" inputMode="numeric" maxLength={10} value={guestSearchPhone} onChange={e => { setGuestSearchPhone(e.target.value.replace(/\D/g, '').slice(0, 10)); if (e.target.value) setRoomSummaryNumber("") }} />
+          <span style={{ alignSelf: "center", color: "#8a9bb0", fontSize: 12 }}>or</span>
+          <input style={{ ...d.input, flex: 1 }} placeholder="Room number" value={roomSummaryNumber} onChange={e => { setRoomSummaryNumber(e.target.value); if (e.target.value) setGuestSearchPhone("") }} />
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>Check-in</p>
+            <input type="date" style={{ ...d.input, width: "100%", boxSizing: "border-box" }} value={roomCheckIn} onChange={e => setRoomCheckIn(e.target.value)} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>Check-out</p>
+            <input type="date" style={{ ...d.input, width: "100%", boxSizing: "border-box" }} value={roomCheckOut} onChange={e => setRoomCheckOut(e.target.value)} />
+          </div>
+        </div>
+        <button style={d.saveBtn} onClick={fetchRoomSummary}>{roomSummaryLoading ? "Searching..." : "Search"}</button>
+      </div>
+
+      <div style={{ borderBottom: "1px solid #e2e8f0", marginBottom: 20 }} />
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 8px" }}>
         <p style={{ ...d.sectionLabel, margin: 0 }}>Daily Report</p>
@@ -1238,61 +1259,6 @@ async function loadHotel() {
           ⬇ Download CSV
         </button>
       )}
-
-      {/* ROOM CHECKOUT SUMMARY */}
-      <p style={{ ...d.sectionLabel, marginTop: 24 }}>Room Checkout Summary</p>
-      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 12px" }}>
-        Enter a room number to see all orders placed during their stay.
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-    <div style={{ display: "flex", gap: 8 }}>
-      <input
-        style={{ ...d.input, flex: 1 }}
-        placeholder="Guest phone number"
-        type="tel"
-        inputMode="numeric"
-        maxLength={10}
-        value={guestSearchPhone}
-        onChange={e => {
-          setGuestSearchPhone(e.target.value.replace(/\D/g, '').slice(0, 10))
-          if (e.target.value) setRoomSummaryNumber("")
-        }}
-      />
-      <span style={{ alignSelf: "center", color: "#8a9bb0", fontSize: 12 }}>or</span>
-      <input
-        style={{ ...d.input, flex: 1 }}
-        placeholder="Room number"
-        value={roomSummaryNumber}
-        onChange={e => {
-          setRoomSummaryNumber(e.target.value)
-          if (e.target.value) setGuestSearchPhone("")
-        }}
-      />
-    </div>
-    <div style={{ display: "flex", gap: 8 }}>
-      <div style={{ flex: 1 }}>
-        <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>Check-in</p>
-        <input
-          type="date"
-          style={{ ...d.input, width: "100%", boxSizing: "border-box" }}
-          value={roomCheckIn}
-          onChange={e => setRoomCheckIn(e.target.value)}
-        />
-      </div>
-      <div style={{ flex: 1 }}>
-        <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>Check-out</p>
-        <input
-          type="date"
-          style={{ ...d.input, width: "100%", boxSizing: "border-box" }}
-          value={roomCheckOut}
-          onChange={e => setRoomCheckOut(e.target.value)}
-        />
-      </div>
-    </div>
-    <button style={d.saveBtn} onClick={fetchRoomSummary}>
-      {roomSummaryLoading ? "Searching..." : "Search"}
-    </button>
-  </div>
 
       {roomSummaryOrders !== null && (
         <>
