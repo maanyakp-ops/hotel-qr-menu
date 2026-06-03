@@ -1394,7 +1394,7 @@ async function loadHotel() {
                       .header { text-align: center; border-bottom: 2px solid #1c2b3a; padding-bottom: 16px; margin-bottom: 16px; }
                       .hotel-name { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
                       .hotel-meta { font-size: 12px; color: #555; line-height: 1.8; }
-                      ${hotel?.reception_contact ? `📞 ${hotel.reception_contact}<br>` : ""}
+                      
                       .bill-title { font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin: 16px 0 8px; }
                       .guest-info { font-size: 13px; margin-bottom: 16px; line-height: 1.8; }
                       .order-block { border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 10px; }
@@ -1409,7 +1409,7 @@ async function loadHotel() {
                       <div class="hotel-name">${hotel?.name || "Hotel"}</div>
                       <div class="hotel-meta">
                         ${hotel?.address ? `${hotel.address}<br>` : ""}
-                        ${hotel?.reception_contact ? `📞 ${hotel.reception_contact}<br>` : ""}
+                        ${hotel?.contact_phone ? `📞 ${hotel.contact_phone}<br>` : ""}
                         ${hotel?.gst_number ? `GST: ${hotel.gst_number}<br>` : ""}
                         ${hotel?.fssai_number ? `FSSAI: ${hotel.fssai_number}` : ""}
                       </div>
@@ -1419,7 +1419,7 @@ async function loadHotel() {
                     <div class="guest-info">
                       <strong>Guest:</strong> ${guest?.guest_name || "—"}<br>
                       ${guestSearchPhone ? `<strong>Phone:</strong> ${guestSearchPhone}<br>` : `<strong>Room:</strong> ${roomSummaryNumber}<br>`}
-                      ${hotel?.reception_contact ? `<strong>Reception:</strong> ${hotel.reception_contact}<br>` : ""}
+                      ${hotel?.contact_phone ? `<strong>Reception:</strong> ${hotel.contact_phone}<br>` : ""}
       <strong>Printed:</strong> ${new Date().toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </div>
                 
@@ -1661,8 +1661,8 @@ async function loadHotel() {
     <input
       style={d.input}
       placeholder="e.g. 9876543210"
-      value={hotel?.reception_contact || ""}
-      onChange={e => setHotel(prev => ({ ...prev, reception_contact: e.target.value }))}
+      value={hotel?.contact_phone || ""}
+onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
     />
   </div>
 
@@ -1673,7 +1673,7 @@ async function loadHotel() {
         address: hotel.address,
         gst_number: hotel.gst_number,
         fssai_number: hotel.fssai_number,
-        reception_contact: hotel.reception_contact
+        contact_phone: hotel.contact_phone
       }).eq("id", hotel.id)
       setThemeSaved(true)
       setTimeout(() => setThemeSaved(false), 2500)
