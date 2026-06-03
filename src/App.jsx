@@ -378,7 +378,7 @@ function App() {
       return
     }
     const holdExpiresAt = Date.now() + 60000
-    const { data: existingOrders } = await supabase
+    localStorage.setItem(`holdExpiry_${order.id}`, holdExpiresAt.toString())
       .from("orders")
       .select("id, status")
       .eq("hotel_id", resolvedHotelId)
@@ -445,20 +445,36 @@ function App() {
   }
 
   function startHoldCountdown(orderId, startSeconds = 60) {
-    setHoldCountdown(60)
-    setHoldActive(true)
-    let seconds = startSeconds
-    const interval = setInterval(async () => {
-      seconds -= 1
-      setHoldCountdown(seconds)
-      if (seconds <= 0) {
-        clearInterval(interval)
-        await supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
-        localStorage.removeItem(`holdExpiry_${orderId}`)
-        setHoldActive(false)
-      }
-    }, 1000)
+  setHoldCountdown(startSeconds)
+  setHoldActive(true)
+  
+  // Check if hold has already expired
+  const holdExpiry = Number(localStorage.getItem(`holdExpiry_${orderId}`))
+  const now = Date.now()
+  
+  if (holdExpiry && now >= holdExpiry) {
+    // Hold already expired, update immediately
+    supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
+    localStorage.removeItem(`holdExpiry_${orderId}`)
+    setHoldActive(false)
+    setHoldCountdown(0)
+    return
   }
+  
+  countdownRef.current = setInterval(async () => {
+    const expiry = Number(localStorage.getItem(`holdExpiry_${orderId}`))
+    const remaining = Math.max(0, Math.ceil((expiry - Date.now()) / 1000))
+    
+    setHoldCountdown(remaining)
+    
+    if (remaining <= 0) {
+      clearInterval(countdownRef.current)
+      await supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
+      localStorage.removeItem(`holdExpiry_${orderId}`)
+      setHoldActive(false)
+    }
+  }, 1000)
+}
 
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0)
   const categories = [...new Set(menuItems.map(i => i.category))]
