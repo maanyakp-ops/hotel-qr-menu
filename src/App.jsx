@@ -1,3 +1,18 @@
+import {
+  Receipt,
+  ChefHat,
+  Bike,
+  CheckCircle2
+} from "lucide-react"
+import {
+  CheckCircle2,
+  XCircle,
+  Ban,
+  Clock3,
+  ChefHat,
+  Bike,
+  PackageCheck
+} from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
@@ -548,8 +563,14 @@ function App() {
     return (
       <div style={s.confirmation}>
         <div style={s.confirmIcon}>
-          {orderStatus === "cancelled" ? "❌" : orderStatus === "rejected" ? "🚫" : "🎉"}
-        </div>
+  {orderStatus === "cancelled" ? (
+    <XCircle size={52} strokeWidth={1.5} />
+  ) : orderStatus === "rejected" ? (
+    <Ban size={52} strokeWidth={1.5} />
+  ) : (
+    <CheckCircle2 size={52} strokeWidth={1.5} />
+  )}
+</div>
         <h2 style={s.confirmTitle}>
           {orderStatus === "cancelled" ? "Order Cancelled" : orderStatus === "rejected" ? "Order Rejected" : "Order Placed!"}
         </h2>
@@ -564,11 +585,27 @@ function App() {
             <div id="confetti-layer" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 0, overflow: "visible", pointerEvents: "none" }} />
             <div style={{ display: "flex", alignItems: "flex-start" }}>
               {[
-                { key: "pending",   icon: "🧾", label: "Received" },
-                { key: "preparing", icon: "👨‍🍳", label: "Preparing" },
-                { key: "onway",     icon: "🚀", label: "On the Way" },
-                { key: "done",      icon: "✅", label: "Delivered" },
-              ].map((step, idx) => {
+  {
+    key: "pending",
+    icon: <Receipt size={18} strokeWidth={1.75} />,
+    label: "Received"
+  },
+  {
+    key: "preparing",
+    icon: <ChefHat size={18} strokeWidth={1.75} />,
+    label: "Preparing"
+  },
+  {
+    key: "onway",
+    icon: <Bike size={18} strokeWidth={1.75} />,
+    label: "On the Way"
+  },
+  {
+    key: "done",
+    icon: <CheckCircle2 size={18} strokeWidth={1.75} />,
+    label: "Delivered"
+  }
+].map((step, idx) => {
                 const currentIdx = orderStatus === "delivered" ? 3 : orderStatus === "on_the_way" ? 2 : orderStatus === "preparing" ? 1 : 0
                 const isDone = idx < currentIdx
                 const isActive = idx === currentIdx
@@ -589,9 +626,27 @@ function App() {
                         {isActive && (
                           <div style={{ position: "absolute", inset: -6, borderRadius: "50%", border: "2px solid #C9A84C", animation: "pulseRing 1.5s ease-out infinite" }} />
                         )}
-                        <span style={{ color: isDone ? "#2e7d32" : "#C9A84C", animation: isActive ? "bounceIcon 0.8s ease infinite alternate" : isDone ? "popIcon 0.4s cubic-bezier(0.34,1.56,0.64,1)" : "none", display: "inline-block" }}>
-                          {isDone ? "✓" : step.icon}
-                        </span>
+                        <div
+  style={{
+    width: 28,
+    height: 28,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: isDone
+      ? "rgba(46,125,50,0.12)"
+      : "rgba(201,168,76,0.12)",
+    color: isDone ? "#2e7d32" : "#C9A84C",
+    animation: isActive
+      ? "bounceIcon 0.8s ease infinite alternate"
+      : isDone
+      ? "popIcon 0.4s cubic-bezier(0.34,1.56,0.64,1)"
+      : "none",
+  }}
+>
+  {isDone ? <CheckCircle2 size={18} strokeWidth={2} /> : step.icon}
+</div>
                       </div>
                       <p style={{ fontSize: 11, textAlign: "center", margin: "6px 0 0", color: isDone ? "#2e7d32" : isActive ? "#C9A84C" : s.textSecondary, fontWeight: (isDone || isActive) ? 500 : 400, lineHeight: 1.3, whiteSpace: "nowrap", transition: "color 0.3s" }}>
                         {step.label}
