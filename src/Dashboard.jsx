@@ -1554,6 +1554,15 @@ async function loadHotel() {
   + Add Floor Range
 </button>
 
+<button
+  style={d.saveBtn}
+  onClick={async () => {
+    await supabase.from("hotels").update({ room_ranges: hotel.room_ranges }).eq("id", hotel.id)
+    setThemeSaved(true)
+    setTimeout(() => setThemeSaved(false), 2500)
+  }}
+>
+
 <p style={{ ...d.sectionLabel, marginTop: 28 }}>Hotel Details for Bill</p>
 <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
   These details will appear on printed checkout bills.
@@ -1618,14 +1627,7 @@ async function loadHotel() {
 </div>
 
 
-<button
-  style={d.saveBtn}
-  onClick={async () => {
-    await supabase.from("hotels").update({ room_ranges: hotel.room_ranges }).eq("id", hotel.id)
-    setThemeSaved(true)
-    setTimeout(() => setThemeSaved(false), 2500)
-  }}
->
+
   Save Room Ranges
 </button>
 
