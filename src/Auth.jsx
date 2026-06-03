@@ -2,8 +2,8 @@ import { useState } from "react"
 import { supabase } from "./supabase"
 import { useEffect } from "react"
 
-export default function Auth({ onLogin }) {
-  const [mode, setMode] = useState("login") // "login" | "signup" | "details"
+export default function Auth({ onLogin, initialMode }) {
+  const [mode, setMode] = useState(initialMode || "login")
   const [step1, setStep1] = useState({ email: "", password: "", hotelName: "" })
   const [details, setDetails] = useState({
     business_type: "hotel",
