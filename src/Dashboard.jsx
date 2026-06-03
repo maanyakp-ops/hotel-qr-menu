@@ -1027,23 +1027,29 @@
             <>
               {hotel?.status !== "active"
   ? <p style={d.empty}>Your account is pending approval. QR codes will appear once approved.</p>
-  : (hotel?.room_ranges || []).length === 0
-  ? <p style={d.empty}>No room ranges configured yet. Add them in Settings.</p>
+: (hotel?.room_ranges || []).length === 0 && !hotel?.room_count
+? <p style={d.empty}>No rooms assigned yet. Contact support to get your rooms activated.</p>
   : (
     <>
-      <p style={d.sectionLabel}>
-        {(hotel?.room_ranges || []).reduce((sum, r) => sum + (r.end - r.start + 1), 0)} total rooms
-      </p>
+<p style={d.sectionLabel}>
+  {hotel?.room_ranges?.length > 0
+    ? (hotel.room_ranges || []).reduce((sum, r) => sum + (r.end - r.start + 1), 0)
+    : hotel?.room_count || 0} total rooms
+</p>
       <p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 16px" }}>
         Download QR codes for each room.
       </p>
-                    {(() => {
+    {(() => {
   const allRooms = []
-  (hotel?.room_ranges || []).forEach(range => {
-    for (let i = range.start; i <= range.end; i++) {
-      allRooms.push(i)
+  if (hotel?.room_ranges?.length > 0) {
+    hotel.room_ranges.forEach(range => {
+      for (let i = range.start; i <= range.end; i++) allRooms.push(i)
+    })
+  } else {
+    for (let i = 0; i < (hotel?.room_count || 0); i++) {
+      allRooms.push(i + (hotel?.room_start || 101))
     }
-  })
+  }
   return allRooms.map(roomNumber => {
     const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
     return (
