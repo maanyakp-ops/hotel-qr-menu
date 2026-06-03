@@ -378,7 +378,8 @@ function App() {
       return
     }
     const holdExpiresAt = Date.now() + 60000
-    localStorage.setItem(`holdExpiry_${order.id}`, holdExpiresAt.toString())
+    const { data: existingOrders } = await supabase
+    
       .from("orders")
       .select("id, status")
       .eq("hotel_id", resolvedHotelId)
