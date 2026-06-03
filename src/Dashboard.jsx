@@ -1524,7 +1524,8 @@
 <button
   style={{ ...d.addBtn, marginBottom: 24 }}
   onClick={() => {
-    const updated = [...(hotel?.room_ranges || []), { floor: (hotel?.room_ranges?.length || 0) + 1, start: 101, end: 110 }]
+    const nextFloor = (hotel?.room_ranges?.length || 0) + 1
+    const updated = [...(hotel?.room_ranges || []), { floor: nextFloor, start: nextFloor * 100 + 1, end: nextFloor * 100 + 10 }]
     setHotel(prev => ({ ...prev, room_ranges: updated }))
   }}
 >
