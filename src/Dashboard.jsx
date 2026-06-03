@@ -11,7 +11,7 @@
     const [hotel, setHotel] = useState(null)
     const [loading, setLoading] = useState(true)
     const [tab, setTab] = useState("orders")
-    const [newItem, setNewItem] = useState({ name: "", category: "", price: "", prep_time: "15", description: "" })
+    const [newItem, setNewItem] = useState({ name: "", category: "", price: "", prep_time: "15", description: "", gst_rate: 5 })
     const [adding, setAdding] = useState(false)
     const [isAdmin, setIsAdmin] = useState(false)
     const [allHotels, setAllHotels] = useState([])
@@ -34,6 +34,8 @@
     const [guestSearchPhone, setGuestSearchPhone] = useState("")
     const [editingTemplateItem, setEditingTemplateItem] = useState(null)
     const [templateItemEdits, setTemplateItemEdits] = useState({})
+    const DEFAULT_GST_RATES = { "Main Course": 5, "Starters": 5, "Desserts": 5, "Beverages": 5, "Packaged": 12, "Alcohol": 18, "Other": 5, }
+    const [gstRates, setGstRates] = useState(hotel?.gst_category_rates || DEFAULT_GST_RATES)
     
 
   function playOrderSound() {
@@ -325,6 +327,13 @@ async function loadHotel() {
     fetchMenu(hotelData.id)
     if (hotelData?.is_admin) fetchAllHotels()
 
+    if (hotelData?.gst_category_rates) {
+  setGstRates({
+    ...DEFAULT_GST_RATES,
+    ...hotelData.gst_category_rates
+  })
+}  
+
   setTimeout(() => {
     const sub = supabase.channel("orders-channel-" + hotelData.id)
       .on("postgres_changes", {
@@ -417,6 +426,7 @@ async function loadHotel() {
         name: editItem.name,
         category: editItem.category,
         price: parseFloat(editItem.price),
+        gst_rate: editingItem.gst_rate || 5,
         prep_time: parseInt(editItem.prep_time) || 15,
         description: editItem.description || null,
         is_special: editItem.is_special || false,
@@ -441,6 +451,7 @@ async function loadHotel() {
         name: newItem.name,
         category: newItem.category,
         price: parseFloat(newItem.price),
+        gst_rate: newItem.gst_rate,
         prep_time: parseInt(newItem.prep_time) || 15,
         description: newItem.description || null,
         image_url: newItem.image_url || null,
@@ -448,7 +459,7 @@ async function loadHotel() {
         available: true,
         is_veg: newItem.is_veg !== false ? true : false,
       })
-      setNewItem({ name: "", category: "", price: "", prep_time: "15", description: "", is_special: false, image_url: "" })
+      setNewItem({ name: "", category: "", price: "", gst_rate: 5, prep_time: "15", description: "", is_special: false, image_url: "" })
       fetchMenu(hotel.id)
       setAdding(false)
     }
@@ -885,11 +896,23 @@ async function loadHotel() {
   </div>
 
                 <input style={d.input} placeholder="Item name" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
-                <select
-    style={d.input}
-    value={newItem.category}
-    onChange={e => setNewItem({ ...newItem, category: e.target.value })}
-  >
+<select
+  value={newItem.category}
+  onChange={(e) => {
+    const category = e.target.value
+
+    const gst =
+      hotel?.gst_category_rates?.[category] ??
+      DEFAULT_GST_RATES[category] ??
+      5
+
+    setNewItem({
+      ...newItem,
+      category,
+      gst_rate: gst
+    })
+  }}
+>
     <option value="">Select Category</option>
     {["Breakfast", "Starters", "Main Course", "Breads", "Rice & Biryani", "Snacks", "Desserts", "Beverages"].map(cat => (
       <option key={cat} value={cat}>{cat}</option>
@@ -899,6 +922,7 @@ async function loadHotel() {
     ))}
   </select>
                 <input style={d.input} placeholder="Price (₹)" type="number" value={newItem.price} onChange={e => setNewItem({ ...newItem, price: e.target.value })} />
+                <input type="number" placeholder="GST %" value={newItem.gst_rate} onChange={(e) => setNewItem({...newItem,gst_rate: Number(e.target.value)})} />
                 <input style={d.input} placeholder="Prep time in minutes (e.g. 15)" type="number" value={newItem.prep_time} onChange={e => setNewItem({ ...newItem, prep_time: e.target.value })} />
                 <div style={{ display: "flex", gap: 6 }}>
                   <input style={{ ...d.input, flex: 1 }} placeholder="Item description (optional)" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
@@ -1651,8 +1675,39 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
   </button>
 </div>
 
+<h3>GST Rates By Category</h3>
 
+{Object.keys(gstRates).map(category => (
+  <div key={category}>
+    <label>{category}</label>
 
+    <input
+      type="number"
+      value={gstRates[category]}
+      onChange={(e) =>
+        setGstRates({
+          ...gstRates,
+          [category]: Number(e.target.value)
+        })
+      }
+    />
+  </div>
+))}
+
+<button
+  onClick={async () => {
+    await supabase
+      .from("hotels")
+      .update({
+        gst_category_rates: gstRates
+      })
+      .eq("id", hotel.id)
+
+    alert("GST rates saved")
+  }}
+>
+  Save GST Rates
+</button>
 
 
             </div>
