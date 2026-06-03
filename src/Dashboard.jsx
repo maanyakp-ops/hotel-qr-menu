@@ -1562,6 +1562,8 @@ async function loadHotel() {
     setTimeout(() => setThemeSaved(false), 2500)
   }}
 >
+    Save Room Ranges
+</button>
 
 <p style={{ ...d.sectionLabel, marginTop: 28 }}>Hotel Details for Bill</p>
 <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
@@ -1628,8 +1630,7 @@ async function loadHotel() {
 
 
 
-  Save Room Ranges
-</button>
+
 
             </div>
           )}
