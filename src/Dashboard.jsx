@@ -3,7 +3,7 @@
   import { QRCodeSVG as QRCode } from "qrcode.react"
 
 
-  export default function Dashboard({ onBack }) {
+  export default function Dashboard({ onBack, demoMode = false, demoHotelId = null }) {
     const today = new Date().toISOString().split("T")[0]
     const [darkMode, setDarkMode] = useState(false)
     const [orders, setOrders] = useState([])
@@ -292,19 +292,34 @@
       setTemplateItemEdits({})
       setEditingTemplateItem(null)
     }
-  async function loadHotel() {
-    document.addEventListener("click", () => {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)()
-      ctx.resume()
-    }, { once: true })
 
-    const { data: { user } } = await supabase.auth.getUser()
+async function loadHotel() {
+  document.addEventListener("click", () => {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    ctx.resume()
+  }, { once: true })
+
+  // If demoMode, load demo hotel instead
+  if (demoMode && demoHotelId) {
     const { data: hotelData } = await supabase
       .from("hotels")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("id", demoHotelId)
       .single()
     setHotel(hotelData)
+    setIsAdmin(hotelData?.is_admin || false)
+    fetchOrders(hotelData.id)
+    fetchMenu(hotelData.id)
+    return
+  }
+
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: hotelData } = await supabase
+    .from("hotels")
+    .select("*")
+    .eq("user_id", user.id)
+    .single()
+  setHotel(hotelData)
     setIsAdmin(hotelData?.is_admin || false)
     fetchOrders(hotelData.id)
     fetchMenu(hotelData.id)
@@ -554,6 +569,12 @@
       <button onClick={handleLogout} style={d.logoutBtn}>Logout</button>
     </div>
   </div>
+
+{demoMode && (
+  <div style={{ background: "#fff3e0", border: "1px solid #fcd34d", padding: "10px 14px", margin: "0 14px 8px", borderRadius: 8, fontSize: 12, color: "#b45309" }}>
+    📌 Demo Mode: Editing "{hotel?.name}" · Add items with templates and test ordering
+  </div>
+)}
 
   {tab !== "reports" && (
   <div style={{ ...d.metrics, gridTemplateColumns: "repeat(4,1fr)" }}>
