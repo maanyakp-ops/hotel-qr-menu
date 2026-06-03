@@ -1574,6 +1574,12 @@ async function loadHotel() {
 />
 <input
   style={d.input}
+  placeholder="FSSAI Number"
+  value={hotel?.fssai_number || ""}
+  onChange={e => setHotel(prev => ({ ...prev, fssai_number: e.target.value }))}
+/>
+<input
+  style={d.input}
   placeholder="Reception Contact Number"
   value={hotel?.reception_contact || ""}
   onChange={e => setHotel(prev => ({ ...prev, reception_contact: e.target.value }))}
@@ -1582,11 +1588,12 @@ async function loadHotel() {
 <button
   style={d.saveBtn}
   onClick={async () => {
-    await supabase.from("hotels").update({ 
-      address: hotel.address,
-      gst_number: hotel.gst_number,
-      reception_contact: hotel.reception_contact
-    }).eq("id", hotel.id)
+await supabase.from("hotels").update({ 
+  address: hotel.address,
+  gst_number: hotel.gst_number,
+  fssai_number: hotel.fssai_number,
+  reception_contact: hotel.reception_contact
+}).eq("id", hotel.id)
     setThemeSaved(true)
     setTimeout(() => setThemeSaved(false), 2500)
   }}

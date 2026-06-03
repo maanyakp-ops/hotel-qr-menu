@@ -11,6 +11,7 @@ export default function Auth({ onLogin, initialMode }) {
     address: "",
     pin_code: "",
     gst_number: "",
+    fssai_number: "",
     owner_phone: "",
     contact_phone: "",
     room_count: "",
@@ -82,6 +83,7 @@ export default function Auth({ onLogin, initialMode }) {
       address: details.address,
       pin_code: details.pin_code,
       gst_number: details.gst_number || null,
+      fssai_number: details.fssai_number || null,
       owner_phone: details.owner_phone,
       contact_phone: details.contact_phone,
     })
@@ -229,6 +231,11 @@ export default function Auth({ onLogin, initialMode }) {
             <input style={s.input} placeholder="e.g. 27ABCDE1234F1Z5"
               value={details.gst_number}
               onChange={e => setDetails(p => ({ ...p, gst_number: e.target.value.toUpperCase() }))} />
+
+            <p style={s.label}>FSSAI Number <span style={{ color: "#8a9bb0", fontWeight: 400 }}>(optional)</span></p>
+            <input style={s.input} placeholder="14 digit FSSAI number" 
+              value={details.fssai_number}
+              onChange={e => setDetails(p => ({ ...p, fssai_number: e.target.value.toUpperCase() }))} />  
 
             <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
               <button style={s.backBtn} onClick={() => { setMode("signup"); setError("") }}>← Back</button>
