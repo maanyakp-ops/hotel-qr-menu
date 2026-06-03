@@ -1096,6 +1096,8 @@ async function loadHotel() {
           {/* REPORTS TAB */}
   {tab === "reports" && (
     <div style={tabContentStyle}>
+      {/* ROOM CHECKOUT SUMMARY */}
+
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 8px" }}>
         <p style={{ ...d.sectionLabel, margin: 0 }}>Daily Report</p>
         <input
