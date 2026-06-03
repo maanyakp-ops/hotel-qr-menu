@@ -1414,13 +1414,12 @@ async function loadHotel() {
                       </div>
                     </div>
                 
-                    <div class="bill-title">Checkout Bill</div>
+                    <div class="bill-title">Food Checkout Bill</div>
                     <div class="guest-info">
                       <strong>Guest:</strong> ${guest?.guest_name || "—"}<br>
                       ${guestSearchPhone ? `<strong>Phone:</strong> ${guestSearchPhone}<br>` : `<strong>Room:</strong> ${roomSummaryNumber}<br>`}
-                      <strong>Check-in:</strong> ${new Date(roomSummaryOrders[0].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}<br>
-                      <strong>Check-out:</strong> ${new Date(roomSummaryOrders[roomSummaryOrders.length - 1].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}<br>
-                      <strong>Printed:</strong> ${new Date().toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      ${hotel?.reception_contact ? `<strong>Reception:</strong> ${hotel.reception_contact}<br>` : ""}
+      <strong>Printed:</strong> ${new Date().toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </div>
                 
                     ${roomSummaryOrders.map((o, idx) => {
