@@ -1385,17 +1385,72 @@ async function loadHotel() {
               <button
                 style={{ ...d.addBtn, marginTop: 8, width: "100%" }}
                 onClick={() => {
-                  const lines = [`ROOM ${roomSummaryNumber} — CHECKOUT SUMMARY\n`]
-                  roomSummaryOrders.forEach((o, idx) => {
-                    const time = new Date(o.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-                    lines.push(`Order ${idx + 1} — ${time}`)
-                    o.order_items.forEach(i => lines.push(`  ${i.menu_items?.name} x${i.quantity} — ₹${i.price * i.quantity}`))
-                    lines.push(`  Total: ₹${o.order_items.reduce((s, i) => s + i.price * i.quantity, 0)}\n`)
-                  })
-                  const grand = roomSummaryOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)
-                  lines.push(`GRAND TOTAL: ₹${grand}`)
+                  const guest = roomSummaryOrders[0]
                   const win = window.open("", "_blank")
-                  win.document.write(`<pre style="font-family:monospace;padding:24px">${lines.join("\n")}</pre>`)
+                  win.document.write(`
+                    <html><head><title>Checkout Bill</title>
+                    <style>
+                      body { font-family: Arial, sans-serif; max-width: 480px; margin: 40px auto; padding: 0 24px; color: #1c2b3a; }
+                      .header { text-align: center; border-bottom: 2px solid #1c2b3a; padding-bottom: 16px; margin-bottom: 16px; }
+                      .hotel-name { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+                      .hotel-meta { font-size: 12px; color: #555; line-height: 1.8; }
+                      .bill-title { font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin: 16px 0 8px; }
+                      .guest-info { font-size: 13px; margin-bottom: 16px; line-height: 1.8; }
+                      .order-block { border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 10px; }
+                      .order-heading { font-size: 12px; color: #888; margin: 0 0 6px; }
+                      .item-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+                      .order-total { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-top: 6px; }
+                      .grand-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; border-top: 2px solid #1c2b3a; padding-top: 12px; margin-top: 12px; }
+                      .footer { text-align: center; font-size: 11px; color: #888; margin-top: 24px; border-top: 1px solid #eee; padding-top: 12px; }
+                    </style>
+                    </head><body>
+                    <div class="header">
+                      <div class="hotel-name">${hotel?.name || "Hotel"}</div>
+                      <div class="hotel-meta">
+                        ${hotel?.address ? `${hotel.address}<br>` : ""}
+                        ${hotel?.reception_contact ? `📞 ${hotel.reception_contact}<br>` : ""}
+                        ${hotel?.gst_number ? `GST: ${hotel.gst_number}<br>` : ""}
+                        ${hotel?.fssai_number ? `FSSAI: ${hotel.fssai_number}` : ""}
+                      </div>
+                    </div>
+                
+                    <div class="bill-title">Checkout Bill</div>
+                    <div class="guest-info">
+                      <strong>Guest:</strong> ${guest?.guest_name || "—"}<br>
+                      ${guestSearchPhone ? `<strong>Phone:</strong> ${guestSearchPhone}<br>` : `<strong>Room:</strong> ${roomSummaryNumber}<br>`}
+                      <strong>Check-in:</strong> ${new Date(roomSummaryOrders[0].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}<br>
+                      <strong>Check-out:</strong> ${new Date(roomSummaryOrders[roomSummaryOrders.length - 1].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}<br>
+                      <strong>Printed:</strong> ${new Date().toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                
+                    ${roomSummaryOrders.map((o, idx) => {
+                      const time = new Date(o.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                      const orderTotal = o.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+                      return `
+                        <div class="order-block">
+                          <div class="order-heading">Order ${idx + 1} · ${time}</div>
+                          ${o.order_items.map(i => `
+                            <div class="item-row">
+                              <span>${i.menu_items?.name} × ${i.quantity}</span>
+                              <span>₹${i.price * i.quantity}</span>
+                            </div>
+                          `).join("")}
+                          <div class="order-total"><span>Order Total</span><span>₹${orderTotal}</span></div>
+                        </div>
+                      `
+                    }).join("")}
+                
+                    <div class="grand-total">
+                      <span>GRAND TOTAL</span>
+                      <span>₹${roomSummaryOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}</span>
+                    </div>
+                
+                    <div class="footer">
+                      Thank you for staying with us!<br>
+                      ${hotel?.name || ""} · All prices inclusive of taxes
+                    </div>
+                    </body></html>
+                  `)
                   win.print()
                 }}
               >
