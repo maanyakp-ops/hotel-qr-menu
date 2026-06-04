@@ -93,15 +93,7 @@ heroBadge: {
     tab: { background: "none", border: "none", color: t.textSecondary, fontFamily: t.bodyFont, fontSize: 11, fontWeight: 400, letterSpacing: 2, textTransform: "uppercase", padding: "1rem 1.2rem", cursor: "pointer", whiteSpace: "nowrap", borderBottom: "2px solid transparent" },
     tabActive: { background: "none", border: "none", color: t.accent, fontFamily: t.bodyFont, fontSize: 11, fontWeight: isClean ? 700 : 400, letterSpacing: 2, textTransform: "uppercase", padding: "1rem 1.2rem", cursor: "pointer", whiteSpace: "nowrap", borderBottom: `2px solid ${t.accent}` },
     body: { padding: (isClean || themeKey === 'la-belle') ? "0.5rem 0 1rem" : "0 0 1rem" },
-   menuItem: { 
-  display: "flex", 
-  justifyContent: "space-between", 
-  alignItems: "center",
-  padding: t.itemPadding, 
-  borderBottom: t.itemBorderBottom, 
-  gap: "1.5rem", 
-  background: t.itemBg,
-},
+   menuItem: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.2rem 1.5rem", borderBottom: t.itemBorderBottom, gap: "1.5rem", background: t.itemBg, minHeight: 100 },
 itemName: { 
   fontFamily: t.titleFont, 
   fontSize: t.nameSize, 
@@ -208,8 +200,8 @@ addBtn: {
     specialsDivider: { height: 1, background: `linear-gradient(90deg, transparent, ${t.accent}, transparent)`, margin: "0.5rem 2rem 1.5rem", opacity: 0.3 },
     heroGoldBar: { position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${t.accent}, transparent)` },
     heroOrnament: { color: t.accentMuted, fontSize: 12, letterSpacing: 8, marginTop: "1.2rem", opacity: 0.5 },
-    itemLeft: { flex: 1 },
-    itemRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10, minWidth: 90 },
+    itemLeft: { flex: 1, minWidth: 0 },
+    itemRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "center", gap: 10, minWidth: 90, paddingRight: 4 },
     itemMeta: { fontSize: 11, color: t.accentMuted },
     itemGst: { fontSize: 9, color: t.textSecondary, letterSpacing: 0.5 },
   }
@@ -916,7 +908,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
                 <div key={item.id} style={s.specialItem}>
                   <div style={s.specialBadge}>Chef's Special</div>
                   {item.image_url && (
-                  <img src={item.image_url} style={{ width: 88, height: 88, borderRadius: 4, objectFit: "cover", flexShrink: 0 }} />
+                  <img src={item.image_url} style={{ width: 88, height: 88, minHeight: 88, borderRadius: 4, objectFit: "cover", flexShrink: 0 }} />
                   )}
                   <div style={s.itemLeft}>
                     <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>
@@ -953,7 +945,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
           return (
             <div key={item.id} style={s.menuItem}>
               {item.image_url && (
-              <img src={item.image_url} style={{ width: 88, height: 88, borderRadius: 4, objectFit: "cover", flexShrink: 0 }} />
+              <img src={item.image_url} style={{ width: 88, height: 88, borderRadius: 4, objectFit: "cover", flexShrink: 0, aspectRatio: "1/1" }} />
               )}
               <div style={s.itemLeft}>
                 <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>

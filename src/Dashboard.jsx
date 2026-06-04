@@ -598,7 +598,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
 )}
 
   {tab !== "reports" && (
-  <div style={{ ...d.metrics, gridTemplateColumns: "repeat(4,1fr)" }}>
+  <div style={{ ...d.metrics, gridTemplateColumns: "repeat(4,1fr)", background: "#f0f4f8", padding: "12px 16px", gap: 12 }}>
     <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
       <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>{orders.length}</p>
       <p style={d.metricLabel}>Orders today</p>
@@ -732,6 +732,14 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
                 👤 {order.guest_name}{order.guest_phone ? ` · ${order.guest_phone}` : ""}
               </p>
             )}
+            <div style={{ borderTop: "0.5px solid #f0f0f0", padding: "8px 0", margin: "8px 0" }}>
+  {order.order_items.map((item, i) => (
+    <div key={i} style={d.itemRow}>
+      <span>{item.menu_items?.name} x{item.quantity}</span>
+      <span style={{ color: "#1c2b3a", fontWeight: 500 }}>₹{item.price * item.quantity}</span>
+    </div>
+  ))}
+</div>
             <p style={{ fontSize: 11, color: "#8a9bb0", margin: 0 }}>
               🕐 {mins < 1 ? "Just now" : `${mins} min ago`}
             </p>
@@ -740,14 +748,8 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
             {order.status === "pending" ? "Pending" : order.status === "on_the_way" ? "On the Way" : "Preparing"}
           </span>
         </div>
-        <div style={{ borderTop: "0.5px solid #e2e8f0", borderBottom: "0.5px solid #e2e8f0", padding: "10px 0", margin: "10px 0", display: "flex", flexDirection: "column", gap: 5 }}>
-          {order.order_items.map((item, i) => (
-            <div key={i} style={d.itemRow}>
-              <span>{item.menu_items?.name} x{item.quantity}</span>
-              <span style={{ color: "#1c2b3a", fontWeight: 500 }}>₹{item.price * item.quantity}</span>
-            </div>
-          ))}
-        </div>
+
+
         {order.special_instructions && (
           <div style={{ background: "#f4f6f9", borderRadius: 8, padding: "7px 10px", marginBottom: 10, fontSize: 12, color: "#8a9bb0", display: "flex", gap: 6 }}>
             📝 {order.special_instructions}
@@ -878,10 +880,9 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
                 </div>
               )}
 
-              <p style={d.sectionLabel}>Add New Item</p>
               <div style={d.form}>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-    <p style={{ fontSize: 11, color: "#8a9bb0", margin: 0 }}>Item Photo (optional)</p>
+  <div>
+    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px", fontWeight: 500 }}>Item Photo (optional)</p>
     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
       {newItem.image_url && (
         <img src={newItem.image_url} style={{ width: 60, height: 60, borderRadius: 8, objectFit: "cover", border: "1px solid #e2e8f0" }} />
@@ -905,61 +906,63 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
     </div>
   </div>
 
-                <input style={d.input} placeholder="Item name" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
-<select
-  value={newItem.category}
-  onChange={(e) => {
-    const category = e.target.value
+  <div>
+    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px", fontWeight: 500 }}>Item Name</p>
+    <input style={d.input} placeholder="e.g. Butter Chicken" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
+  </div>
 
-    const gst =
-      hotel?.gst_category_rates?.[category] ??
-      DEFAULT_GST_RATES[category] ??
-      5
+  <div>
+    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px", fontWeight: 500 }}>Category</p>
+    <select style={d.input} value={newItem.category} onChange={(e) => {
+      const category = e.target.value
+      const gst = hotel?.gst_category_rates?.[category] ?? DEFAULT_GST_RATES[category] ?? 5
+      setNewItem({ ...newItem, category, gst_rate: gst })
+    }}>
+      <option value="">Select Category</option>
+      {["Breakfast", "Starters", "Main Course", "Breads", "Rice & Biryani", "Snacks", "Desserts", "Beverages"].map(cat => (
+        <option key={cat} value={cat}>{cat}</option>
+      ))}
+      {menuItems.map(i => i.category).filter((c, idx, arr) => c && arr.indexOf(c) === idx && !["Breakfast", "Starters", "Main Course", "Breads", "Rice & Biryani", "Snacks", "Desserts", "Beverages"].includes(c)).map(cat => (
+        <option key={cat} value={cat}>{cat}</option>
+      ))}
+    </select>
+  </div>
 
-    setNewItem({
-      ...newItem,
-      category,
-      gst_rate: gst
-    })
-  }}
->
-    <option value="">Select Category</option>
-    {["Breakfast", "Starters", "Main Course", "Breads", "Rice & Biryani", "Snacks", "Desserts", "Beverages"].map(cat => (
-      <option key={cat} value={cat}>{cat}</option>
-    ))}
-    {menuItems.map(i => i.category).filter((c, idx, arr) => c && arr.indexOf(c) === idx && !["Breakfast", "Starters", "Main Course", "Breads", "Rice & Biryani", "Snacks", "Desserts", "Beverages"].includes(c)).map(cat => (
-      <option key={cat} value={cat}>{cat}</option>
-    ))}
-  </select>
-                <input style={d.input} placeholder="Price (₹)" type="number" value={newItem.price} onChange={e => setNewItem({ ...newItem, price: e.target.value })} />
-                <input type="number" placeholder="GST %" value={newItem.gst_rate} onChange={(e) => setNewItem({...newItem,gst_rate: Number(e.target.value)})} />
-                <input style={d.input} placeholder="Prep time in minutes (e.g. 15)" type="number" value={newItem.prep_time} onChange={e => setNewItem({ ...newItem, prep_time: e.target.value })} />
-                <div style={{ display: "flex", gap: 6 }}>
-                  <input style={{ ...d.input, flex: 1 }} placeholder="Item description (optional)" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
-                  <button type="button" style={d.btnSuggest} onClick={() => suggestDescription(newItem.name, newItem.category, "new")}>
-                    Suggest
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  style={newItem.is_special ? d.btnSpecialOn : d.btnSpecialOff}
-                  onClick={() => setNewItem({ ...newItem, is_special: !newItem.is_special })}
-                >
-                  {newItem.is_special ? "⭐ Marked as Special" : "☆ Mark as Special"}
-                </button>
+  <div>
+    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px", fontWeight: 500 }}>Price (₹)</p>
+    <input style={d.input} placeholder="e.g. 250" type="number" value={newItem.price} onChange={e => setNewItem({ ...newItem, price: e.target.value })} />
+  </div>
 
-                <button
-    type="button"
-    style={newItem.is_veg !== false ? d.btnVeg : d.btnNonVeg}
-    onClick={() => setNewItem({ ...newItem, is_veg: newItem.is_veg === false ? true : false })}
-  >
+  <div>
+    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px", fontWeight: 500 }}>GST %</p>
+    <input style={d.input} type="number" value={newItem.gst_rate} onChange={(e) => setNewItem({...newItem, gst_rate: Number(e.target.value)})} />
+  </div>
+
+  <div>
+    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px", fontWeight: 500 }}>Prep Time (minutes)</p>
+    <input style={d.input} placeholder="e.g. 15" type="number" value={newItem.prep_time} onChange={e => setNewItem({ ...newItem, prep_time: e.target.value })} />
+  </div>
+
+  <div>
+    <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px", fontWeight: 500 }}>Description (optional)</p>
+    <div style={{ display: "flex", gap: 6 }}>
+      <input style={{ ...d.input, flex: 1 }} placeholder="e.g. Tender chicken in a rich tomato gravy" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
+      <button type="button" style={d.btnSuggest} onClick={() => suggestDescription(newItem.name, newItem.category, "new")}>Suggest</button>
+    </div>
+  </div>
+
+  <button type="button" style={newItem.is_special ? d.btnSpecialOn : d.btnSpecialOff} onClick={() => setNewItem({ ...newItem, is_special: !newItem.is_special })}>
+    {newItem.is_special ? "⭐ Marked as Special" : "☆ Mark as Special"}
+  </button>
+
+  <button type="button" style={newItem.is_veg !== false ? d.btnVeg : d.btnNonVeg} onClick={() => setNewItem({ ...newItem, is_veg: newItem.is_veg === false ? true : false })}>
     {newItem.is_veg !== false ? "🟢 Veg" : "🔴 Non-Veg"}
   </button>
 
-                <button style={d.addBtn} onClick={addItem} disabled={adding}>
-                  {adding ? "Adding..." : "+ Add Item"}
-                </button>
-              </div>
+  <button style={d.addBtn} onClick={addItem} disabled={adding}>
+    {adding ? "Adding..." : "+ Add Item"}
+  </button>
+</div>
 
               <p style={d.sectionLabel}>Your Menu ({menuItems.length} items)</p>
               {menuItems.length === 0 && <p style={d.empty}>No items yet. Add one above.</p>}
@@ -1685,39 +1688,27 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
   </button>
 </div>
 
-<h3>GST Rates By Category</h3>
-
-{Object.keys(gstRates).map(category => (
-  <div key={category}>
-    <label>{category}</label>
-
-    <input
-      type="number"
-      value={gstRates[category]}
-      onChange={(e) =>
-        setGstRates({
-          ...gstRates,
-          [category]: Number(e.target.value)
-        })
-      }
-    />
-  </div>
-))}
-
-<button
-  onClick={async () => {
-    await supabase
-      .from("hotels")
-      .update({
-        gst_category_rates: gstRates
-      })
-      .eq("id", hotel.id)
-
-    alert("GST rates saved")
-  }}
->
-  Save GST Rates
-</button>
+<p style={{ ...d.sectionLabel, marginTop: 28 }}>GST Rates By Category</p>
+<p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>Set default GST % per category.</p>
+<div style={d.form}>
+  {Object.keys(gstRates).map(category => (
+    <div key={category} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+      <label style={{ fontSize: 13, color: "#1c2b3a", flex: 1 }}>{category}</label>
+      <input
+        style={{ ...d.input, width: 80, textAlign: "center" }}
+        type="number"
+        value={gstRates[category]}
+        onChange={(e) => setGstRates({ ...gstRates, [category]: Number(e.target.value) })}
+      />
+      <span style={{ fontSize: 12, color: "#8a9bb0" }}>%</span>
+    </div>
+  ))}
+  <button style={d.saveBtn} onClick={async () => {
+    await supabase.from("hotels").update({ gst_category_rates: gstRates }).eq("id", hotel.id)
+    setThemeSaved(true)
+    setTimeout(() => setThemeSaved(false), 2500)
+  }}>Save GST Rates</button>
+</div>
 
 
             </div>
@@ -1891,24 +1882,23 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
   }
 
   const d = {
-    page: { background: "#f4f6f9", minHeight: "100vh", fontFamily: "-apple-system, sans-serif" },
+    page: { background: "#f0f4f8", minHeight: "100vh", fontFamily: "-apple-system, sans-serif" },
     center: { textAlign: "center", marginTop: 100, color: "#333" },
-    topbar: { background: "#1c2b3a", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" },
-    backBtn: { background: "none", border: "none", color: "#7eb3f5", fontSize: 13, cursor: "pointer", padding: 0 },
+    topbar: { background: "#1c2b3a", padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 2px 8px rgba(0,0,0,0.2)" },    backBtn: { background: "none", border: "none", color: "#7eb3f5", fontSize: 13, cursor: "pointer", padding: 0 },
     brand: { color: "#e8f0f8", fontSize: 15, fontWeight: 500 },
     live: { display: "flex", alignItems: "center", gap: 5, color: "#6fcf97", fontSize: 12 },
     dot: { width: 7, height: 7, borderRadius: "50%", background: "#6fcf97", display: "inline-block" },
     logoutBtn: { background: "none", border: "0.5px solid #3a3a3c", color: "#6e6e73", borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer" },
     metrics: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, padding: 14 },
-    metric: { background: "#fff", borderRadius: 12, padding: "12px 10px", textAlign: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" },
-    metricVal: { fontSize: 24, fontWeight: 600, color: "#1c2b3a", margin: "0 0 3px", transition: "color 0.2s" },
-    metricLabel: { fontSize: 13, color: "#8a9bb0", margin: 0 },
-  tabs: { display: "flex", background: "#fff", padding: "10px 14px", overflowX: "auto", gap: 6, borderBottom: "0.5px solid #e2e8f0" },
+    metric: { background: "#fff", borderRadius: 12, padding: "16px 12px", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.08)", border: "none" },
+    metricVal: { fontSize: 28, fontWeight: 700, color: "#1c2b3a", margin: "0 0 4px" },
+    metricLabel: { fontSize: 11, color: "#8a9bb0", margin: 0, letterSpacing: 0.5, textTransform: "uppercase" },
+    tabs: { display: "flex", background: "#fff", padding: "10px 14px", overflowX: "auto", gap: 6, borderBottom: "0.5px solid #e2e8f0" },
     tab: { padding: "8px 16px", fontSize: 13, color: "#8a9bb0", background: "none", border: "1px solid #e2e8f0", borderRadius: 8, cursor: "pointer", fontWeight: 400, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" },
     tabActive: { padding: "8px 16px", fontSize: 13, color: "#fff", background: "#1c2b3a", border: "1px solid #1c2b3a", borderRadius: 8, cursor: "pointer", fontWeight: 500, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" },
-    body: { padding: "0 14px 40px" },
-    sectionLabel: { fontSize: 12, letterSpacing: "1.5px", textTransform: "uppercase", color: "#8a9bb0", fontWeight: 500, margin: "16px 0 8px" },
-    card: { background: "#fff", borderRadius: 14, padding: "14px 16px", marginBottom: 8, border: "0.5px solid #e2e8f0" },
+    body: { padding: "0 16px 40px" },
+    sectionLabel: { fontSize: 11, letterSpacing: 2, textTransform: "uppercase", color: "#8a9bb0", fontWeight: 600, margin: "20px 0 10px" },
+    card: { background: "#fff", borderRadius: 12, padding: "16px", marginBottom: 10, border: "none", boxShadow: "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)" },
     cardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
     room: { fontSize: 16, fontWeight: 600, color: "#1c2b3a", margin: 0 },
     badgePending: { background: "#fff3e0", color: "#b45309", fontSize: 11, padding: "3px 10px", borderRadius: 20, fontWeight: 500 },
@@ -1919,13 +1909,13 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
     itemRow: { display: "flex", justifyContent: "space-between", fontSize: 15, color: "#8a9bb0", marginBottom: 4 },
     totalRow: { display: "flex", justifyContent: "space-between", fontSize: 16, fontWeight: 600, color: "#1c2b3a", borderTop: "0.5px solid #eee", paddingTop: 8, marginBottom: 10 },
     actions: { display: "flex", alignItems: "center", gap: 10 },
-    btnPrepare: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 14, fontWeight: 500, cursor: "pointer" },
+    btnPrepare: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
     btnDeliver: { background: "#e0f2fe", color: "#0369a1", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 14, fontWeight: 500, cursor: "pointer" },
-    btnReject: { background: "#c0392b", color: "#fff", border: "none", borderRadius: 8, padding: "8px 16px", fontSize: 14, fontWeight: 500, cursor: "pointer" },
+    btnReject: { background: "#c0392b", color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 500, cursor: "pointer" },
     timeAgo: { fontSize: 13, color: "#8a9bb0", margin: 0 },
     empty: { textAlign: "center", color: "#8a9bb0", marginTop: 30, fontSize: 16 },
-    form: { background: "#fff", borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: "0 1px 6px rgba(0,0,0,0.07)", display: "flex", flexDirection: "column", gap: 8 },
-    input: { background: "#f4f6f9", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#1c2b3a", outline: "none" },
+    form: { background: "#fff", borderRadius: 14, padding: 14, marginBottom: 16, boxShadow: "0 1px 6px rgba(0,0,0,0.07)", display: "flex", flexDirection: "column", gap: 8, width: "100%" },
+    input: { background: "#f4f6f9", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "#1c2b3a", outline: "none", width: "100%", boxSizing: "border-box" },
     addBtn: { background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 500, cursor: "pointer" },
     menuCard: { background: "#fff", borderRadius: 14, padding: 12, marginBottom: 8, boxShadow: "0 1px 6px rgba(0,0,0,0.07)", display: "flex", alignItems: "center", gap: 12 },
     menuImgPlaceholder: { width: 52, height: 52, borderRadius: 8, background: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 },
