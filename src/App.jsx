@@ -844,29 +844,8 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
         <div style={s.heroOrnament}>✦ &nbsp; ✦ &nbsp; ✦</div>
       </div>
 
-      <div style={{ position: "absolute", top: 16, right: 16, display: "flex", alignItems: "center", gap: 6 }}>
-  <span style={{ fontSize: 10, color: t.accentMuted }}>A</span>
-  <div
-    onClick={async () => {
-      const sizeOrder = ["small", "medium", "large"]
-      const current = hotelInfo?.font_size || "medium"
-      const next = sizeOrder[(sizeOrder.indexOf(current) + 1) % sizeOrder.length]
-      await supabase.from("hotels").update({ font_size: next }).eq("id", resolvedHotelId)
-      setHotelInfo(prev => ({ ...prev, font_size: next }))
-    }}
-    style={{ width: 36, height: 18, borderRadius: 9, background: t.accentMuted, cursor: "pointer", position: "relative" }}
-  >
-    <div style={{
-      width: 14, height: 14, borderRadius: "50%", background: '#fff',
-      position: "absolute", top: 2,
-      left: hotelInfo?.font_size === "large" ? 20 : hotelInfo?.font_size === "small" ? 2 : 11,
-      transition: "left 0.2s"
-    }} />
-  </div>
-  <span style={{ fontSize: 14, color: t.accentMuted }}>A</span>
-</div>
 
-<div style={{ display: "flex", justifyContent: "center", padding: "10px 0", background: t.tabsBg }}>
+<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: t.tabsBg }}>
   <button
     style={{ 
       background: vegOnly ? t.accent : 'transparent', 
@@ -884,6 +863,27 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
   >
     ● VEG ONLY
   </button>
+  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+    <span style={{ fontSize: 10, color: t.accentMuted }}>A</span>
+    <div
+      onClick={async () => {
+        const sizeOrder = ["small", "medium", "large"]
+        const current = hotelInfo?.font_size || "medium"
+        const next = sizeOrder[(sizeOrder.indexOf(current) + 1) % sizeOrder.length]
+        await supabase.from("hotels").update({ font_size: next }).eq("id", resolvedHotelId)
+        setHotelInfo(prev => ({ ...prev, font_size: next }))
+      }}
+      style={{ width: 36, height: 18, borderRadius: 9, background: t.accentMuted, cursor: "pointer", position: "relative" }}
+    >
+      <div style={{
+        width: 14, height: 14, borderRadius: "50%", background: '#fff',
+        position: "absolute", top: 2,
+        left: hotelInfo?.font_size === "large" ? 20 : hotelInfo?.font_size === "small" ? 2 : 11,
+        transition: "left 0.2s"
+      }} />
+    </div>
+    <span style={{ fontSize: 14, color: t.accentMuted }}>A</span>
+  </div>
 </div>
 
       {categories.length > 0 && (
