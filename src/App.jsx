@@ -139,7 +139,7 @@ addBtn: {
   whiteSpace: "nowrap",
   textTransform: "uppercase",
 },
-    addBtn: { background: t.addBtnBg, border: t.addBtnBorder, color: t.addBtnColor, borderRadius: (isClean || themeKey === 'la-belle') ? 20 : 2, padding: isClean ? "5px 14px" : "4px 12px", fontSize: 11, letterSpacing: 1, cursor: "pointer", fontFamily: t.bodyFont, whiteSpace: "nowrap" },
+   
     qtyRow: { display: "flex", alignItems: "center", gap: 8 },
     qtyBtn: { background: (isClean || themeKey === 'la-belle') ? t.accent : 'none', border: t.qtyBtnBorder, color: (isClean || themeKey === 'la-belle') ? '#fff' : t.qtyBtnColor, borderRadius: (isClean || themeKey === 'la-belle') ? "50%" : 2, width: 26, height: 26, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
     qtyNum: { color: t.textPrimary, fontSize: 14, fontWeight: 400, minWidth: 16, textAlign: "center" },
@@ -206,6 +206,12 @@ addBtn: {
     specialItem: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: isClean ? t.itemPadding : "1.6rem 2rem 1.1rem", borderBottom: t.itemBorderBottom, gap: "1rem", background: t.itemBg || t.heroBg, position: "relative", borderRadius: t.itemRadius, margin: t.itemMargin, boxShadow: t.itemShadow },
     specialBadge: { position: "absolute", top: 10, left: 20, fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: t.accent, opacity: 0.7 },
     specialsDivider: { height: 1, background: `linear-gradient(90deg, transparent, ${t.accent}, transparent)`, margin: "0.5rem 2rem 1.5rem", opacity: 0.3 },
+    heroGoldBar: { position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${t.accent}, transparent)` },
+    heroOrnament: { color: t.accentMuted, fontSize: 12, letterSpacing: 8, marginTop: "1.2rem", opacity: 0.5 },
+    itemLeft: { flex: 1 },
+    itemRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10, minWidth: 90 },
+    itemMeta: { fontSize: 11, color: t.accentMuted },
+    itemGst: { fontSize: 9, color: t.textSecondary, letterSpacing: 0.5 },
   }
 }
 
@@ -888,7 +894,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
                 <div key={item.id} style={s.specialItem}>
                   <div style={s.specialBadge}>Chef's Special</div>
                   {item.image_url && (
-                    <img src={item.image_url} style={{ width: 72, height: 72, borderRadius: t.itemRadius || 8, objectFit: "cover", flexShrink: 0 }} />
+                  <img src={item.image_url} style={{ width: 88, height: 88, borderRadius: 4, objectFit: "cover", flexShrink: 0 }} />
                   )}
                   <div style={s.itemLeft}>
                     <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>
@@ -910,7 +916,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
                         <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
                       </div>
                     ) : (
-                      <button style={{ ...s.addBtn, fontSize: 11 * fontScale }} onClick={() => addToCart(item)}>+ Add</button>
+                      <button style={{ ...s.addBtn, fontSize: 10 }} onClick={() => addToCart(item)}>ADD</button>
                     )}
                   </div>
                 </div>
@@ -925,7 +931,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
           return (
             <div key={item.id} style={s.menuItem}>
               {item.image_url && (
-                <img src={item.image_url} style={{ width: 72, height: 72, borderRadius: t.itemRadius || 8, objectFit: "cover", flexShrink: 0 }} />
+              <img src={item.image_url} style={{ width: 88, height: 88, borderRadius: 4, objectFit: "cover", flexShrink: 0 }} />
               )}
               <div style={s.itemLeft}>
                 <div style={{ ...s.itemName, fontSize: (t.nameSize || 17) * fontScale, display: "flex", alignItems: "center", gap: 6 }}>
@@ -947,7 +953,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
                     <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
                   </div>
                 ) : (
-                  <button style={{ ...s.addBtn, fontSize: 11 * fontScale }} onClick={() => addToCart(item)}>+ Add</button>
+                  <button style={{ ...s.addBtn, fontSize: 10 }} onClick={() => addToCart(item)}>ADD</button>
                 )}
               </div>
             </div>
