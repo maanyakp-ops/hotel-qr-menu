@@ -349,6 +349,18 @@ async function loadHotel() {
         playOrderSound()
         showBadge()
       })
+        .on("postgres_changes", {          // ← ADD THIS
+    event: "UPDATE",
+    schema: "public",
+    table: "orders",
+    filter: `hotel_id=eq.${hotelData.id}`
+  }, (payload) => {
+    if (payload.new.status === "pending" && payload.old.status === "hold") {
+      fetchOrders(hotelData.id)
+      playOrderSound()
+      showBadge()
+    }
+  })
       .subscribe((status) => {
         console.log("Subscription status:", status)
       })
