@@ -5,25 +5,25 @@ import Dashboard from "./Dashboard"
 import Auth from "./Auth"
 
 const themeConfigs = {
-  'dark-gold': {
-    pageBg: '#0D0C0A', heroBg: '#141310', heroBorder: '#2E2B22',
-    accent: '#C9A84C', accentMuted: '#7A6230',
-    textPrimary: '#EDE8DC', textSecondary: '#9A927E',
-    tabsBg: '#141310', tabBorder: '#2E2B22',
-    titleFont: "'Cormorant Garamond', serif", bodyFont: "'Jost', sans-serif",
-    inputBg: '#1C1A16', inputBorder: '#2E2B22', inputColor: '#EDE8DC',
-    cartBg: '#141310', cartBorder: '#2E2B22',
-    btnBg: '#C9A84C', btnColor: '#0D0C0A',
-    addBtnBg: '#C9A84C', addBtnBorder: '1px solid #C9A84C', addBtnColor: '#0D0C0A',
-    qtyBtnBorder: '1px solid #2E2B22', qtyBtnColor: '#C9A84C',
-    modalBg: '#141310', modalBorder: '#2E2B22',
-    heroTitleColor: '#EDE8DC', heroSubColor: '#9A927E',
-    itemBorderBottom: '1px solid #2E2B22', itemBg: 'transparent',
-    itemRadius: 0, itemShadow: 'none', itemPadding: '1.1rem 2rem', itemMargin: 0,
-    nameStyle: 'normal', nameWeight: 400, nameSize: 17,
-    priceColor: '#C9A84C', cartTotalColor: '#C9A84C',
-    cartCountColor: '#9A927E',
-  },
+'dark-gold': {
+  pageBg: '#0A0A08', heroBg: '#0A0A08', heroBorder: '#1E1C16',
+  accent: '#C9A84C', accentMuted: '#6B5420',
+  textPrimary: '#F0EBE0', textSecondary: '#6B6456',
+  tabsBg: '#0A0A08', tabBorder: '#1E1C16',
+  titleFont: "'Cormorant Garamond', serif", bodyFont: "'DM Sans', sans-serif",
+  inputBg: '#141310', inputBorder: '#2E2B22', inputColor: '#EDE8DC',
+  cartBg: '#0A0A08', cartBorder: '#1E1C16',
+  btnBg: '#C9A84C', btnColor: '#0A0A08',
+  addBtnBg: 'transparent', addBtnBorder: '1px solid #C9A84C', addBtnColor: '#C9A84C',
+  qtyBtnBorder: '1px solid #2E2B22', qtyBtnColor: '#C9A84C',
+  modalBg: '#0A0A08', modalBorder: '#1E1C16',
+  heroTitleColor: '#F0EBE0', heroSubColor: '#6B6456',
+  itemBorderBottom: '1px solid #1A1814', itemBg: 'transparent',
+  itemRadius: 0, itemShadow: 'none', itemPadding: '1.4rem 1.5rem', itemMargin: 0,
+  nameStyle: 'normal', nameWeight: 400, nameSize: 19,
+  priceColor: '#F0EBE0', cartTotalColor: '#C9A84C',
+  cartCountColor: '#6B6456',
+},
   'la-belle': {
     pageBg: '#fffaf8', heroBg: '#ffffff', heroBorder: '#f0e7e4',
     accent: '#e88d95', accentMuted: '#f5c4cb',
@@ -52,24 +52,93 @@ function getStyles(themeKey) {
   return {
     page: { background: t.pageBg, minHeight: "100vh", maxWidth: 680, margin: "0 auto", fontFamily: t.bodyFont, fontWeight: 300, paddingBottom: 100 },
     center: { color: t.textPrimary, textAlign: "center", marginTop: 100, fontSize: 16, background: t.pageBg, minHeight: "100vh", fontFamily: t.bodyFont },
-    hero: { background: t.heroBg, borderBottom: `1px solid ${t.heroBorder}`, padding: "2.5rem 2rem 2rem", textAlign: "center", position: "relative", overflow: "hidden" },
-    heroGoldBar: { position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, transparent, ${t.accent}, transparent)` },
-    heroBadge: { display: "inline-block", fontSize: 10, letterSpacing: 4, textTransform: "uppercase", color: isWarm ? '#F5DEB3' : t.accent, border: `1px solid ${t.accentMuted}`, padding: "4px 16px", marginBottom: "1rem", fontFamily: t.bodyFont },
-    heroTitle: { fontFamily: t.titleFont, fontSize: isClean ? 30 : 42, fontWeight: isClean ? 700 : 300, letterSpacing: isClean ? -1 : 2, color: t.heroTitleColor, lineHeight: 1.1, margin: "0 0 0.5rem" },
-    heroSub: { fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: t.heroSubColor, margin: 0 },
-    heroOrnament: { color: t.accentMuted, fontSize: 16, letterSpacing: 8, marginTop: "1rem", opacity: 0.6 },
+hero: { 
+  background: 'transparent',
+  borderBottom: `1px solid ${t.heroBorder}`, 
+  padding: "3rem 1.5rem 2rem", 
+  textAlign: "center", 
+  position: "relative", 
+  overflow: "hidden" 
+},
+heroTitle: { 
+  fontFamily: t.titleFont, 
+  fontSize: 52, 
+  fontWeight: 300, 
+  letterSpacing: 1, 
+  color: t.heroTitleColor, 
+  lineHeight: 1.05, 
+  margin: "0 0 0.75rem" 
+},
+heroSub: { 
+  fontSize: 11, 
+  letterSpacing: 4, 
+  textTransform: "uppercase", 
+  color: t.heroSubColor, 
+  margin: 0,
+  fontFamily: t.bodyFont,
+},
+heroBadge: { 
+  display: "inline-block", 
+  fontSize: 9, 
+  letterSpacing: 5, 
+  textTransform: "uppercase", 
+  color: t.accent, 
+  border: `1px solid ${t.accentMuted}`, 
+  padding: "5px 18px", 
+  marginBottom: "1.5rem", 
+  fontFamily: t.bodyFont,
+  borderRadius: 0,
+},
     tabs: { display: "flex", overflowX: "auto", background: t.tabsBg, borderBottom: `1px solid ${t.tabBorder}`, padding: "0 1rem", scrollbarWidth: "none", position: "sticky", top: 0, zIndex: 10 },
     tab: { background: "none", border: "none", color: t.textSecondary, fontFamily: t.bodyFont, fontSize: 11, fontWeight: 400, letterSpacing: 2, textTransform: "uppercase", padding: "1rem 1.2rem", cursor: "pointer", whiteSpace: "nowrap", borderBottom: "2px solid transparent" },
     tabActive: { background: "none", border: "none", color: t.accent, fontFamily: t.bodyFont, fontSize: 11, fontWeight: isClean ? 700 : 400, letterSpacing: 2, textTransform: "uppercase", padding: "1rem 1.2rem", cursor: "pointer", whiteSpace: "nowrap", borderBottom: `2px solid ${t.accent}` },
     body: { padding: (isClean || themeKey === 'la-belle') ? "0.5rem 0 1rem" : "0 0 1rem" },
-    menuItem: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: t.itemPadding, borderBottom: t.itemBorderBottom, gap: "1rem", background: t.itemBg, borderRadius: t.itemRadius, boxShadow: t.itemShadow, margin: t.itemMargin },
-    itemLeft: { flex: 1 },
-    itemName: { fontFamily: t.titleFont, fontSize: t.nameSize, fontWeight: t.nameWeight, fontStyle: t.nameStyle, color: t.textPrimary, marginBottom: 3 },
-    itemDesc: { fontSize: 12, color: t.textSecondary, lineHeight: 1.6, maxWidth: 340, marginBottom: 4, fontFamily: t.bodyFont, fontStyle: 'normal' },
-    itemMeta: { fontSize: 11, color: t.accentMuted },
-    itemRight: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, minWidth: 80 },
-    itemPrice: { fontFamily: t.titleFont, fontSize: isClean ? 15 : 18, fontWeight: isClean ? 700 : 400, color: t.priceColor, whiteSpace: "nowrap" },
-    itemGst: { fontSize: 9, color: t.textSecondary, letterSpacing: 0.5, whiteSpace: "nowrap", marginTop: -6 },
+   menuItem: { 
+  display: "flex", 
+  justifyContent: "space-between", 
+  alignItems: "center",
+  padding: t.itemPadding, 
+  borderBottom: t.itemBorderBottom, 
+  gap: "1.5rem", 
+  background: t.itemBg,
+},
+itemName: { 
+  fontFamily: t.titleFont, 
+  fontSize: t.nameSize, 
+  fontWeight: 400, 
+  color: t.textPrimary, 
+  marginBottom: 5,
+  lineHeight: 1.2,
+},
+itemDesc: { 
+  fontSize: 12, 
+  color: t.textSecondary, 
+  lineHeight: 1.7, 
+  maxWidth: 300, 
+  marginBottom: 0,
+  fontFamily: t.bodyFont,
+},
+itemPrice: { 
+  fontFamily: t.titleFont, 
+  fontSize: 20, 
+  fontWeight: 300, 
+  color: t.priceColor, 
+  whiteSpace: "nowrap",
+  marginBottom: 8,
+},
+addBtn: { 
+  background: 'transparent', 
+  border: `1px solid ${t.accent}`, 
+  color: t.accent, 
+  borderRadius: 0, 
+  padding: "6px 16px", 
+  fontSize: 10, 
+  letterSpacing: 2, 
+  cursor: "pointer", 
+  fontFamily: t.bodyFont, 
+  whiteSpace: "nowrap",
+  textTransform: "uppercase",
+},
     addBtn: { background: t.addBtnBg, border: t.addBtnBorder, color: t.addBtnColor, borderRadius: (isClean || themeKey === 'la-belle') ? 20 : 2, padding: isClean ? "5px 14px" : "4px 12px", fontSize: 11, letterSpacing: 1, cursor: "pointer", fontFamily: t.bodyFont, whiteSpace: "nowrap" },
     qtyRow: { display: "flex", alignItems: "center", gap: 8 },
     qtyBtn: { background: (isClean || themeKey === 'la-belle') ? t.accent : 'none', border: t.qtyBtnBorder, color: (isClean || themeKey === 'la-belle') ? '#fff' : t.qtyBtnColor, borderRadius: (isClean || themeKey === 'la-belle') ? "50%" : 2, width: 26, height: 26, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
@@ -769,35 +838,25 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
         <div style={s.heroOrnament}>✦ &nbsp; ✦ &nbsp; ✦</div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: "1rem", marginBottom: "0.5rem", background: s.tabsBg, padding: "8px 0" }}>
-        <button
-          style={{ background: vegOnly ? "#2e7d32" : "none", border: "1px solid #2e7d32", color: vegOnly ? "#fff" : "#2e7d32", borderRadius: 20, padding: "5px 16px", fontSize: 11, cursor: "pointer", fontFamily: s.bodyFont, letterSpacing: 1 }}
-          onClick={() => setVegOnly(!vegOnly)}
-        >
-          🟢 Veg Only
-        </button>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ fontSize: 10, color: t.accent, fontWeight: 700 }}>A−</span>
-          <div
-            onClick={async () => {
-              const sizeOrder = ["small", "medium", "large"]
-              const current = hotelInfo?.font_size || "medium"
-              const next = sizeOrder[(sizeOrder.indexOf(current) + 1) % sizeOrder.length]
-              await supabase.from("hotels").update({ font_size: next }).eq("id", resolvedHotelId)
-              setHotelInfo(prev => ({ ...prev, font_size: next }))
-            }}
-            style={{ width: 40, height: 20, borderRadius: 10, background: t.accent, cursor: "pointer", position: "relative" }}
-          >
-            <div style={{
-              width: 16, height: 16, borderRadius: "50%", background: '#fff',
-              position: "absolute", top: 2,
-              left: hotelInfo?.font_size === "large" ? 22 : hotelInfo?.font_size === "small" ? 2 : 12,
-              transition: "left 0.2s"
-            }} />
-          </div>
-          <span style={{ fontSize: 17, color: t.accent, fontWeight: 700 }}>A+</span>
-        </div>
-      </div>
+<div style={{ display: "flex", justifyContent: "center", padding: "10px 0", background: t.tabsBg }}>
+  <button
+    style={{ 
+      background: vegOnly ? t.accent : 'transparent', 
+      border: `1px solid ${vegOnly ? t.accent : t.accentMuted}`, 
+      color: vegOnly ? '#0A0A08' : t.textSecondary, 
+      borderRadius: 0, 
+      padding: "6px 20px", 
+      fontSize: 10, 
+      cursor: "pointer", 
+      fontFamily: t.bodyFont, 
+      letterSpacing: 2,
+      textTransform: "uppercase",
+    }}
+    onClick={() => setVegOnly(!vegOnly)}
+  >
+    ● VEG ONLY
+  </button>
+</div>
 
       {categories.length > 0 && (
         <div style={s.tabs}>
@@ -837,13 +896,11 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
                       {item.name}
                     </div>
                     {item.description && <div style={{ ...s.itemDesc, fontSize: 12 * fontScale }}>{item.description}</div>}
-                    <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
+                    
                   </div>
                   <div style={s.itemRight}>
                     <div style={{ ...s.itemPrice, fontSize: s.itemPrice.fontSize * fontScale }}>₹{item.price}</div>
-                    {item.gst_rate > 0 && (
-                      <div style={s.itemGst}>+{item.gst_rate}% GST</div>
-                    )}
+                    
                     {item.out_of_stock ? (
                       <span style={s.outOfStock}>Out of Stock</span>
                     ) : cartItem ? (
@@ -876,13 +933,11 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
                   {item.name}
                 </div>
                 {item.description && <div style={{ ...s.itemDesc, fontSize: 12 * fontScale }}>{item.description}</div>}
-                <div style={s.itemMeta}>⏱ {item.prep_time || 15} min</div>
+                
               </div>
               <div style={s.itemRight}>
                 <div style={{ ...s.itemPrice, fontSize: s.itemPrice.fontSize * fontScale }}>₹{item.price}</div>
-                {item.gst_rate > 0 && (
-                  <div style={s.itemGst}>+{item.gst_rate}% GST</div>
-                )}
+                
                 {item.out_of_stock ? (
                   <span style={s.outOfStock}>Out of Stock</span>
                 ) : cartItem ? (
