@@ -1,13 +1,3 @@
-import {
-  Receipt,
-  ChefHat,
-  Bike,
-  CheckCircle2,
-  XCircle,
-  Ban,
-  Clock3,
-  PackageCheck
-} from "lucide-react";
 import { useEffect, useState, useRef } from "react"
 import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
@@ -276,32 +266,6 @@ function App() {
     }
   }, [orderStatus])
 
-  useEffect(() => {
-  if (orderPlaced && placedOrder?.id) {
-    const expiry = Number(localStorage.getItem(`holdExpiry_${placedOrder.id}`))
-    if (expiry && Date.now() < expiry) {
-      const remaining = Math.ceil((expiry - Date.now()) / 1000)
-      setHoldCountdown(remaining)
-      setHoldActive(true)
-      
-      const interval = setInterval(() => {
-        const exp = Number(localStorage.getItem(`holdExpiry_${placedOrder.id}`))
-        const rem = Math.max(0, Math.ceil((exp - Date.now()) / 1000))
-        setHoldCountdown(rem)
-        
-        if (rem <= 0) {
-          clearInterval(interval)
-          supabase.from("orders").update({ status: "pending" }).eq("id", placedOrder.id)
-          localStorage.removeItem(`holdExpiry_${placedOrder.id}`)
-          setHoldActive(false)
-        }
-      }, 1000)
-      
-      return () => clearInterval(interval)
-    }
-  }
-}, [orderPlaced, placedOrder?.id])
-
   async function fetchHotelAndMenu() {
     const { data: hotelData } = await supabase
       .from("hotels")
@@ -334,7 +298,7 @@ function App() {
       .select(`*, order_items(quantity, price, gst_rate, menu_items(name))`)
       .eq("hotel_id", resolvedHotelId)
       .eq("room_id", resolvedRoom)
-      .or(`status.neq.hold,created_at.gte.${new Date(Date.now() - 2 * 60 * 1000).toISOString()}`)
+      .neq("status", "hold")           // exclude any legacy hold orders
       .gte("created_at", threeDaysAgo)
       .order("created_at", { ascending: false })
       .limit(10)
@@ -386,7 +350,8 @@ function App() {
     if (countdownRef.current) clearInterval(countdownRef.current)
     countdownRef.current = null
     setHoldActive(false)
-    await supabase.from("orders").delete().eq("id", orderId)
+    // Update to cancelled instead of delete (avoids FK constraint on order_items)
+    await supabase.from("orders").update({ status: "cancelled" }).eq("id", orderId)
     setOrderStatus("cancelled")
     localStorage.removeItem(`lastOrder_${resolvedRoom}`)
     forceUpdate(n => n + 1)
@@ -403,25 +368,26 @@ function App() {
       alert("Please enter a valid email address.")
       return
     }
-    const holdExpiresAt = Date.now() + 60000
-    const { data: existingOrders } = await supabase
 
+    // Block if there's already a live order being processed
+    const { data: existingOrders } = await supabase
       .from("orders")
       .select("id, status")
       .eq("hotel_id", resolvedHotelId)
       .eq("room_id", resolvedRoom)
-      .in("status", ["pending", "hold"])
+      .in("status", ["pending", "preparing", "on_the_way"])
     if (existingOrders && existingOrders.length > 0) {
-      alert("You already have an active order. Please wait for it to be Marked as Preparing before placing a new one.")
+      alert("You already have an active order. Please wait for it to be delivered before placing a new one.")
       return
     }
 
+    // Insert directly as "pending" — no client-side hold timer dependency
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         hotel_id: resolvedHotelId,
         room_id: resolvedRoom,
-        status: "hold",
+        status: "pending",
         payment_method: "cash",
         guest_name: guestName,
         guest_phone: guestPhone,
@@ -438,7 +404,7 @@ function App() {
         menu_item_id: item.id,
         quantity: item.qty,
         price: item.price,
-        gst_rate: item.gst_rate || 0   // ← store GST rate per line item
+        gst_rate: item.gst_rate || 0
       })))
     if (itemsError) { console.error(itemsError); return }
 
@@ -450,9 +416,10 @@ function App() {
     setCart([])
     localStorage.setItem(`lastOrder_${resolvedRoom}`, JSON.stringify({ orderId: order.id, items: cart, room: resolvedRoom, prepTime: maxPrepTime }))
     forceUpdate(n => n + 1)
-    localStorage.setItem(`holdExpiry_${order.id}`, holdExpiresAt.toString())
-    watchOrderStatus(order.id)
+
+    // Start a 60s UI-only cancel window (no status dependency)
     startHoldCountdown(order.id)
+    watchOrderStatus(order.id)
   }
 
   function addToCart(item) {
@@ -471,28 +438,21 @@ function App() {
     })
   }
 
- function startHoldCountdown(orderId, startSeconds = 60) {
-  const holdExpiry = Date.now() + (startSeconds * 1000)
-  localStorage.setItem(`holdExpiry_${orderId}`, holdExpiry.toString())
-  
-  const updateCountdown = () => {
-    const expiry = Number(localStorage.getItem(`holdExpiry_${orderId}`))
-    const remaining = Math.max(0, Math.ceil((expiry - Date.now()) / 1000))
-    setHoldCountdown(remaining)
-    setHoldActive(remaining > 0)
-    
-    if (remaining <= 0) {
-      supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
-      localStorage.removeItem(`holdExpiry_${orderId}`)
-    }
+  function startHoldCountdown(orderId, startSeconds = 60) {
+    setHoldCountdown(startSeconds)
+    setHoldActive(true)
+    let seconds = startSeconds
+    const interval = setInterval(() => {
+      seconds -= 1
+      setHoldCountdown(seconds)
+      if (seconds <= 0) {
+        clearInterval(interval)
+        // Order is already "pending" in DB — this is UI-only
+        // Just hide the cancel button
+        setHoldActive(false)
+      }
+    }, 1000)
   }
-  
-  updateCountdown() // Update immediately
-  const interval = setInterval(updateCountdown, 1000)
-  
-  // Cleanup on unmount
-  return () => clearInterval(interval)
-}
 
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0)
   const categories = [...new Set(menuItems.map(i => i.category))]
@@ -592,14 +552,8 @@ function App() {
     return (
       <div style={s.confirmation}>
         <div style={s.confirmIcon}>
-  {orderStatus === "cancelled" ? (
-    <XCircle size={52} strokeWidth={1.5} />
-  ) : orderStatus === "rejected" ? (
-    <Ban size={52} strokeWidth={1.5} />
-  ) : (
-    <CheckCircle2 size={52} strokeWidth={1.5} />
-  )}
-</div>
+          {orderStatus === "cancelled" ? "❌" : orderStatus === "rejected" ? "🚫" : "🎉"}
+        </div>
         <h2 style={s.confirmTitle}>
           {orderStatus === "cancelled" ? "Order Cancelled" : orderStatus === "rejected" ? "Order Rejected" : "Order Placed!"}
         </h2>
@@ -614,27 +568,11 @@ function App() {
             <div id="confetti-layer" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 0, overflow: "visible", pointerEvents: "none" }} />
             <div style={{ display: "flex", alignItems: "flex-start" }}>
               {[
-  {
-    key: "pending",
-    icon: <Receipt size={18} strokeWidth={1.75} />,
-    label: "Received"
-  },
-  {
-    key: "preparing",
-    icon: <ChefHat size={18} strokeWidth={1.75} />,
-    label: "Preparing"
-  },
-  {
-    key: "onway",
-    icon: <Bike size={18} strokeWidth={1.75} />,
-    label: "On the Way"
-  },
-  {
-    key: "done",
-    icon: <CheckCircle2 size={18} strokeWidth={1.75} />,
-    label: "Delivered"
-  }
-].map((step, idx) => {
+                { key: "pending",   icon: "🧾", label: "Received" },
+                { key: "preparing", icon: "👨‍🍳", label: "Preparing" },
+                { key: "onway",     icon: "🚀", label: "On the Way" },
+                { key: "done",      icon: "✅", label: "Delivered" },
+              ].map((step, idx) => {
                 const currentIdx = orderStatus === "delivered" ? 3 : orderStatus === "on_the_way" ? 2 : orderStatus === "preparing" ? 1 : 0
                 const isDone = idx < currentIdx
                 const isActive = idx === currentIdx
@@ -655,27 +593,9 @@ function App() {
                         {isActive && (
                           <div style={{ position: "absolute", inset: -6, borderRadius: "50%", border: "2px solid #C9A84C", animation: "pulseRing 1.5s ease-out infinite" }} />
                         )}
-                        <div
-  style={{
-    width: 28,
-    height: 28,
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: isDone
-      ? "rgba(46,125,50,0.12)"
-      : "rgba(201,168,76,0.12)",
-    color: isDone ? "#2e7d32" : "#C9A84C",
-    animation: isActive
-      ? "bounceIcon 0.8s ease infinite alternate"
-      : isDone
-      ? "popIcon 0.4s cubic-bezier(0.34,1.56,0.64,1)"
-      : "none",
-  }}
->
-  {isDone ? <CheckCircle2 size={18} strokeWidth={2} /> : step.icon}
-</div>
+                        <span style={{ color: isDone ? "#2e7d32" : "#C9A84C", animation: isActive ? "bounceIcon 0.8s ease infinite alternate" : isDone ? "popIcon 0.4s cubic-bezier(0.34,1.56,0.64,1)" : "none", display: "inline-block" }}>
+                          {isDone ? "✓" : step.icon}
+                        </span>
                       </div>
                       <p style={{ fontSize: 11, textAlign: "center", margin: "6px 0 0", color: isDone ? "#2e7d32" : isActive ? "#C9A84C" : s.textSecondary, fontWeight: (isDone || isActive) ? 500 : 400, lineHeight: 1.3, whiteSpace: "nowrap", transition: "color 0.3s" }}>
                         {step.label}
