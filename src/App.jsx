@@ -295,7 +295,7 @@ function App() {
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
     const { data } = await supabase
       .from("orders")
-      .select(`*, order_items(quantity, price, gst_rate, menu_items(name))`)
+      .select(`*, order_items(quantity, price, gst_rate, menu_items!fk_menu_item(name))`)
       .eq("hotel_id", resolvedHotelId)
       .eq("room_id", resolvedRoom)
       .neq("status", "hold")           // exclude any legacy hold orders

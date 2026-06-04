@@ -487,7 +487,7 @@ async function loadHotel() {
     end.setHours(23, 59, 59, 999)
     const { data } = await supabase
     .from("orders")
-    .select(`*, delivered_at, order_items(quantity, price, menu_item_id, menu_items(name, prep_time))`)
+    .select(`*, delivered_at, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name, prep_time))`)
       .eq("hotel_id", hotel.id)
       .gte("created_at", start.toISOString())
       .lte("created_at", end.toISOString())
@@ -505,7 +505,7 @@ async function loadHotel() {
 
     let query = supabase
       .from("orders")
-      .select(`*, order_items(quantity, price, menu_item_id, menu_items(name))`)
+      .select(`*, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
       .eq("hotel_id", hotel.id)
       .neq("status", "hold")
       .neq("status", "cancelled")
