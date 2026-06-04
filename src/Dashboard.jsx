@@ -373,7 +373,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
     
       let query = supabase
     .from("orders")
-    .select(`*, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
+    .select(`*, order_items!fk_order(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
     .eq("hotel_id", hotelId)
     .neq("status", "hold")
     .order("created_at", { ascending: false })
@@ -497,7 +497,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
     end.setHours(23, 59, 59, 999)
     const { data } = await supabase
     .from("orders")
-    .select(`*, delivered_at, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name, prep_time))`)
+    .select(`*, delivered_at, order_items!fk_order(quantity, price, menu_item_id, menu_items!fk_menu_item(name, prep_time))`)
       .eq("hotel_id", hotel.id)
       .gte("created_at", start.toISOString())
       .lte("created_at", end.toISOString())
@@ -515,7 +515,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
 
     let query = supabase
       .from("orders")
-      .select(`*, order_items(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
+      .select(`*, order_items!fk_order(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
       .eq("hotel_id", hotel.id)
       .neq("status", "hold")
       .neq("status", "cancelled")
