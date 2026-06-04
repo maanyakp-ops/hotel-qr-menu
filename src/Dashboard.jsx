@@ -335,35 +335,33 @@ async function loadHotel() {
 }  
 
   setTimeout(() => {
-    const sub = supabase.channel("orders-channel-" + hotelData.id)
-      .on("postgres_changes", {
-        event: "INSERT",
-        schema: "public",
-        table: "orders",
-        filter: `hotel_id=eq.${hotelData.id}`
-      }, (payload) => {
-        if (payload.new.status === "hold") return
-        console.log("🔔 NEW ORDER RECEIVED:", payload.new.id)
-        
-        fetchOrders(hotelData.id)
-        playOrderSound()
-        showBadge()
-      })
-        .on("postgres_changes", {          // ← ADD THIS
+const sub = supabase.channel("orders-channel-" + hotelData.id)
+  .on("postgres_changes", {
+    event: "INSERT",
+    schema: "public",
+    table: "orders",
+    filter: `hotel_id=eq.${hotelData.id}`
+  }, (payload) => {
+    if (payload.new.status === "hold") return
+    fetchOrders(hotelData.id)
+    playOrderSound()
+    showBadge()
+  })
+  .on("postgres_changes", {
     event: "UPDATE",
     schema: "public",
     table: "orders",
     filter: `hotel_id=eq.${hotelData.id}`
   }, (payload) => {
-    if (payload.new.status === "pending" && payload.old.status === "hold") {
+    if (payload.new.status === "pending" && payload.old?.status === "hold") {
       fetchOrders(hotelData.id)
       playOrderSound()
       showBadge()
     }
   })
-      .subscribe((status) => {
-        console.log("Subscription status:", status)
-      })
+  .subscribe((status) => {
+    console.log("Subscription status:", status)
+  })
 
     return () => supabase.removeChannel(sub)
   }, 1000)
