@@ -387,7 +387,7 @@ function App() {
       .insert({
         hotel_id: resolvedHotelId,
         room_id: resolvedRoom,
-        status: "pending",
+        status: "hold",
         payment_method: "cash",
         guest_name: guestName,
         guest_phone: guestPhone,
@@ -438,21 +438,21 @@ function App() {
     })
   }
 
-  function startHoldCountdown(orderId, startSeconds = 60) {
-    setHoldCountdown(startSeconds)
-    setHoldActive(true)
-    let seconds = startSeconds
-    const interval = setInterval(() => {
-      seconds -= 1
-      setHoldCountdown(seconds)
-      if (seconds <= 0) {
-        clearInterval(interval)
-        // Order is already "pending" in DB — this is UI-only
-        // Just hide the cancel button
-        setHoldActive(false)
-      }
-    }, 1000)
-  }
+async function startHoldCountdown(orderId, startSeconds = 60) {
+  setHoldCountdown(startSeconds)
+  setHoldActive(true)
+  let seconds = startSeconds
+  const interval = setInterval(async () => {
+    seconds -= 1
+    setHoldCountdown(seconds)
+    if (seconds <= 0) {
+      clearInterval(interval)
+      setHoldActive(false)
+      await supabase.from("orders").update({ status: "pending" }).eq("id", orderId)
+      setOrderStatus("pending")
+    }
+  }, 1000)
+}
 
   const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0)
   const categories = [...new Set(menuItems.map(i => i.category))]
