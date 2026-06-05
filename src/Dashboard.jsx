@@ -1671,16 +1671,6 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
     />
   </div>
 
-  <div>
-  <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 6px", fontWeight: 500 }}>Google Review Link</p>
-  <input
-    style={d.input}
-    placeholder="https://g.page/r/..."
-    value={hotel?.google_review_url || ""}
-    onChange={e => setHotel(prev => ({ ...prev, google_review_url: e.target.value }))}
-  />
-</div>
-
   <button
     style={d.saveBtn}
     onClick={async () => {
@@ -1688,8 +1678,7 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
         address: hotel.address,
         gst_number: hotel.gst_number,
         fssai_number: hotel.fssai_number,
-        contact_phone: hotel.contact_phone,
-        google_review_url: hotel.google_review_url,
+        contact_phone: hotel.contact_phone
       }).eq("id", hotel.id)
       setThemeSaved(true)
       setTimeout(() => setThemeSaved(false), 2500)
