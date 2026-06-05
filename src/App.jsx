@@ -53,7 +53,7 @@ function getStyles(themeKey) {
     page: { background: t.pageBg, minHeight: "100vh", maxWidth: 680, margin: "0 auto", fontFamily: t.bodyFont, fontWeight: 300, paddingBottom: 100 },
     center: { color: t.textPrimary, textAlign: "center", marginTop: 100, fontSize: 16, background: t.pageBg, minHeight: "100vh", fontFamily: t.bodyFont },
 hero: { 
-  background: '#ac3636',
+  background: '#523a3a',
   borderBottom: `1px solid ${t.heroBorder}`, 
   padding: "2.5rem 2rem 2rem", 
   textAlign: "center", 
