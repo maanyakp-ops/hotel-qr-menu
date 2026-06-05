@@ -53,12 +53,12 @@ function getStyles(themeKey) {
     page: { background: t.pageBg, minHeight: "100vh", maxWidth: 680, margin: "0 auto", fontFamily: t.bodyFont, fontWeight: 300, paddingBottom: 100 },
     center: { color: t.textPrimary, textAlign: "center", marginTop: 100, fontSize: 16, background: t.pageBg, minHeight: "100vh", fontFamily: t.bodyFont },
 hero: { 
-  background: 'transparent',
+  background: '#ac3636',
   borderBottom: `1px solid ${t.heroBorder}`, 
-  padding: "3rem 1.5rem 2rem", 
+  padding: "2.5rem 2rem 2rem", 
   textAlign: "center", 
   position: "relative", 
-  overflow: "hidden" 
+  overflow: "hidden"
 },
 heroTitle: { 
   fontFamily: t.titleFont, 
@@ -843,9 +843,9 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
         <h1 style={s.heroTitle}>{hotelInfo?.name || "Hotel"}</h1>
         <p style={s.heroSub}>Room {resolvedRoom} &nbsp;·&nbsp; Available 24/7</p>
         {hotelInfo?.contact_phone && (
-          <a href={`tel:${hotelInfo.contact_phone}`} style={{ fontSize: 11, color: t.accent, letterSpacing: 2, margin: "8px 0 0", fontFamily: t.bodyFont, display: "block", textDecoration: "none" }}>
+          <p style={{ fontSize: 11, color: t.accent, letterSpacing: 2, margin: "8px 0 0", fontFamily: t.bodyFont }}>
             📞 Reception: {hotelInfo.contact_phone}
-          </a>
+          </p>
         )}
         <div style={s.heroOrnament}>✦ &nbsp; ✦ &nbsp; ✦</div>
       </div>

@@ -1203,31 +1203,10 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
 )}
 
           {/* REPORTS TAB */}
-  {tab === "reports" && (
+          {tab === "reports" && (
     <div style={tabContentStyle}>
-      <p style={d.sectionLabel}>Room Checkout Summary</p>
-      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 12px" }}>Search by guest phone or room number.</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input style={{ ...d.input, flex: 1 }} placeholder="Guest phone number" type="tel" inputMode="numeric" maxLength={10} value={guestSearchPhone} onChange={e => { setGuestSearchPhone(e.target.value.replace(/\D/g, '').slice(0, 10)); if (e.target.value) setRoomSummaryNumber("") }} />
-          <span style={{ alignSelf: "center", color: "#8a9bb0", fontSize: 12 }}>or</span>
-          <input style={{ ...d.input, flex: 1 }} placeholder="Room number" value={roomSummaryNumber} onChange={e => { setRoomSummaryNumber(e.target.value); if (e.target.value) setGuestSearchPhone("") }} />
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>Check-in</p>
-            <input type="date" style={{ ...d.input, width: "100%", boxSizing: "border-box" }} value={roomCheckIn} onChange={e => setRoomCheckIn(e.target.value)} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>Check-out</p>
-            <input type="date" style={{ ...d.input, width: "100%", boxSizing: "border-box" }} value={roomCheckOut} onChange={e => setRoomCheckOut(e.target.value)} />
-          </div>
-        </div>
-        <button style={d.saveBtn} onClick={fetchRoomSummary}>{roomSummaryLoading ? "Searching..." : "Search"}</button>
-      </div>
 
-      <div style={{ borderBottom: "1px solid #e2e8f0", marginBottom: 20 }} />
-
+      {/* DAILY REPORT */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 8px" }}>
         <p style={{ ...d.sectionLabel, margin: 0 }}>Daily Report</p>
         <input
@@ -1241,34 +1220,96 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
       {/* Summary cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 16 }}>
         <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
-      <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>{reportOrders.filter(o => o.status === "delivered").length}</p>
-      <p style={d.metricLabel}>Delivered</p>
-    </div>
-    <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
-      <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>₹{reportOrders.filter(o => o.status === "delivered").reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}</p>
-      <p style={d.metricLabel}>Revenue</p>
-    </div>
-    <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
-      <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
-        {reportOrders.filter(o => o.rating).length > 0
-          ? (reportOrders.reduce((sum, o) => sum + (o.rating || 0), 0) / reportOrders.filter(o => o.rating).length).toFixed(1)
-          : "—"}
-      </p>
-      <p style={d.metricLabel}>Avg Rating ★</p>
-    </div>
+          <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>{reportOrders.filter(o => o.status === "delivered").length}</p>
+          <p style={d.metricLabel}>Delivered</p>
+        </div>
+        <div
+          style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0", cursor: "pointer" }}
+          onClick={() => setShowRevenueBreakdown(true)}
+        >
+          <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
+            ₹{reportOrders.filter(o => o.status === "delivered").reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}
+          </p>
+          <p style={d.metricLabel}>Revenue ⓘ</p>
+        </div>
+        <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+          <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
+            {reportOrders.filter(o => o.rating).length > 0
+              ? (reportOrders.reduce((sum, o) => sum + (o.rating || 0), 0) / reportOrders.filter(o => o.rating).length).toFixed(1)
+              : "—"}
+          </p>
+          <p style={d.metricLabel}>Avg Rating ★</p>
+        </div>
         <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
           <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>{reportOrders.length}</p>
-    <p style={d.metricVal}>
-
-      {reportOrders.filter(o => o.rating).length > 0
-        ? (reportOrders.reduce((sum, o) => sum + (o.rating || 0), 0) / reportOrders.filter(o => o.rating).length).toFixed(1)
-        : "—"}
-    </p>
-    <p style={d.metricLabel}>Avg Rating ★</p>
-  </div>
+          <p style={d.metricLabel}>Total Orders</p>
+        </div>
       </div>
 
-      {/* Most ordered items */}
+      {/* Revenue breakdown popup */}
+      {showRevenueBreakdown && (() => {
+        const deliveredOrders = reportOrders.filter(o => o.status === "delivered")
+        let totalGst = 0
+        deliveredOrders.forEach(order => {
+          order.order_items.forEach(item => {
+            const itemTotal = item.price * item.quantity
+            const menuItem = menuItems.find(m => m.id === item.menu_item_id)
+            const gstRate = menuItem?.gst_rate || 0
+            totalGst += (itemTotal * gstRate) / 100
+          })
+        })
+        const grossRevenue = deliveredOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)
+        const cgst = totalGst / 2
+        const sgst = totalGst / 2
+        const pat = grossRevenue - totalGst
+        return (
+          <div
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }}
+            onClick={() => setShowRevenueBreakdown(false)}
+          >
+            <div
+              style={{ background: "#fff", borderRadius: 16, padding: 24, width: 300, boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}
+              onClick={e => e.stopPropagation()}
+            >
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#1c2b3a", margin: "0 0 4px" }}>Revenue Breakdown</p>
+              <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 16px" }}>{reportDate}</p>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                <span style={{ fontSize: 13, color: "#8a9bb0" }}>Gross Revenue</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>₹{grossRevenue.toFixed(2)}</span>
+              </div>
+              <div style={{ borderTop: "1px dashed #e2e8f0", margin: "10px 0" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: "#8a9bb0" }}>CGST (payable)</span>
+                <span style={{ fontSize: 13, fontWeight: 500, color: "#c0392b" }}>- ₹{cgst.toFixed(2)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: "#8a9bb0" }}>SGST (payable)</span>
+                <span style={{ fontSize: 13, fontWeight: 500, color: "#c0392b" }}>- ₹{sgst.toFixed(2)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: "#8a9bb0" }}>Total GST</span>
+                <span style={{ fontSize: 13, fontWeight: 500, color: "#c0392b" }}>- ₹{totalGst.toFixed(2)}</span>
+              </div>
+              <div style={{ borderTop: "2px solid #1c2b3a", margin: "10px 0" }} />
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#1c2b3a" }}>PAT (Post-GST)</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#2e7d32" }}>₹{pat.toFixed(2)}</span>
+              </div>
+              <p style={{ fontSize: 10, color: "#8a9bb0", margin: "12px 0 0", textAlign: "center" }}>
+                Based on GST % set per menu item · Delivered orders only
+              </p>
+              <button
+                style={{ marginTop: 16, width: "100%", background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 500, cursor: "pointer" }}
+                onClick={() => setShowRevenueBreakdown(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* TOP ITEMS */}
       {(() => {
         const itemCounts = {}
         reportOrders.forEach(o => o.order_items.forEach(i => {
@@ -1289,254 +1330,303 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
         ) : null
       })()}
 
-
-      {/* Orders list */}
-      <p style={d.sectionLabel}>All Orders ({reportOrders.length})</p>
-      {reportOrders.length === 0 && <p style={d.empty}>No orders for this date.</p>}
-  {reportOrders.map(order => {
-    const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
-    const time = new Date(order.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
-    return (
-  <div key={order.id} style={{ ...d.card, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
-        <div style={d.cardHeader}>
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
-              🚪 Room {order.room_id}
-            </div>
-            {order.guest_name && (
-              <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 2px" }}>
-                👤 {order.guest_name}{order.guest_phone ? ` · ${order.guest_phone}` : ""}
-              </p>
-            )}
-            <p style={{ fontSize: 11, color: "#8a9bb0", margin: 0 }}>🕐 {time}</p>
+      {/* ROOM CHECKOUT SUMMARY */}
+      <p style={{ ...d.sectionLabel, marginTop: 24 }}>Room Checkout Summary</p>
+      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 12px" }}>
+        Search by guest phone or room number.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            style={{ ...d.input, flex: 1 }}
+            placeholder="Guest phone number"
+            type="tel"
+            inputMode="numeric"
+            maxLength={10}
+            value={guestSearchPhone}
+            onChange={e => {
+              setGuestSearchPhone(e.target.value.replace(/\D/g, '').slice(0, 10))
+              if (e.target.value) setRoomSummaryNumber("")
+            }}
+          />
+          <span style={{ alignSelf: "center", color: "#8a9bb0", fontSize: 12 }}>or</span>
+          <input
+            style={{ ...d.input, flex: 1 }}
+            placeholder="Room number"
+            value={roomSummaryNumber}
+            onChange={e => {
+              setRoomSummaryNumber(e.target.value)
+              if (e.target.value) setGuestSearchPhone("")
+            }}
+          />
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>Check-in</p>
+            <input
+              type="date"
+              style={{ ...d.input, width: "100%", boxSizing: "border-box" }}
+              value={roomCheckIn}
+              onChange={e => setRoomCheckIn(e.target.value)}
+            />
           </div>
-          <div style={{ textAlign: "right" }}>
-    <span style={
-      order.status === "delivered" ? d.badgeDone :
-      order.status === "cancelled" || order.status === "rejected" ? d.badgeCancelled :
-      order.status === "preparing" ? d.badgePrep : d.badgePending
-    }>{order.status}</span>
-    <p style={{ fontSize: 10, color: "#8a9bb0", margin: "4px 0 0" }}>🕐 Ordered: {time}</p>
-    {order.delivered_at && (() => {
-      const orderedAt = new Date(order.created_at)
-      const deliveredAt = new Date(order.delivered_at)
-      const actualMins = Math.round((deliveredAt - orderedAt) / 60000)
-      const estimatedMins = order.order_items.reduce((max, i) => Math.max(max, i.menu_items?.prep_time || 15), 0)
-      const onTime = actualMins <= estimatedMins
-      return (
-        <p style={{ fontSize: 10, color: onTime ? "#2e7d32" : "#c0392b", margin: "2px 0 0", fontWeight: 500 }}>
-          {onTime ? "✓" : "⚠"} Delivered: {deliveredAt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} ({actualMins} min)
-        </p>
-      )
-    })()}
-  </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>Check-out</p>
+            <input
+              type="date"
+              style={{ ...d.input, width: "100%", boxSizing: "border-box" }}
+              value={roomCheckOut}
+              onChange={e => setRoomCheckOut(e.target.value)}
+            />
+          </div>
         </div>
-        <div style={{ borderTop: "0.5px solid #e2e8f0", borderBottom: "0.5px solid #e2e8f0", padding: "10px 0", margin: "10px 0", display: "flex", flexDirection: "column", gap: 5 }}>
-          {order.order_items.map((item, i) => (
-            <div key={i} style={d.itemRow}>
-              <span>{item.menu_items?.name} x{item.quantity}</span>
-              <span style={{ color: "#1c2b3a", fontWeight: 500 }}>₹{item.price * item.quantity}</span>
+        <button style={d.saveBtn} onClick={fetchRoomSummary}>
+          {roomSummaryLoading ? "Searching..." : "Search"}
+        </button>
+
+        {roomSummaryOrders !== null && (
+          <>
+            {roomSummaryOrders.length === 0 ? (
+              <p style={d.empty}>No orders found for {guestSearchPhone ? `phone ${guestSearchPhone}` : `Room ${roomSummaryNumber}`}.</p>
+            ) : (
+              <>
+                <div style={{ ...d.card, background: "#1c2b3a", color: "#e8f0f8", marginTop: 8 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 4px", color: "#e8f0f8" }}>
+                    {roomSummaryOrders[0]?.guest_name || "Guest"} — Stay Summary
+                  </p>
+                  <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>
+                    {guestSearchPhone ? `📞 ${guestSearchPhone}` : `🚪 Room ${roomSummaryNumber}`}
+                  </p>
+                  <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 12px" }}>
+                    {new Date(roomSummaryOrders[0].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    {" → "}
+                    {new Date(roomSummaryOrders[roomSummaryOrders.length - 1].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                  </p>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
+                    <div style={{ textAlign: "center" }}>
+                      <p style={{ fontSize: 20, fontWeight: 700, color: "#7eb3f5", margin: "0 0 2px" }}>{roomSummaryOrders.length}</p>
+                      <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>Orders</p>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <p style={{ fontSize: 20, fontWeight: 700, color: "#6fcf97", margin: "0 0 2px" }}>
+                        ₹{roomSummaryOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}
+                      </p>
+                      <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>Total Spent</p>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <p style={{ fontSize: 20, fontWeight: 700, color: "#f5a623", margin: "0 0 2px" }}>
+                        {roomSummaryOrders.filter(o => o.rating).length > 0
+                          ? (roomSummaryOrders.reduce((s, o) => s + (o.rating || 0), 0) / roomSummaryOrders.filter(o => o.rating).length).toFixed(1) + " ★"
+                          : "—"}
+                      </p>
+                      <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>Avg Rating</p>
+                    </div>
+                  </div>
+                </div>
+
+                {(() => {
+                  const itemCounts = {}
+                  roomSummaryOrders.forEach(o => o.order_items.forEach(i => {
+                    const name = i.menu_items?.name || "Unknown"
+                    if (!itemCounts[name]) itemCounts[name] = { qty: 0, total: 0 }
+                    itemCounts[name].qty += i.quantity
+                    itemCounts[name].total += i.price * i.quantity
+                  }))
+                  return (
+                    <>
+                      <p style={d.sectionLabel}>Items Ordered</p>
+                      {Object.entries(itemCounts).map(([name, data]) => (
+                        <div key={name} style={{ ...d.card, padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div>
+                            <span style={{ fontSize: 13, color: "#1c2b3a", fontWeight: 500 }}>{name}</span>
+                            <span style={{ fontSize: 11, color: "#8a9bb0", marginLeft: 8 }}>x{data.qty}</span>
+                          </div>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>₹{data.total}</span>
+                        </div>
+                      ))}
+                    </>
+                  )
+                })()}
+
+                <p style={d.sectionLabel}>Order Timeline</p>
+                {roomSummaryOrders.map((order, idx) => {
+                  const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+                  const time = new Date(order.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                  return (
+                    <div key={order.id} style={{ ...d.card, borderLeft: "3px solid #1c2b3a" }}>
+                      <div style={d.cardHeader}>
+                        <p style={{ fontSize: 12, color: "#8a9bb0", margin: 0 }}>Order {idx + 1} · {time}</p>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>₹{orderTotal}</span>
+                      </div>
+                      {order.order_items.map((item, i) => (
+                        <div key={i} style={d.itemRow}>
+                          <span>{item.menu_items?.name} x{item.quantity}</span>
+                          <span>₹{item.price * item.quantity}</span>
+                        </div>
+                      ))}
+                      {order.special_instructions && (
+                        <p style={{ fontSize: 11, color: "#8a9bb0", margin: "6px 0 0" }}>📝 {order.special_instructions}</p>
+                      )}
+                      {order.rating && (
+                        <p style={{ fontSize: 12, color: "#f5a623", margin: "6px 0 0" }}>{"★".repeat(order.rating)}{"☆".repeat(5 - order.rating)}</p>
+                      )}
+                    </div>
+                  )
+                })}
+
+                <button
+                  style={{ ...d.addBtn, marginTop: 8, width: "100%" }}
+                  onClick={() => {
+                    const guest = roomSummaryOrders[0]
+                    const win = window.open("", "_blank")
+                    win.document.write(`
+                      <html><head><title>Checkout Bill</title>
+                      <style>
+                        body { font-family: Arial, sans-serif; max-width: 480px; margin: 40px auto; padding: 0 24px; color: #1c2b3a; }
+                        .header { text-align: center; border-bottom: 2px solid #1c2b3a; padding-bottom: 16px; margin-bottom: 16px; }
+                        .hotel-name { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+                        .hotel-meta { font-size: 12px; color: #555; line-height: 1.8; }
+                        .bill-title { font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin: 16px 0 8px; }
+                        .guest-info { font-size: 13px; margin-bottom: 16px; line-height: 1.8; }
+                        .order-block { border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 10px; }
+                        .order-heading { font-size: 12px; color: #888; margin: 0 0 6px; }
+                        .item-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+                        .order-total { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-top: 6px; }
+                        .grand-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; border-top: 2px solid #1c2b3a; padding-top: 12px; margin-top: 12px; }
+                        .footer { text-align: center; font-size: 11px; color: #888; margin-top: 24px; border-top: 1px solid #eee; padding-top: 12px; }
+                      </style>
+                      </head><body>
+                      <div class="header">
+                        <div class="hotel-name">${hotel?.name || "Hotel"}</div>
+                        <div class="hotel-meta">
+                          ${hotel?.address ? `${hotel.address}<br>` : ""}
+                          ${hotel?.contact_phone ? `📞 ${hotel.contact_phone}<br>` : ""}
+                          ${hotel?.gst_number ? `GST: ${hotel.gst_number}<br>` : ""}
+                          ${hotel?.fssai_number ? `FSSAI: ${hotel.fssai_number}` : ""}
+                        </div>
+                      </div>
+                      <div class="bill-title">Food Checkout Bill</div>
+                      <div class="guest-info">
+                        <strong>Guest:</strong> ${guest?.guest_name || "—"}<br>
+                        ${guestSearchPhone ? `<strong>Phone:</strong> ${guestSearchPhone}<br>` : `<strong>Room:</strong> ${roomSummaryNumber}<br>`}
+                        ${hotel?.contact_phone ? `<strong>Reception:</strong> ${hotel.contact_phone}<br>` : ""}
+                        <strong>Printed:</strong> ${new Date().toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </div>
+                      ${roomSummaryOrders.map((o, idx) => {
+                        const time = new Date(o.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                        const orderTotal = o.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+                        return `
+                          <div class="order-block">
+                            <div class="order-heading">Order ${idx + 1} · ${time}</div>
+                            ${o.order_items.map(i => `
+                              <div class="item-row">
+                                <span>${i.menu_items?.name} × ${i.quantity}</span>
+                                <span>₹${i.price * i.quantity}</span>
+                              </div>
+                            `).join("")}
+                            <div class="order-total"><span>Order Total</span><span>₹${orderTotal}</span></div>
+                          </div>
+                        `
+                      }).join("")}
+                      <div class="grand-total">
+                        <span>GRAND TOTAL</span>
+                        <span>₹${roomSummaryOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}</span>
+                      </div>
+                      <div class="footer">
+                        Thank you for staying with us!<br>
+                        ${hotel?.name || ""} · All prices inclusive of taxes
+                      </div>
+                      </body></html>
+                    `)
+                    win.print()
+                  }}
+                >
+                  🖨️ Print Checkout Bill
+                </button>
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ALL ORDERS */}
+      <p style={{ ...d.sectionLabel, marginTop: 24 }}>All Orders ({reportOrders.length})</p>
+      {reportOrders.length === 0 && <p style={d.empty}>No orders for this date.</p>}
+      {reportOrders.map(order => {
+        const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+        const time = new Date(order.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
+        return (
+          <div key={order.id} style={{ ...d.card, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+            <div style={d.cardHeader}>
+              <div>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
+                  🚪 Room {order.room_id}
+                </div>
+                {order.guest_name && (
+                  <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 2px" }}>
+                    👤 {order.guest_name}{order.guest_phone ? ` · ${order.guest_phone}` : ""}
+                  </p>
+                )}
+                <p style={{ fontSize: 11, color: "#8a9bb0", margin: 0 }}>🕐 {time}</p>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <span style={
+                  order.status === "delivered" ? d.badgeDone :
+                  order.status === "cancelled" || order.status === "rejected" ? d.badgeCancelled :
+                  order.status === "preparing" ? d.badgePrep : d.badgePending
+                }>{order.status}</span>
+                <p style={{ fontSize: 10, color: "#8a9bb0", margin: "4px 0 0" }}>🕐 Ordered: {time}</p>
+                {order.delivered_at && (() => {
+                  const orderedAt = new Date(order.created_at)
+                  const deliveredAt = new Date(order.delivered_at)
+                  const actualMins = Math.round((deliveredAt - orderedAt) / 60000)
+                  const estimatedMins = order.order_items.reduce((max, i) => Math.max(max, i.menu_items?.prep_time || 15), 0)
+                  const onTime = actualMins <= estimatedMins
+                  return (
+                    <p style={{ fontSize: 10, color: onTime ? "#2e7d32" : "#c0392b", margin: "2px 0 0", fontWeight: 500 }}>
+                      {onTime ? "✓" : "⚠"} Delivered: {deliveredAt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} ({actualMins} min)
+                    </p>
+                  )
+                })()}
+              </div>
             </div>
-          ))}
-          {order.special_instructions && (
-            <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 0" }}>📝 {order.special_instructions}</p>
-          )}
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
-            <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total</span>
-            ₹{orderTotal}
-          </span>
-          {order.rating && (
-            <div style={{ textAlign: "right" }}>
-              <span style={{ color: "#f5a623", fontSize: 15 }}>
-                {"★".repeat(order.rating)}{"☆".repeat(5 - order.rating)}
-              </span>
-              {order.rating_comment && (
-                <p style={{ fontSize: 12, color: "#8a9bb0", margin: "4px 0 0" }}>"{order.rating_comment}"</p>
+            <div style={{ borderTop: "0.5px solid #e2e8f0", borderBottom: "0.5px solid #e2e8f0", padding: "10px 0", margin: "10px 0", display: "flex", flexDirection: "column", gap: 5 }}>
+              {order.order_items.map((item, i) => (
+                <div key={i} style={d.itemRow}>
+                  <span>{item.menu_items?.name} x{item.quantity}</span>
+                  <span style={{ color: "#1c2b3a", fontWeight: 500 }}>₹{item.price * item.quantity}</span>
+                </div>
+              ))}
+              {order.special_instructions && (
+                <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 0" }}>📝 {order.special_instructions}</p>
               )}
             </div>
-          )}
-        </div>
-      </div>
-    )
-  })}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
+                <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total</span>
+                ₹{orderTotal}
+              </span>
+              {order.rating && (
+                <div style={{ textAlign: "right" }}>
+                  <span style={{ color: "#f5a623", fontSize: 15 }}>
+                    {"★".repeat(order.rating)}{"☆".repeat(5 - order.rating)}
+                  </span>
+                  {order.rating_comment && (
+                    <p style={{ fontSize: 12, color: "#8a9bb0", margin: "4px 0 0" }}>"{order.rating_comment}"</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })}
 
-      {/* Download CSV */}
       {reportOrders.length > 0 && (
         <button style={{ ...d.addBtn, marginTop: 8 }} onClick={() => downloadCSV()}>
           ⬇ Download CSV
         </button>
       )}
 
-      {roomSummaryOrders !== null && (
-        <>
-          {roomSummaryOrders.length === 0 ? (
-            <p style={d.empty}>No orders found for Room {roomSummaryNumber}.</p>
-          ) : (
-            <>
-              <div style={{ ...d.card, background: "#1c2b3a", color: "#e8f0f8" }}>
-              <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 4px", color: "#e8f0f8" }}>
-    {roomSummaryOrders[0]?.guest_name || "Guest"} — Stay Summary
-  </p>
-  <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 4px" }}>
-    {guestSearchPhone ? `📞 ${guestSearchPhone}` : `🚪 Room ${roomSummaryNumber}`}
-  </p>
-                <p style={{ fontSize: 11, color: "#8a9bb0", margin: "0 0 12px" }}>
-                  {new Date(roomSummaryOrders[0].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                  {" → "}
-                  {new Date(roomSummaryOrders[roomSummaryOrders.length - 1].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                </p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
-                  <div style={{ textAlign: "center" }}>
-                    <p style={{ fontSize: 20, fontWeight: 700, color: "#7eb3f5", margin: "0 0 2px" }}>{roomSummaryOrders.length}</p>
-                    <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>Orders</p>
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <p style={{ fontSize: 20, fontWeight: 700, color: "#6fcf97", margin: "0 0 2px" }}>
-                      ₹{roomSummaryOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}
-                    </p>
-                    <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>Total Spent</p>
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <p style={{ fontSize: 20, fontWeight: 700, color: "#f5a623", margin: "0 0 2px" }}>
-                      {roomSummaryOrders.filter(o => o.rating).length > 0
-                        ? (roomSummaryOrders.reduce((s, o) => s + (o.rating || 0), 0) / roomSummaryOrders.filter(o => o.rating).length).toFixed(1) + " ★"
-                        : "—"}
-                    </p>
-                    <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>Avg Rating</p>
-                  </div>
-                </div>
-              </div>
-
-              {(() => {
-                const itemCounts = {}
-                roomSummaryOrders.forEach(o => o.order_items.forEach(i => {
-                  const name = i.menu_items?.name || "Unknown"
-                  if (!itemCounts[name]) itemCounts[name] = { qty: 0, total: 0 }
-                  itemCounts[name].qty += i.quantity
-                  itemCounts[name].total += i.price * i.quantity
-                }))
-                return (
-                  <>
-                    <p style={d.sectionLabel}>Items Ordered</p>
-                    {Object.entries(itemCounts).map(([name, data]) => (
-                      <div key={name} style={{ ...d.card, padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div>
-                          <span style={{ fontSize: 13, color: "#1c2b3a", fontWeight: 500 }}>{name}</span>
-                          <span style={{ fontSize: 11, color: "#8a9bb0", marginLeft: 8 }}>x{data.qty}</span>
-                        </div>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>₹{data.total}</span>
-                      </div>
-                    ))}
-                  </>
-                )
-              })()}
-
-              <p style={d.sectionLabel}>Order Timeline</p>
-              {roomSummaryOrders.map((order, idx) => {
-                const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
-                const time = new Date(order.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-                return (
-                  <div key={order.id} style={{ ...d.card, borderLeft: "3px solid #1c2b3a" }}>
-                    <div style={d.cardHeader}>
-                      <p style={{ fontSize: 12, color: "#8a9bb0", margin: 0 }}>Order {idx + 1} · {time}</p>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>₹{orderTotal}</span>
-                    </div>
-                    {order.order_items.map((item, i) => (
-                      <div key={i} style={d.itemRow}>
-                        <span>{item.menu_items?.name} x{item.quantity}</span>
-                        <span>₹{item.price * item.quantity}</span>
-                      </div>
-                    ))}
-                    {order.special_instructions && (
-                      <p style={{ fontSize: 11, color: "#8a9bb0", margin: "6px 0 0" }}>📝 {order.special_instructions}</p>
-                    )}
-                    {order.rating && (
-                      <p style={{ fontSize: 12, color: "#f5a623", margin: "6px 0 0" }}>{"★".repeat(order.rating)}{"☆".repeat(5 - order.rating)}</p>
-                    )}
-                  </div>
-                )
-              })}
-
-              <button
-                style={{ ...d.addBtn, marginTop: 8, width: "100%" }}
-                onClick={() => {
-                  const guest = roomSummaryOrders[0]
-                  const win = window.open("", "_blank")
-                  win.document.write(`
-                    <html><head><title>Checkout Bill</title>
-                    <style>
-                      body { font-family: Arial, sans-serif; max-width: 480px; margin: 40px auto; padding: 0 24px; color: #1c2b3a; }
-                      .header { text-align: center; border-bottom: 2px solid #1c2b3a; padding-bottom: 16px; margin-bottom: 16px; }
-                      .hotel-name { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
-                      .hotel-meta { font-size: 12px; color: #555; line-height: 1.8; }
-                      
-                      .bill-title { font-size: 13px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin: 16px 0 8px; }
-                      .guest-info { font-size: 13px; margin-bottom: 16px; line-height: 1.8; }
-                      .order-block { border-top: 1px dashed #ccc; padding-top: 10px; margin-bottom: 10px; }
-                      .order-heading { font-size: 12px; color: #888; margin: 0 0 6px; }
-                      .item-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
-                      .order-total { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-top: 6px; }
-                      .grand-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 700; border-top: 2px solid #1c2b3a; padding-top: 12px; margin-top: 12px; }
-                      .footer { text-align: center; font-size: 11px; color: #888; margin-top: 24px; border-top: 1px solid #eee; padding-top: 12px; }
-                    </style>
-                    </head><body>
-                    <div class="header">
-                      <div class="hotel-name">${hotel?.name || "Hotel"}</div>
-                      <div class="hotel-meta">
-                        ${hotel?.address ? `${hotel.address}<br>` : ""}
-                        ${hotel?.contact_phone ? `📞 ${hotel.contact_phone}<br>` : ""}
-                        ${hotel?.gst_number ? `GST: ${hotel.gst_number}<br>` : ""}
-                        ${hotel?.fssai_number ? `FSSAI: ${hotel.fssai_number}` : ""}
-                      </div>
-                    </div>
-                
-                    <div class="bill-title">Food Checkout Bill</div>
-                    <div class="guest-info">
-                      <strong>Guest:</strong> ${guest?.guest_name || "—"}<br>
-                      ${guestSearchPhone ? `<strong>Phone:</strong> ${guestSearchPhone}<br>` : `<strong>Room:</strong> ${roomSummaryNumber}<br>`}
-                      ${hotel?.contact_phone ? `<strong>Reception:</strong> ${hotel.contact_phone}<br>` : ""}
-      <strong>Printed:</strong> ${new Date().toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                    </div>
-                
-                    ${roomSummaryOrders.map((o, idx) => {
-                      const time = new Date(o.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-                      const orderTotal = o.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
-                      return `
-                        <div class="order-block">
-                          <div class="order-heading">Order ${idx + 1} · ${time}</div>
-                          ${o.order_items.map(i => `
-                            <div class="item-row">
-                              <span>${i.menu_items?.name} × ${i.quantity}</span>
-                              <span>₹${i.price * i.quantity}</span>
-                            </div>
-                          `).join("")}
-                          <div class="order-total"><span>Order Total</span><span>₹${orderTotal}</span></div>
-                        </div>
-                      `
-                    }).join("")}
-                
-                    <div class="grand-total">
-                      <span>GRAND TOTAL</span>
-                      <span>₹${roomSummaryOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}</span>
-                    </div>
-                
-                    <div class="footer">
-                      Thank you for staying with us!<br>
-                      ${hotel?.name || ""} · All prices inclusive of taxes
-                    </div>
-                    </body></html>
-                  `)
-                  win.print()
-                }}
-              >
-                🖨️ Print Checkout Bill
-              </button>
-            </>
-          )}
-        </>
-      )}
     </div>
   )}
 
