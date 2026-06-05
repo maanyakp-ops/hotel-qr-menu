@@ -842,6 +842,11 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
         <div style={s.heroBadge}>Room Service</div>
         <h1 style={s.heroTitle}>{hotelInfo?.name || "Hotel"}</h1>
         <p style={s.heroSub}>Room {resolvedRoom} &nbsp;·&nbsp; Available 24/7</p>
+        {hotelInfo?.contact_phone && (
+          <a href={`tel:${hotelInfo.contact_phone}`} style={{ fontSize: 11, color: t.accent, letterSpacing: 2, margin: "8px 0 0", fontFamily: t.bodyFont, display: "block", textDecoration: "none" }}>
+            📞 Reception: {hotelInfo.contact_phone}
+          </a>
+        )}
         <div style={s.heroOrnament}>✦ &nbsp; ✦ &nbsp; ✦</div>
       </div>
 
