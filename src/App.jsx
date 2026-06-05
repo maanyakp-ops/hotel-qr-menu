@@ -746,19 +746,23 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
 await supabase.from("orders").update({ rating, rating_comment: ratingComment || null }).eq("id", placedOrder.id)
 setRatingSubmitted(true)
 localStorage.setItem(`rated_${placedOrder.id}`, "true")
-if (rating >= 4 && hotelInfo?.google_review_url) {
-  setTimeout(() => {
-    window.open(hotelInfo.google_review_url, "_blank")
-  }, 1000)
-}
               }}>Submit Rating</button>
             )}
           </div>
         )}
 
-        {ratingSubmitted && (
-          <p style={{ color: "#ffffff", fontSize: 13, marginBottom: 24, letterSpacing: 1 }}>✓ Thanks for your feedback!</p>
-        )}
+{ratingSubmitted && (
+  <div style={{ textAlign: "center", marginBottom: 24 }}>
+    <p style={{ color: "#ffffff", fontSize: 13, marginBottom: 12, letterSpacing: 1 }}>
+      ✓ Thanks for your feedback!
+    </p>
+    {rating >= 4 && hotelInfo?.google_review_url && (
+      <a href={hotelInfo.google_review_url} target="_blank" rel="noreferrer" style={{ background: "#4285F4", color: "#fff", border: "none", padding: "10px 24px", fontSize: 12, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase", fontFamily: t.bodyFont, textDecoration: "none", display: "inline-block" }}>
+        ★ Leave a Google Review
+      </a>
+    )}
+  </div>
+)}
 
         <button style={s.confirmBtn} onClick={() => {
           setOrderPlaced(false)

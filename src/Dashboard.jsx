@@ -36,7 +36,7 @@
     const [templateItemEdits, setTemplateItemEdits] = useState({})
     const DEFAULT_GST_RATES = { "Main Course": 5, "Starters": 5, "Desserts": 5, "Beverages": 5, "Packaged": 12, "Alcohol": 18, "Other": 5, }
     const [gstRates, setGstRates] = useState(hotel?.gst_category_rates || DEFAULT_GST_RATES)
-    
+    const [showRevenueBreakdown, setShowRevenueBreakdown] = useState(false)
 
   function playOrderSound() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)()
@@ -607,10 +607,82 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
       <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>{active.length}</p>
       <p style={d.metricLabel}>Active now</p>
     </div>
-    <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+    <div
+      style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0", cursor: "pointer", position: "relative" }}
+      onClick={() => setShowRevenueBreakdown(true)}
+    >
       <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>₹{(revenue / 1000).toFixed(1)}k</p>
-      <p style={d.metricLabel}>Revenue</p>
+      <p style={d.metricLabel}>Revenue ⓘ</p>
     </div>
+
+    {showRevenueBreakdown && (() => {
+      const gstOrders = orders.filter(o => o.status !== "cancelled" && o.status !== "rejected")
+      let totalGst = 0
+      gstOrders.forEach(order => {
+        order.order_items.forEach(item => {
+          const itemTotal = item.price * item.quantity
+          const menuItem = menuItems.find(m => m.id === item.menu_item_id)
+          const gstRate = menuItem?.gst_rate || 5
+          totalGst += (itemTotal * gstRate) / 100
+        })
+      })
+      const cgst = totalGst / 2
+      const sgst = totalGst / 2
+      const baseRevenue = revenue - totalGst
+      const pat = baseRevenue
+
+      return (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }}
+          onClick={() => setShowRevenueBreakdown(false)}
+        >
+          <div
+            style={{ background: "#fff", borderRadius: 16, padding: 24, width: 300, boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}
+            onClick={e => e.stopPropagation()}
+          >
+            <p style={{ fontSize: 15, fontWeight: 700, color: "#1c2b3a", margin: "0 0 16px" }}>Revenue Breakdown</p>
+
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+              <span style={{ fontSize: 13, color: "#8a9bb0" }}>Gross Revenue</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>₹{revenue.toFixed(2)}</span>
+            </div>
+
+            <div style={{ borderTop: "1px dashed #e2e8f0", margin: "10px 0" }} />
+
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: "#8a9bb0" }}>CGST (payable)</span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: "#c0392b" }}>- ₹{cgst.toFixed(2)}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: "#8a9bb0" }}>SGST (payable)</span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: "#c0392b" }}>- ₹{sgst.toFixed(2)}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+              <span style={{ fontSize: 13, color: "#8a9bb0" }}>Total GST</span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: "#c0392b" }}>- ₹{totalGst.toFixed(2)}</span>
+            </div>
+
+            <div style={{ borderTop: "2px solid #1c2b3a", margin: "10px 0" }} />
+
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#1c2b3a" }}>PAT (Post-GST)</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#2e7d32" }}>₹{pat.toFixed(2)}</span>
+            </div>
+
+            <p style={{ fontSize: 10, color: "#8a9bb0", margin: "12px 0 0", textAlign: "center" }}>
+              Based on GST % set per menu item · Today's orders only
+            </p>
+
+            <button
+              style={{ marginTop: 16, width: "100%", background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 500, cursor: "pointer" }}
+              onClick={() => setShowRevenueBreakdown(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )
+    })()}
     <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
       <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
         {orders.filter(o => o.rating).length > 0
