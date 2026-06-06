@@ -1209,16 +1209,13 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
     : hotel?.room_count || 0} total rooms
 </p>
 
-{allRooms.length > (hotel?.paid_rooms || 0) && (
-  <div style={{ background: "#fff3e0", border: "1px solid #fcd34d", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#b45309" }}>
-    ⚠️ You have {allRooms.length} rooms configured but only {hotel?.paid_rooms} are active. Contact support to upgrade.
-  </div>
-)}
+
 
       <p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 16px" }}>
         Download QR codes for each room.
       </p>
-    {(() => {
+
+{(() => {
   const allRooms = []
   if (hotel?.room_ranges?.length > 0) {
     hotel.room_ranges.forEach(range => {
@@ -1229,25 +1226,33 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
       allRooms.push(i + (hotel?.room_start || 101))
     }
   }
-
   const cappedRooms = allRooms.slice(0, hotel?.paid_rooms || 0)
-
-  return cappedRooms.map(roomNumber => {
-    const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
-    return (
-      <div key={roomNumber} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
-        <div style={d.qrInfo}>
-          <p style={d.qrRoom}>Room {roomNumber}</p>
-          <p style={d.qrUrl}>{url}</p>
+  return (
+    <>
+      {allRooms.length > (hotel?.paid_rooms || 0) && (
+        <div style={{ background: "#fff3e0", border: "1px solid #fcd34d", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#b45309" }}>
+          ⚠️ You have {allRooms.length} rooms configured but only {hotel?.paid_rooms} are active. Contact support to upgrade.
         </div>
-        <div style={d.qrBox}>
-          <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
-          <button style={d.downloadBtn} onClick={() => downloadQR(roomNumber)}>Download</button>
-        </div>
-      </div>
-    )
-  })
+      )}
+      {cappedRooms.map(roomNumber => {
+        const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
+        return (
+          <div key={roomNumber} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+            <div style={d.qrInfo}>
+              <p style={d.qrRoom}>Room {roomNumber}</p>
+              <p style={d.qrUrl}>{url}</p>
+            </div>
+            <div style={d.qrBox}>
+              <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
+              <button style={d.downloadBtn} onClick={() => downloadQR(roomNumber)}>Download</button>
+            </div>
+          </div>
+        )
+      })}
+    </>
+  )
 })()}
+
 </>
 )
 }
