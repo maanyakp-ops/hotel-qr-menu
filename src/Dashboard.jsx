@@ -2246,7 +2246,15 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
 
 <div style={d.adminRow}>
   <span style={d.adminLabel}>Total rooms</span>
-  <span style={d.hotelId}>{h.room_count || 0}</span>
+  <input
+    style={d.roomInput}
+    type="number"
+    defaultValue={h.room_count || 0}
+    onBlur={async e => {
+      await supabase.from("hotels").update({ room_count: parseInt(e.target.value) }).eq("id", h.id)
+      fetchAllHotels()
+    }}
+  />
 </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
 {h.status !== "active" && (
