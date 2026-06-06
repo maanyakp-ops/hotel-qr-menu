@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom"
 import { supabase } from "./supabase"
 import Dashboard from "./Dashboard"
 import Auth from "./Auth"
-import { translations } from "./translations"
+
 
 
 const themeConfigs = {
@@ -294,8 +294,7 @@ function App() {
   const s = getStyles(hotelInfo?.theme || 'dark-gold')
   const t = themeConfigs[hotelInfo?.theme || 'dark-gold'] || themeConfigs['dark-gold']
   const fontScale = hotelInfo?.font_size === "small" ? 0.85 : hotelInfo?.font_size === "large" ? 1.2 : 1
-  const [lang, setLang] = useState("en")
-  const tr = translations[lang]
+  
 
   // GST summary for current cart
   const gstSummary = calcCartGst(cart)
@@ -558,7 +557,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
             ← Back to Menu
           </button>
           <h2 style={{ color: t.textPrimary, fontFamily: t.titleFont, fontSize: 24, fontWeight: 300, margin: 0 }}>
-           {tr.myOrders}
+           My Orders
           </h2>
           <p style={{ color: t.textSecondary, fontSize: 12, margin: "4px 0 0" }}>Room {resolvedRoom}</p>
         </div>
@@ -631,7 +630,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
 <p style={s.confirmSub}>
   {orderStatus === "cancelled" ? tr.orderCancelled + "." :
    orderStatus === "rejected" ? (placedOrder?.reject_reason ? `Rejected: ${placedOrder.reject_reason}` : "Sorry, the hotel couldn't accept your order.") :
-   `${tr.deliverySoon} ${resolvedRoom} ${tr.shortly}`}
+   `$We'll deliver to Room ${resolvedRoom} $shortly.`}
 </p>
 
         {orderStatus !== "cancelled" && orderStatus !== "rejected" && (
@@ -639,10 +638,10 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
             <div id="confetti-layer" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 0, overflow: "visible", pointerEvents: "none" }} />
             <div style={{ display: "flex", alignItems: "flex-start", width: "100%" }}>
               {[
-                { key: "pending", icon: "🧾", label: tr.received,   svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> },
-                { key: "preparing", icon: "👨‍🍳", label: tr.preparing,   svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg> },
-                { key: "onway", icon: "🚀", label: tr.onTheWay, svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
-                { key: "done", icon: "✅", label: tr.delivered,  svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> },
+                { key: "pending", icon: "🧾", label: Received,   svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> },
+                { key: "preparing", icon: "👨‍🍳", label: Preparing,   svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg> },
+                { key: "onway", icon: "🚀", label: On_the_Way, svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
+                { key: "done", icon: "✅", label: Delivered,  svg: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> },
               ].map((step, idx) => {
                 const currentIdx = orderStatus === "delivered" ? 3 : orderStatus === "on_the_way" ? 2 : orderStatus === "preparing" ? 1 : 0
                 const isDone = idx < currentIdx
@@ -699,7 +698,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
 
         {/* ── ORDER SUMMARY WITH GST ── */}
         <div style={s.orderSummary}>
-          <p style={s.summaryTitle}>{tr.yourOrder}</p>
+          <p style={s.summaryTitle}>Your Order</p>
           {normalised.map((item, i) => (
             <div key={i} style={s.summaryRow}>
               <span style={s.summaryItem}>{item.name} ×{item.qty}</span>
@@ -708,7 +707,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
           ))}
           <div style={s.summaryDivider} />
           <div style={s.summarySubRow}>
-            <span>{tr.subtotal}</span>
+            <span>Subtotal</span>
             <span>₹{placedGst.subtotal}</span>
           </div>
           {placedGst.gstLines.map(line => (
@@ -724,7 +723,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
             </div>
           )}
           <div style={s.summaryTotal}>
-            <span>{tr.grandTotal}</span>
+            <span>Grand Total</span>
             <span>₹{placedGst.grandTotal}</span>
           </div>
         </div>
@@ -732,18 +731,18 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
         {holdActive && holdCountdown > 0 && orderStatus !== "delivered" && orderStatus !== "cancelled" && orderStatus !== "rejected" && (
           <div style={{ textAlign: "center", marginBottom: 16 }}>
             <p style={{ color: "#C9A84C", fontSize: 13, marginBottom: 8, letterSpacing: 1 }}>
-              {tr.orderConfirmsIn} {holdCountdown}s
+              Order confirms in {holdCountdown}s
             </p>
             <div style={{ width: 200, height: 3, background: "rgba(255,255,255,0.1)", borderRadius: 2, margin: "0 auto 16px" }}>
               <div style={{ width: `${(holdCountdown / 60) * 100}%`, height: "100%", background: "#C9A84C", borderRadius: 2, transition: "width 1s linear" }} />
             </div>
-            <button style={s.cancelOrderBtn} onClick={() => cancelOrder(placedOrder.id)}>{tr.cancelOrder}</button>
+            <button style={s.cancelOrderBtn} onClick={() => cancelOrder(placedOrder.id)}>Cancel Order{tr.cancelOrder}</button>
           </div>
         )}
 
         {orderStatus === "delivered" && !ratingSubmitted && (
           <div style={{ textAlign: "center", marginBottom: 24, width: "100%", maxWidth: 360 }}>
-            <p style={{ color: s.textPrimary, fontSize: 13, letterSpacing: 1, marginBottom: 16 }}>{tr.howWasExperience}</p>
+            <p style={{ color: s.textPrimary, fontSize: 13, letterSpacing: 1, marginBottom: 16 }}>How was your experience?</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
               {[1, 2, 3, 4, 5].map(star => (
                 <button key={star} onClick={() => setRating(star)} style={{ background: "none", border: "none", fontSize: 36, cursor: "pointer", color: "#F5A623", opacity: star <= rating ? 1 : 0.25, transition: "opacity 0.15s", padding: "0 4px", lineHeight: 1 }}>★</button>
@@ -757,7 +756,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
 await supabase.from("orders").update({ rating, rating_comment: ratingComment || null }).eq("id", placedOrder.id)
 setRatingSubmitted(true)
 localStorage.setItem(`rated_${placedOrder.id}`, "true")
-              }}>{tr.submitRating}</button>
+              }}>Submit Rating</button>
             )}
           </div>
         )}
@@ -781,7 +780,7 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
           setRating(0)
           setRatingComment("")
           setRatingSubmitted(false)
-        }}>{tr.backToMenu}</button>
+        }}>Back to Menu</button>
       </div>
     )
   }
@@ -793,8 +792,8 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
       {showGuestForm && (
         <div style={s.modalOverlay}>
           <div style={{ ...s.modal, maxHeight: "90vh", overflowY: "auto" }}>
-            <p style={s.modalTitle}>{tr.almostThere}</p>
-            <p style={s.modalSub}>{tr.enterDetails}</p>
+            <p style={s.modalTitle}>Almost there!</p>
+            <p style={s.modalSub}>Enter your details to place the order</p>
 
             {/* Cart summary with GST */}
             <div style={s.cartSummaryBox}>
@@ -838,21 +837,21 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
               </div>
             </div>
 
-            <input style={s.modalInput} placeholder={tr.yourName} value={guestName} onChange={e => setGuestName(e.target.value)} />
+            <input style={s.modalInput} placeholder="Your name *" value={guestName} onChange={e => setGuestName(e.target.value)} />
             <input style={s.modalInput} placeholder={tr.phoneNumber} type="tel" inputMode="numeric" maxLength={10} value={guestPhone} onChange={e => setGuestPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} />
-            <input style={s.modalInput} placeholder={tr.email} type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} />
-            <textarea style={{ ...s.modalInput, height: 80, resize: "none" }} placeholder={tr.specialInstructions} value={guestInstructions} onChange={e => setGuestInstructions(e.target.value)} /> 
-            <button style={s.modalBtn} onClick={placeOrder}>{tr.confirmOrder} · ₹{gstSummary.grandTotal}</button>
-            <button style={s.modalCancel} onClick={() => setShowGuestForm(false)}>{tr.cancel}</button>
+            <input style={s.modalInput} placeholder="Email (optional)" type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} />
+            <textarea style={{ ...s.modalInput, height: 80, resize: "none" }} placeholder="Special instructions — e.g. less spicy, no onion" value={guestInstructions} onChange={e => setGuestInstructions(e.target.value)} /> 
+            <button style={s.modalBtn} onClick={placeOrder}>Confirm Order · ₹{gstSummary.grandTotal}</button>
+            <button style={s.modalCancel} onClick={() => setShowGuestForm(false)}>Cancel</button>
           </div>
         </div>
       )}
 
       <div style={s.hero}>
         <div style={s.heroGoldBar} />
-        <div style={s.heroBadge}>{tr.roomService}</div>
+        <div style={s.heroBadge}>Room Service</div>
         <h1 style={s.heroTitle}>{hotelInfo?.name || "Hotel"}</h1>
-        <p style={s.heroSub}>Room {resolvedRoom} &nbsp;·&nbsp; {tr.available24}</p>
+        <p style={s.heroSub}>Room {resolvedRoom} &nbsp;·&nbsp; Available 24/7</p>
         {hotelInfo?.contact_phone && (
           <p style={{ fontSize: 11, color: t.accent, letterSpacing: 2, margin: "8px 0 0", fontFamily: t.bodyFont }}>
             📞 Reception: {hotelInfo.contact_phone}
@@ -867,16 +866,11 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
     style={{ background: vegOnly ? t.accent : 'transparent', border: `1px solid ${vegOnly ? t.accent : t.accentMuted}`, color: vegOnly ? '#0A0A08' : t.textSecondary, borderRadius: 0, padding: "6px 20px", fontSize: 10, cursor: "pointer", fontFamily: t.bodyFont, letterSpacing: 2, textTransform: "uppercase" }}
     onClick={() => setVegOnly(!vegOnly)}
   >
-    ● {tr.vegOnly}
+    ● VEG ONLY
   </button>
   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-    <button
-      onClick={() => setLang(lang === "en" ? "hi" : "en")}
-      style={{ background: "transparent", border: `1px solid ${t.accentMuted}`, color: t.textSecondary, borderRadius: 0, padding: "6px 14px", fontSize: 10, cursor: "pointer", fontFamily: t.bodyFont, letterSpacing: 2 }}
-    >
-      {lang === "en" ? "हिंदी" : "ENG"}
-    </button>
     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+    <div id="google_translate_element" style={{ display: "inline-block" }}></div>
       <span style={{ fontSize: 10, color: t.accentMuted }}>A</span>
       <div onClick={async () => {
         const sizeOrder = ["small", "medium", "large"]
@@ -935,7 +929,7 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
                     <div style={{ ...s.itemPrice, fontSize: s.itemPrice.fontSize * fontScale }}>₹{item.price}</div>
                     
                     {item.out_of_stock ? (
-                      <span style={s.outOfStock}>{tr.outOfStock}</span>
+                      <span style={s.outOfStock}>Out of Stock</span>
                     ) : cartItem ? (
                       <div style={s.qtyRow}>
                         <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
@@ -943,7 +937,7 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
                         <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
                       </div>
                     ) : (
-                      <button style={{ ...s.addBtn, fontSize: 10 }} onClick={() => addToCart(item)}>{tr.addToCart}</button>
+                      <button style={{ ...s.addBtn, fontSize: 10 }} onClick={() => addToCart(item)}>ADD</button>
                     )}
                   </div>
                 </div>
@@ -972,7 +966,7 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
                 <div style={{ ...s.itemPrice, fontSize: s.itemPrice.fontSize * fontScale }}>₹{item.price}</div>
                 
                 {item.out_of_stock ? (
-                  <span style={s.outOfStock}>{tr.outOfStock}</span>
+                  <span style={s.outOfStock}>Out of Stock</span>
                 ) : cartItem ? (
                   <div style={s.qtyRow}>
                     <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
@@ -980,7 +974,7 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
                     <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
                   </div>
                 ) : (
-                  <button style={{ ...s.addBtn, fontSize: 10 }} onClick={() => addToCart(item)}>{tr.addToCart}</button>
+                  <button style={{ ...s.addBtn, fontSize: 10 }} onClick={() => addToCart(item)}>ADD</button>
                 )}
               </div>
             </div>
@@ -999,9 +993,9 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
               await fetchRoomOrders()
               setShowOrdersList(true)
             }}
-          >{tr.myOrders}</button>
+          >My Orders</button>
         )}
-        <p style={s.footerNote}>{tr.allPricesExclusive}</p>
+        <p style={s.footerNote}>All prices exclusive of GST · GST added at checkout · Please inform staff of any allergies</p>
       </div>
 
       {/* ── CART BAR WITH GST BREAKDOWN ── */}
@@ -1014,7 +1008,7 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
               ₹{gstSummary.subtotal} + GST ₹{gstSummary.totalGst.toFixed(2)}
             </p>
           </div>
-          <button style={s.placeBtn} onClick={() => setShowGuestForm(true)}>{tr.placeOrder}</button>
+          <button style={s.placeBtn} onClick={() => setShowGuestForm(true)}>Place Order</button>
         </div>
       )}
     </div>

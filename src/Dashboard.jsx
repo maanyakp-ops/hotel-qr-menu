@@ -22,7 +22,8 @@
     const [selectedItems, setSelectedItems] = useState([])
     const [savingTheme, setSavingTheme] = useState(false)
   const [dashFontScale, setDashFontScale] = useState(1)
-    const [themeSaved, setThemeSaved] = useState(false)
+  const [themeSaved, setThemeSaved] = useState(false)
+  const [hotelDetailsSaved, setHotelDetailsSaved] = useState(false)
     const [rejectingOrder, setRejectingOrder] = useState(null)
     const [rejectReason, setRejectReason] = useState("")
     const [customReason, setCustomReason] = useState("")
@@ -537,14 +538,16 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
   }
   async function fetchAllCustomers() {
     setCustomersLoading(true)
-    const { data } = await supabase
+    setCustomersLoaded(false)
+    const { data, error } = await supabase
       .from("orders")
-      .select(`*, order_items!fk_order(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
+      .select(`id, guest_name, guest_phone, guest_email, room_id, rating, rating_comment, created_at, order_items!fk_order(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
       .eq("hotel_id", hotel.id)
       .neq("status", "hold")
       .neq("status", "cancelled")
       .neq("status", "rejected")
       .order("created_at", { ascending: false })
+    if (error) console.error("Customer DB error:", error)
 
     if (data) {
       const customerMap = {}
@@ -1672,14 +1675,15 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
         All guests who have placed orders at your hotel.
       </p>
 
-      {!customersLoaded ? (
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
         <button
-          style={{ ...d.saveBtn, marginBottom: 16 }}
+          style={{ ...d.saveBtn, flex: 1 }}
           onClick={fetchAllCustomers}
         >
-          {customersLoading ? "Loading..." : "Load Customer Database"}
+          {customersLoading ? "Loading..." : customersLoaded ? "↻ Refresh" : "Load Customer Database"}
         </button>
-      ) : (
+      </div>
+      {customersLoaded && (
         <>
           <input
             style={{ ...d.input, marginBottom: 12 }}
@@ -2005,13 +2009,13 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
         contact_phone: hotel.contact_phone,
         google_review_url: hotel.google_review_url,
       }).eq("id", hotel.id)
-      setThemeSaved(true)
-      setTimeout(() => setThemeSaved(false), 2500)
+      setHotelDetailsSaved(true)
+      setTimeout(() => setHotelDetailsSaved(false), 2500)
     }}
   >
     Save Hotel Details
   </button>
-  {themeSaved && (
+  {hotelDetailsSaved && (
     <p style={{ color: "#2e7d32", fontSize: 13, textAlign: "center", marginTop: 8, fontWeight: 500 }}>
       ✓ Hotel details saved successfully!
     </p>
