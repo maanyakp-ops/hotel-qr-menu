@@ -508,7 +508,7 @@ function App() {
     })
   }
 
-async function startHoldCountdown(orderId, startSeconds = 60) {
+async function startHoldCountdown(orderId, startSeconds = 20) {
   setHoldCountdown(startSeconds)
   setHoldActive(true)
   let seconds = startSeconds
