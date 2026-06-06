@@ -1777,9 +1777,44 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
             })
           })()}
 
-          <p style={{ fontSize: 11, color: "#8a9bb0", textAlign: "center", marginTop: 8 }}>
-            {allCustomers.length} unique guests · {allCustomers.reduce((s, c) => s + c.orders.length, 0)} total orders
-          </p>
+<p style={{ fontSize: 11, color: "#8a9bb0", textAlign: "center", marginTop: 8 }}>
+        {allCustomers.length} unique guests · {allCustomers.reduce((s, c) => s + c.orders.length, 0)} total orders
+      </p>
+
+      {allCustomers.length > 0 && (
+        <button
+          style={{ ...d.addBtn, marginTop: 12, width: "100%" }}
+          onClick={() => {
+            const rows = [["Name", "Phone", "Email", "Rooms Stayed", "Total Orders", "Total Spent (₹)", "First Visit", "Last Visit", "Avg Rating", "Order Ratings & Comments"]]
+            allCustomers.forEach(c => {
+              const rooms = [...c.rooms].join(", ")
+              const firstVisit = new Date(c.orders[c.orders.length - 1].created_at).toLocaleDateString("en-IN")
+              const lastVisit = new Date(c.orders[0].created_at).toLocaleDateString("en-IN")
+              const ratedOrders = c.orders.filter(o => o.rating)
+              const avgRating = ratedOrders.length > 0
+                ? (ratedOrders.reduce((s, o) => s + o.rating, 0) / ratedOrders.length).toFixed(1)
+                : "—"
+              const ratingsDetail = ratedOrders.map(o => {
+                const date = new Date(o.created_at).toLocaleDateString("en-IN")
+                return `${date}: ${o.rating}★${o.rating_comment ? ` (${o.rating_comment})` : ""}`
+              }).join(" | ")
+              rows.push([
+                c.name, c.phone, c.email === "—" ? "" : c.email,
+                rooms, c.orders.length, c.totalSpent,
+                firstVisit, lastVisit, avgRating, ratingsDetail
+              ])
+            })
+            const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\n")
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+            const a = document.createElement("a")
+            a.href = URL.createObjectURL(blob)
+            a.download = `customer-database-${new Date().toISOString().split("T")[0]}.csv`
+            a.click()
+          }}
+        >
+          ⬇ Download Customer Database (CSV)
+        </button>
+      )}
         </>
       )}
 
