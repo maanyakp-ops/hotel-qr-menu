@@ -2245,9 +2245,14 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
                     <span style={d.hotelId}>{h.id}</span>
                   </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                    {h.status !== "active" && (
-                      <button style={d.btnDeliver} onClick={() => updateHotel(h.id, { status: "active" })}>✓ Approve</button>
-                    )}
+{h.status !== "active" && (
+  <button style={d.btnDeliver} onClick={() => {
+    const totalRooms = h.room_ranges?.length > 0
+      ? h.room_ranges.reduce((sum, r) => sum + (r.end - r.start + 1), 0)
+      : (h.room_count || 0)
+    updateHotel(h.id, { status: "active", paid_rooms: totalRooms })
+  }}>✓ Approve</button>
+)}
                     {h.status === "active" && !h.is_admin && (
                       <button style={d.btnPrepare} onClick={() => updateHotel(h.id, { status: "disabled" })}>Disable</button>
                     )}
