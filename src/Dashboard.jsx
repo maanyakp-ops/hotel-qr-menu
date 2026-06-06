@@ -2246,11 +2246,12 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
                   </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
 {h.status !== "active" && (
-  <button style={d.btnDeliver} onClick={() => {
+  <button style={d.btnDeliver} onClick={async () => {
     const totalRooms = h.room_ranges?.length > 0
       ? h.room_ranges.reduce((sum, r) => sum + (r.end - r.start + 1), 0)
       : (h.room_count || 0)
-    updateHotel(h.id, { status: "active", paid_rooms: totalRooms })
+    await supabase.from("hotels").update({ status: "active", paid_rooms: totalRooms }).eq("id", h.id)
+    fetchAllHotels()
   }}>✓ Approve</button>
 )}
                     {h.status === "active" && !h.is_admin && (
