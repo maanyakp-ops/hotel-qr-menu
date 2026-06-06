@@ -37,6 +37,10 @@
     const DEFAULT_GST_RATES = { "Main Course": 5, "Starters": 5, "Desserts": 5, "Beverages": 5, "Packaged": 12, "Alcohol": 18, "Other": 5, }
     const [gstRates, setGstRates] = useState(hotel?.gst_category_rates || DEFAULT_GST_RATES)
     const [showRevenueBreakdown, setShowRevenueBreakdown] = useState(false)
+    const [customerSearch, setCustomerSearch] = useState("")
+    const [allCustomers, setAllCustomers] = useState([])
+    const [customersLoading, setCustomersLoading] = useState(false)
+    const [customersLoaded, setCustomersLoaded] = useState(false)
 
   function playOrderSound() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)()
@@ -531,6 +535,41 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
     setRoomSummaryOrders(data || [])
     setRoomSummaryLoading(false)
   }
+  async function fetchAllCustomers() {
+    setCustomersLoading(true)
+    const { data } = await supabase
+      .from("orders")
+      .select(`*, order_items!fk_order(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
+      .eq("hotel_id", hotel.id)
+      .neq("status", "hold")
+      .neq("status", "cancelled")
+      .neq("status", "rejected")
+      .order("created_at", { ascending: false })
+
+    if (data) {
+      const customerMap = {}
+      data.forEach(order => {
+        const key = order.guest_phone || order.guest_name || order.id
+        if (!customerMap[key]) {
+          customerMap[key] = {
+            name: order.guest_name || "—",
+            phone: order.guest_phone || "—",
+            email: order.guest_email || "—",
+            rooms: new Set(),
+            orders: [],
+            totalSpent: 0,
+          }
+        }
+        customerMap[key].rooms.add(order.room_id)
+        customerMap[key].orders.push(order)
+        customerMap[key].totalSpent += order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+      })
+      setAllCustomers(Object.values(customerMap))
+    }
+    setCustomersLoading(false)
+    setCustomersLoaded(true)
+  }
+
   function downloadCSV() {
     const rows = [["Time", "Room", "Guest", "Phone", "Items", "Total", "Status"]]
     reportOrders.forEach(o => {
@@ -1621,10 +1660,123 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
         )
       })}
 
-      {reportOrders.length > 0 && (
+{reportOrders.length > 0 && (
         <button style={{ ...d.addBtn, marginTop: 8 }} onClick={() => downloadCSV()}>
           ⬇ Download CSV
         </button>
+      )}
+
+      {/* CUSTOMER DATABASE */}
+      <p style={{ ...d.sectionLabel, marginTop: 32 }}>Customer Database</p>
+      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
+        All guests who have placed orders at your hotel.
+      </p>
+
+      {!customersLoaded ? (
+        <button
+          style={{ ...d.saveBtn, marginBottom: 16 }}
+          onClick={fetchAllCustomers}
+        >
+          {customersLoading ? "Loading..." : "Load Customer Database"}
+        </button>
+      ) : (
+        <>
+          <input
+            style={{ ...d.input, marginBottom: 12 }}
+            placeholder="Search by name, phone, email or room..."
+            value={customerSearch}
+            onChange={e => setCustomerSearch(e.target.value)}
+          />
+
+          {(() => {
+            const q = customerSearch.toLowerCase()
+            const filtered = allCustomers.filter(c =>
+              c.name.toLowerCase().includes(q) ||
+              c.phone.toLowerCase().includes(q) ||
+              c.email.toLowerCase().includes(q) ||
+              [...c.rooms].some(r => String(r).includes(q))
+            )
+
+            if (filtered.length === 0) return (
+              <p style={d.empty}>No customers found.</p>
+            )
+
+            return filtered.map((customer, idx) => {
+              const avgRating = customer.orders.filter(o => o.rating).length > 0
+                ? (customer.orders.reduce((s, o) => s + (o.rating || 0), 0) / customer.orders.filter(o => o.rating).length).toFixed(1)
+                : null
+
+              return (
+                <div key={idx} style={{ ...d.card, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0", marginBottom: 10 }}>
+                  {/* Header row */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: darkMode ? "#e8f0f8" : "#1c2b3a", margin: "0 0 4px" }}>{customer.name}</p>
+                      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 2px" }}>📞 {customer.phone}</p>
+                      {customer.email !== "—" && (
+                        <p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 2px" }}>✉️ {customer.email}</p>
+                      )}
+                      <p style={{ fontSize: 12, color: "#8a9bb0", margin: 0 }}>
+                        🚪 Room{[...customer.rooms].length > 1 ? "s" : ""}: {[...customer.rooms].join(", ")}
+                      </p>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <p style={{ fontSize: 18, fontWeight: 700, color: "#6fcf97", margin: "0 0 2px" }}>₹{customer.totalSpent}</p>
+                      <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0, textTransform: "uppercase", letterSpacing: 0.5 }}>Total Spent</p>
+                    </div>
+                  </div>
+
+                  {/* Stats row */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, background: darkMode ? "#0f1923" : "#f4f6f9", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
+                    <div style={{ textAlign: "center" }}>
+                      <p style={{ fontSize: 18, fontWeight: 700, color: "#7eb3f5", margin: "0 0 2px" }}>{customer.orders.length}</p>
+                      <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>Orders</p>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <p style={{ fontSize: 18, fontWeight: 700, color: "#f5a623", margin: "0 0 2px" }}>
+                        {avgRating ? `${avgRating} ★` : "—"}
+                      </p>
+                      <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>Avg Rating</p>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <p style={{ fontSize: 18, fontWeight: 700, color: darkMode ? "#e8f0f8" : "#1c2b3a", margin: "0 0 2px" }}>
+                        {new Date(customer.orders[customer.orders.length - 1].created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                      </p>
+                      <p style={{ fontSize: 10, color: "#8a9bb0", margin: 0 }}>First Visit</p>
+                    </div>
+                  </div>
+
+                  {/* Individual order ratings */}
+                  {customer.orders.some(o => o.rating) && (
+                    <div>
+                      <p style={{ fontSize: 10, color: "#8a9bb0", letterSpacing: 1, textTransform: "uppercase", margin: "0 0 6px", fontWeight: 600 }}>Order Ratings</p>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        {customer.orders.filter(o => o.rating).map((o, i) => {
+                          const time = new Date(o.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+                          return (
+                            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
+                              <span style={{ color: "#8a9bb0" }}>{time} · Room {o.room_id}</span>
+                              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                <span style={{ color: "#f5a623" }}>{"★".repeat(o.rating)}{"☆".repeat(5 - o.rating)}</span>
+                                {o.rating_comment && (
+                                  <span style={{ color: "#8a9bb0", fontSize: 10, fontStyle: "italic" }}>"{o.rating_comment}"</span>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          })()}
+
+          <p style={{ fontSize: 11, color: "#8a9bb0", textAlign: "center", marginTop: 8 }}>
+            {allCustomers.length} unique guests · {allCustomers.reduce((s, c) => s + c.orders.length, 0)} total orders
+          </p>
+        </>
       )}
 
     </div>
@@ -1843,7 +1995,7 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
   />
 </div>
 
-  <button
+<button
     style={d.saveBtn}
     onClick={async () => {
       await supabase.from("hotels").update({ 
@@ -1859,6 +2011,11 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
   >
     Save Hotel Details
   </button>
+  {themeSaved && (
+    <p style={{ color: "#2e7d32", fontSize: 13, textAlign: "center", marginTop: 8, fontWeight: 500 }}>
+      ✓ Hotel details saved successfully!
+    </p>
+  )}
 </div>
 
 <p style={{ ...d.sectionLabel, marginTop: 28 }}>GST Rates By Category</p>
