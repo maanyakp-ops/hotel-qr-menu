@@ -870,7 +870,7 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
   </button>
   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-    <div id="google_translate_element" style={{ display: "inline-block" }}></div>
+    <div id="google_translate_element" style={{ minWidth: 60, minHeight: 30, background: "red" }}></div>
       <span style={{ fontSize: 10, color: t.accentMuted }}>A</span>
       <div onClick={async () => {
         const sizeOrder = ["small", "medium", "large"]
