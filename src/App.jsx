@@ -631,6 +631,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
 <p style={s.confirmSub}>
   {orderStatus === "cancelled" ? "Your order has been cancelled." :
    orderStatus === "rejected" ? (placedOrder?.reject_reason ? `Rejected: ${placedOrder.reject_reason}` : "Sorry, the hotel couldn't accept your order.") :
+   orderStatus === "delivered" ? `We have delivered to Room ${resolvedRoom}.` :
    `We'll deliver to Room ${resolvedRoom} shortly.`}
 </p>
 
@@ -735,7 +736,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
               Order confirms in {holdCountdown}s
             </p>
             <div style={{ width: 200, height: 3, background: "rgba(255,255,255,0.1)", borderRadius: 2, margin: "0 auto 16px" }}>
-              <div style={{ width: `${(holdCountdown / 60) * 100}%`, height: "100%", background: "#C9A84C", borderRadius: 2, transition: "width 1s linear" }} />
+              <div style={{ width: `${(holdCountdown / 20) * 100}%`, height: "100%", background: "#C9A84C", borderRadius: 2, transition: "width 1s linear" }} />
             </div>
             <button style={s.cancelOrderBtn} onClick={() => cancelOrder(placedOrder.id)}>Cancel Order </button>
           </div>
