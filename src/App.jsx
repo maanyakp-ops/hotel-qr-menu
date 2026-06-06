@@ -736,7 +736,7 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
             <div style={{ width: 200, height: 3, background: "rgba(255,255,255,0.1)", borderRadius: 2, margin: "0 auto 16px" }}>
               <div style={{ width: `${(holdCountdown / 60) * 100}%`, height: "100%", background: "#C9A84C", borderRadius: 2, transition: "width 1s linear" }} />
             </div>
-            <button style={s.cancelOrderBtn} onClick={() => cancelOrder(placedOrder.id)}>Cancel Order{tr.cancelOrder}</button>
+            <button style={s.cancelOrderBtn} onClick={() => cancelOrder(placedOrder.id)}>Cancel Order </button>
           </div>
         )}
 
@@ -838,7 +838,7 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
             </div>
 
             <input style={s.modalInput} placeholder="Your name *" value={guestName} onChange={e => setGuestName(e.target.value)} />
-            <input style={s.modalInput} placeholder={tr.phoneNumber} type="tel" inputMode="numeric" maxLength={10} value={guestPhone} onChange={e => setGuestPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} />
+            <input style={s.modalInput} placeholder="Phone number *" type="tel" inputMode="numeric" maxLength={10} value={guestPhone} onChange={e => setGuestPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} />
             <input style={s.modalInput} placeholder="Email (optional)" type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} />
             <textarea style={{ ...s.modalInput, height: 80, resize: "none" }} placeholder="Special instructions — e.g. less spicy, no onion" value={guestInstructions} onChange={e => setGuestInstructions(e.target.value)} /> 
             <button style={s.modalBtn} onClick={placeOrder}>Confirm Order · ₹{gstSummary.grandTotal}</button>
