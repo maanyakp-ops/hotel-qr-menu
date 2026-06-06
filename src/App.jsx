@@ -625,10 +625,10 @@ async function startHoldCountdown(orderId, startSeconds = 60) {
           {orderStatus === "cancelled" ? "❌" : orderStatus === "rejected" ? "🚫" : "🎉"}
         </div>
         <h2 style={s.confirmTitle}>
-  {orderStatus === "cancelled" ? tr.orderCancelled : orderStatus === "rejected" ? tr.orderRejected : tr.orderPlaced}
+  {orderStatus === "cancelled" ? Order_Cancelled : orderStatus === "rejected" ? Order_Rejected : Order_Placed }
 </h2>
 <p style={s.confirmSub}>
-  {orderStatus === "cancelled" ? tr.orderCancelled + "." :
+  {orderStatus === "cancelled" ? Order_Cancelled + "." :
    orderStatus === "rejected" ? (placedOrder?.reject_reason ? `Rejected: ${placedOrder.reject_reason}` : "Sorry, the hotel couldn't accept your order.") :
    `$We'll deliver to Room ${resolvedRoom} $shortly.`}
 </p>
@@ -870,7 +870,34 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
   </button>
   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-    <div id="google_translate_element"></div>
+    <select
+  onChange={(e) => {
+    const lang = e.target.value
+    if (lang === "en") {
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+      window.location.reload()
+    } else {
+      document.cookie = `googtrans=/en/${lang}`
+      window.location.reload()
+    }
+  }}
+  style={{
+    background: "transparent",
+    border: `1px solid ${t.accentMuted}`,
+    color: t.textSecondary,
+    padding: "5px 10px",
+    fontSize: 10,
+    cursor: "pointer",
+    fontFamily: t.bodyFont,
+    letterSpacing: 1,
+    outline: "none",
+  }}
+  defaultValue="en"
+>
+  <option value="en">EN</option>
+  <option value="hi">हिंदी</option>
+  <option value="mr">मराठी</option>
+</select>
       <span style={{ fontSize: 10, color: t.accentMuted }}>A</span>
       <div onClick={async () => {
         const sizeOrder = ["small", "medium", "large"]
