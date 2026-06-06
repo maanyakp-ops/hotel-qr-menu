@@ -740,7 +740,11 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
           <button style={tab === "orders"   ? d.tabActive : d.tab} onClick={() => setTab("orders")}>Orders</button>
           <button style={tab === "menu"     ? d.tabActive : d.tab} onClick={() => setTab("menu")}>Menu</button>
           <button style={tab === "reports"  ? d.tabActive : d.tab} onClick={() => setTab("reports")}>Reports</button>
-          <button style={tab === "qr"       ? d.tabActive : d.tab} onClick={() => setTab("qr")}>QR Codes</button>
+          <button style={tab === "qr" ? d.tabActive : d.tab} onClick={async () => {
+  setTab("qr")
+  const { data } = await supabase.from("hotels").select("*").eq("id", hotel.id).single()
+  if (data) setHotel(data)
+}}>QR Codes</button>
           <button style={tab === "settings" ? d.tabActive : d.tab} onClick={() => setTab("settings")}>Settings</button>
           {isAdmin && <button style={tab === "admin" ? d.tabActive : d.tab} onClick={() => setTab("admin")}>Hotels</button>}
         </div>
