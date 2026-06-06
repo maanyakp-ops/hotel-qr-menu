@@ -2233,12 +2233,15 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
                   </div>
 <div style={d.adminRow}>
   <span style={d.adminLabel}>Paid rooms</span>
-  <input
-    style={d.roomInput}
-    type="number"
-    defaultValue={h.paid_rooms || 0}
-    onBlur={e => updateHotel(h.id, { paid_rooms: parseInt(e.target.value) })}
-  />
+<input
+  style={d.roomInput}
+  type="number"
+  defaultValue={h.paid_rooms || 0}
+  onBlur={async e => {
+    await supabase.from("hotels").update({ paid_rooms: parseInt(e.target.value) }).eq("id", h.id)
+    fetchAllHotels()
+  }}
+/>
 </div>
                   <div style={d.adminRow}>
                     <span style={d.adminLabel}>Hotel ID (for QR)</span>
