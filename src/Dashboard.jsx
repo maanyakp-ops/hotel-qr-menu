@@ -1226,14 +1226,11 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
       allRooms.push(i + (hotel?.room_start || 101))
     }
   }
-  const cappedRooms = allRooms.slice(0, hotel?.paid_rooms || 0)
+  const cappedRooms = allRooms 
   return (
     <>
-      {allRooms.length > (hotel?.paid_rooms || 0) && (
-        <div style={{ background: "#fff3e0", border: "1px solid #fcd34d", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 12, color: "#b45309" }}>
-          ⚠️ You have {allRooms.length} rooms configured but only {hotel?.paid_rooms} are active. Contact support to upgrade.
-        </div>
-      )}
+
+      
       {cappedRooms.map(roomNumber => {
         const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
         return (
@@ -1982,15 +1979,30 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
   + Add Floor Range
 </button>
 
+{(() => {
+  const total = (hotel.room_ranges || []).reduce((sum, r) => sum + (r.end - r.start + 1), 0)
+  const limit = hotel.room_count || 0
+  return (
+    <p style={{ fontSize: 12, color: total > limit ? "#c0392b" : "#2e7d32", margin: "0 0 12px", fontWeight: 500 }}>
+      {total} / {limit} rooms configured
+    </p>
+  )
+})()}
+
 <button
   style={d.saveBtn}
   onClick={async () => {
+    const totalRooms = (hotel.room_ranges || []).reduce((sum, r) => sum + (r.end - r.start + 1), 0)
+    if (totalRooms > (hotel.room_count || 0)) {
+      alert(`You can only configure up to ${hotel.room_count} rooms. Currently you have ${totalRooms} rooms across your ranges.`)
+      return
+    }
     await supabase.from("hotels").update({ room_ranges: hotel.room_ranges }).eq("id", hotel.id)
     setThemeSaved(true)
     setTimeout(() => setThemeSaved(false), 2500)
   }}
 >
-    Save Room Ranges
+  Save Room Ranges
 </button>
 
 <p style={{ ...d.sectionLabel, marginTop: 28 }}>Hotel Details for Bill</p>
@@ -2231,22 +2243,11 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
                       {h.status || "pending"}
                     </span>
                   </div>
+
 <div style={d.adminRow}>
-  <span style={d.adminLabel}>Paid rooms</span>
-<input
-  style={d.roomInput}
-  type="number"
-  defaultValue={h.paid_rooms || 0}
-  onBlur={async e => {
-    await supabase.from("hotels").update({ paid_rooms: parseInt(e.target.value) }).eq("id", h.id)
-    fetchAllHotels()
-  }}
-/>
+  <span style={d.adminLabel}>Total rooms</span>
+  <span style={d.hotelId}>{h.room_count || 0}</span>
 </div>
-                  <div style={d.adminRow}>
-                    <span style={d.adminLabel}>Hotel ID (for QR)</span>
-                    <span style={d.hotelId}>{h.id}</span>
-                  </div>
                   <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
 {h.status !== "active" && (
   <button style={d.btnDeliver} onClick={async () => {
