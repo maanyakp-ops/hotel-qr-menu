@@ -656,198 +656,52 @@ async function saveEdit() {
   const DARK_GREEN = [28, 58, 40]
   const GOLD = [184, 151, 42]
 
-function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
-    const topH = h * 0.72
-    const botH = h - topH
+async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
+  const templateUrl = "https://ieziftgeevgjnteychen.supabase.co/storage/v1/object/public/assets/ChatGPT%20Image%20Jun%208,%202026,%2002_29_24%20AM.png"
+  
+  await new Promise((resolve) => {
+    const img = new Image()
+    img.crossOrigin = "anonymous"
+    img.onload = () => {
+      const canvas = document.createElement("canvas")
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext("2d")
+      ctx.drawImage(img, 0, 0)
+      const dataUrl = canvas.toDataURL("image/png")
+      doc.addImage(dataUrl, "PNG", x, y, w, h)
+      resolve()
+    }
+    img.onerror = resolve
+    img.src = templateUrl
+  })
 
-    // White background for whole card
-    doc.setFillColor(248, 244, 236)
-    doc.roundedRect(x, y, w, h, 3, 3, "F")
+// Hotel name — elegant gold
+  const hotelName = (hotelData.name || "YOUR HOTEL").toUpperCase()
+  doc.setFont("times", "bold")
+  doc.setFontSize(17)
+  doc.setTextColor(22, 48, 32)
+  const maxWidth = w * 0.55
+  const nameLines = doc.splitTextToSize(hotelName, maxWidth)
+  const nameY = y + h * 0.165
+  const lineH = 9
+  const totalH = (nameLines.length - 1) * lineH
+  nameLines.forEach((line, i) => {
+    doc.text(line, x + w / 2, nameY - totalH / 2 + i * lineH, { align: "center" })
+  })
 
-    // Gold outer border
-    doc.setDrawColor(...GOLD)
-    doc.setLineWidth(0.5)
-    doc.roundedRect(x, y, w, h, 3, 3, "S")
+  // QR code inside white box (~48% to 76% from top)
+  const qrSize = w * 0.30
+  const qrX = x + (w - qrSize) / 2
+  const qrY = y + h * 0.505
+  if (qrDataUrl) doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize)
 
-    // Thin gold inner border
-    doc.setLineWidth(0.15)
-    doc.roundedRect(x + 3, y + 3, w - 6, topH - 3, 1.5, 1.5, "S")
-
-    // ── HOTEL NAME ──
-    doc.setFont("helvetica", "bold")
-    doc.setFontSize(11)
-    doc.setTextColor(...DARK_GREEN)
-    doc.text((hotelData.name || "YOUR HOTEL").toUpperCase(), x + w / 2, y + 10, { align: "center" })
-
-    // Gold rule under name
-    doc.setDrawColor(...GOLD)
-    doc.setLineWidth(0.3)
-    const ruleW = 20
-    doc.line(x + w/2 - ruleW - 4, y + 12, x + w/2 - 4, y + 12)
-    doc.line(x + w/2 + 4, y + 12, x + w/2 + ruleW + 4, y + 12)
-    doc.setFont("helvetica", "normal")
-    doc.setFontSize(4)
-    doc.setTextColor(...GOLD)
-    doc.text("HOSPITALITY REDEFINED", x + w / 2, y + 12.8, { align: "center" })
-
-    // ── ORDER FOOD heading ──
-    doc.setFont("helvetica", "bold")
-    doc.setFontSize(20)
-    doc.setTextColor(...DARK_GREEN)
-    doc.text("ORDER FOOD", x + w / 2, y + 22, { align: "center" })
-
-    doc.setFontSize(13)
-    doc.setTextColor(...GOLD)
-    doc.text("TO YOUR ROOM", x + w / 2, y + 28.5, { align: "center" })
-
-    // Thin gold line separator
-    doc.setDrawColor(...GOLD)
-    doc.setLineWidth(0.15)
-    doc.line(x + 10, y + 31, x + w - 10, y + 31)
-
-    // ── Description ──
-    doc.setFont("helvetica", "normal")
-    doc.setFontSize(5)
-    doc.setTextColor(80, 90, 80)
-    doc.text("Scan the QR code to browse the menu and place your order instantly.", x + w / 2, y + 35.5, { align: "center", maxWidth: w - 20 })
-
-    // ── SCAN HERE button ──
-    doc.setFillColor(...DARK_GREEN)
-    doc.roundedRect(x + w/2 - 16, y + 38.5, 32, 7, 3.5, 3.5, "F")
-    doc.setFont("helvetica", "bold")
-    doc.setFontSize(5.5)
-    doc.setTextColor(255, 255, 255)
-    doc.text("SCAN HERE", x + w / 2, y + 43, { align: "center" })
-
-    // Small arrow
-    doc.setFillColor(...DARK_GREEN)
-    doc.triangle(x + w/2 - 2, y + 45.5, x + w/2 + 2, y + 45.5, x + w/2, y + 48, "F")
-
-    // ── QR CODE box ──
-    const qrSize = 36
-    const qrX = x + w / 2 - qrSize / 2
-    const qrY = y + 48
-    doc.setFillColor(255, 255, 255)
-    doc.setDrawColor(...GOLD)
-    doc.setLineWidth(0.5)
-    doc.roundedRect(qrX - 4, qrY - 3, qrSize + 8, qrSize + 10, 2, 2, "FD")
-    if (qrDataUrl) doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize)
-
-    // Room number
-    doc.setFont("helvetica", "italic")
-    doc.setFontSize(6)
-    doc.setTextColor(100, 110, 100)
-    doc.text(`Room ${roomNumber}`, x + w / 2, qrY + qrSize + 5, { align: "center" })
-
-    // ── 4 FEATURE LABELS (clean, no messy icons) ──
-    const featSize = 5
-    doc.setFont("helvetica", "bold")
-    doc.setFontSize(featSize - 0.5)
-    doc.setTextColor(...GOLD)
-
-    const lx = x + 9
-    const rx = x + w - 9
-    const f1y = qrY + 6
-    const f2y = qrY + 22
-
-    // Left top — small dot bullet
-    doc.setFillColor(...GOLD)
-    doc.circle(lx, f1y - 2.5, 0.8, "F")
-    doc.text("WIDE SELECTION", lx + 2, f1y - 2, {})
-
-    // Left bottom
-    doc.circle(lx, f2y - 2.5, 0.8, "F")
-    doc.text("ROOM DELIVERY", lx + 2, f2y - 2, {})
-
-    // Right top
-    doc.circle(rx - 14, f1y - 2.5, 0.8, "F")
-    doc.text("FRESH & DELICIOUS", rx - 13, f1y - 2, {})
-
-    // Right bottom
-    doc.circle(rx - 14, f2y - 2.5, 0.8, "F")
-    doc.text("SAFE & CONTACTLESS", rx - 13, f2y - 2, {})
-
-    // ── DARK GREEN BOTTOM ──
-    doc.setFillColor(...DARK_GREEN)
-    doc.rect(x, y + topH, w, botH, "F")
-    doc.setFillColor(...DARK_GREEN)
-    doc.roundedRect(x, y + topH + botH * 0.5, w, botH * 0.5, 3, 3, "F")
-
-    // Bottom thin gold border
-    doc.setDrawColor(...GOLD)
-    doc.setLineWidth(0.15)
-    doc.rect(x + 3, y + topH + 3, w - 6, botH - 6, "S")
-
-    // ── SCAN · ORDER · ENJOY ──
-    const stepY = y + topH + 12
-    const p1 = x + w * 0.2
-    const p2 = x + w * 0.5
-    const p3 = x + w * 0.8
-    const cr = 4
-
-    // Connecting lines
-    doc.setDrawColor(...GOLD)
-    doc.setLineWidth(0.2)
-    doc.line(p1 + cr + 1, stepY, p2 - cr - 1, stepY)
-    doc.line(p2 + cr + 1, stepY, p3 - cr - 1, stepY)
-
-    // Circles with icons
-    ;[p1, p2, p3].forEach(px => {
-      doc.setFillColor(...DARK_GREEN)
-      doc.setDrawColor(...GOLD)
-      doc.setLineWidth(0.4)
-      doc.circle(px, stepY, cr, "FD")
-    })
-
-    // Phone icon (SCAN)
-    doc.setDrawColor(...GOLD)
-    doc.setLineWidth(0.3)
-    doc.roundedRect(p1 - 1.6, stepY - 2.8, 3.2, 5, 0.4, 0.4, "S")
-    doc.line(p1 - 0.7, stepY + 1.5, p1 + 0.7, stepY + 1.5)
-
-    // Lines icon (ORDER)
-    doc.line(p2 - 1.8, stepY - 1.5, p2 + 1.8, stepY - 1.5)
-    doc.line(p2 - 1.8, stepY, p2 + 1.8, stepY)
-    doc.line(p2 - 1.8, stepY + 1.5, p2 + 0.8, stepY + 1.5)
-
-    // Smile icon (ENJOY)
-    doc.setDrawColor(...GOLD)
-    doc.circle(p3, stepY, 2.8, "S")
-    doc.setFillColor(...GOLD)
-    doc.circle(p3 - 1, stepY - 0.8, 0.35, "F")
-    doc.circle(p3 + 1, stepY - 0.8, 0.35, "F")
-    doc.setFillColor(...DARK_GREEN)
-    doc.ellipse(p3, stepY + 0.6, 1.2, 0.8, "S")
-
-    // Labels
-    doc.setFont("helvetica", "bold")
-    doc.setFontSize(4.5)
-    doc.setTextColor(255, 255, 255)
-    ;[[p1, "SCAN"], [p2, "ORDER"], [p3, "ENJOY"]].forEach(([px, label]) => {
-      doc.text(label, px, stepY + cr + 3.5, { align: "center" })
-    })
-
-    // ── FAST · CONVENIENT · CONTACTLESS ──
-    doc.setDrawColor(...GOLD)
-    doc.setLineWidth(0.15)
-    doc.line(x + 5, y + topH + botH - 12, x + w - 5, y + topH + botH - 12)
-    doc.setFontSize(3.8)
-    doc.setTextColor(...GOLD)
-    doc.text("FAST  ·  CONVENIENT  ·  CONTACTLESS", x + w / 2, y + topH + botH - 9.5, { align: "center" })
-
-    // ── Powered by box ──
-    doc.setDrawColor(...GOLD)
-    doc.setLineWidth(0.2)
-    doc.roundedRect(x + 12, y + topH + botH - 7.5, w - 24, 5.5, 1, 1, "S")
-    doc.setFont("helvetica", "normal")
-    doc.setFontSize(4)
-    doc.setTextColor(160, 200, 160)
-    doc.text("Powered by ", x + w / 2 - 1, y + topH + botH - 4.5, { align: "right" })
-    doc.setFont("helvetica", "bolditalic")
-    doc.setFontSize(4.5)
-    doc.setTextColor(255, 255, 255)
-    doc.text("staydine.in", x + w / 2, y + topH + botH - 4.5)
-  }
+  // Room number below QR inside box
+  doc.setFont("helvetica", "bold")
+  doc.setFontSize(7)
+  doc.setTextColor(28, 58, 40)
+  doc.text(`Room ${roomNumber}`, x + w / 2, y + h * 0.72, { align: "center" })
+}
 
   // Generate QR data URLs for all rooms
   async function getQRDataUrl(text) {
@@ -886,7 +740,7 @@ function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
 
         const x = marginX + c * (cardW + gap)
         const y = marginY + r * (cardH + gap)
-        drawCard(doc, x, y, cardW, cardH, roomNumber, qrDataUrl)
+        await drawCard(doc, x, y, cardW, cardH, roomNumber, qrDataUrl)
         roomIdx++
       }
     }
