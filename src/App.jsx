@@ -303,7 +303,9 @@ function App() {
  
 useEffect(() => {
   const hash = window.location.hash
-  if (hash.includes("type=recovery")) {
+  const isReset = hash.includes("type=recovery") || sessionStorage.getItem('passwordReset') === 'true'
+  if (isReset) {
+    sessionStorage.removeItem('passwordReset')
     setView("reset-password")
   }
 }, [])
