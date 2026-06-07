@@ -1606,7 +1606,10 @@ function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
             totalGst += (itemTotal * gstRate) / 100
           })
         })
-        const grossRevenue = deliveredOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)
+        const grossRevenue = deliveredOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => {
+          const gstAmt = Math.round(i.price * i.quantity * ((i.gst_rate || 0) / 100) * 100) / 100
+          return s + i.price * i.quantity + gstAmt
+        }, 0), 0)
         const cgst = totalGst / 2
         const sgst = totalGst / 2
         const pat = grossRevenue - totalGst
