@@ -296,7 +296,7 @@ function App() {
   const fontScale = hotelInfo?.font_size === "small" ? 0.85 : hotelInfo?.font_size === "large" ? 1.2 : 1
   const isRestaurant = hotelInfo?.business_type === "restaurant"
   const gstEnabled = hotelInfo?.gst_enabled !== false
-
+  const [menuSearchGuest, setMenuSearchGuest] = useState("")
   // GST summary for current cart
   const gstSummary = calcCartGst(cart)
 
@@ -921,6 +921,30 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
     </div>
   </div>
 </div>
+<div style={{ padding: "10px 16px", background: t.tabsBg, borderBottom: `1px solid ${t.tabBorder}` }}>
+        <input
+          style={{
+            width: "100%",
+            background: t.inputBg,
+            border: `1px solid ${t.inputBorder}`,
+            borderRadius: 4,
+            padding: "9px 14px",
+            fontSize: 12,
+            color: t.inputColor,
+            outline: "none",
+            fontFamily: t.bodyFont,
+            letterSpacing: 1,
+            boxSizing: "border-box",
+          }}
+          placeholder="Search menu..."
+          value={menuSearchGuest}
+          onChange={e => {
+            setMenuSearchGuest(e.target.value)
+            if (e.target.value) setActiveTab(null)
+            else setActiveTab(categories[0])
+          }}
+        />
+      </div>
       {categories.length > 0 && (
         <div style={s.tabs}>
           {categories.map(cat => (
@@ -983,7 +1007,10 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
           </div>
         )}
 
-        {filteredItems.filter(i => i.category === activeTab).map(item => {
+{(menuSearchGuest
+          ? filteredItems.filter(i => i.name.toLowerCase().includes(menuSearchGuest.toLowerCase()) || i.category.toLowerCase().includes(menuSearchGuest.toLowerCase()))
+          : filteredItems.filter(i => i.category === activeTab)
+        ).map(item => {
           const cartItem = cart.find(i => i.id === item.id)
           return (
             <div key={item.id} style={s.menuItem}>

@@ -6,7 +6,7 @@ export default function Landing() {
 
       {/* Nav */}
       <nav style={l.nav}>
-        <span style={l.logo}>Hotel<span style={l.logoPlus}>+</span></span>
+        <span style={l.logo}>Stay<span style={l.logoPlus}>Dine</span></span>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <a href="/auth" style={l.navLogin}>Login</a>
           <a href="/signup" style={l.navBtn}>Get Started →</a>
@@ -172,10 +172,7 @@ export default function Landing() {
       <div style={l.footer}>
         <span style={l.footerLogo}>Hotel<span style={l.logoPlus}>+</span></span>
         <p style={l.footerText}>The simplest room service system in India &nbsp;·&nbsp; Made in India 🇮🇳</p>
-        <div style={l.footerLinks}>
-          <a href="/auth" style={l.footerLink}>Staff Login</a>
-          <a href="/signup" style={l.footerLink}>Sign Up</a>
-        </div>
+        
       </div>
     </div>
   )
