@@ -656,11 +656,11 @@ async function saveEdit() {
   const DARK_GREEN = [28, 58, 40]
   const GOLD = [184, 151, 42]
 
-  function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
-    const topH = h * 0.72
+function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
+    const topH = h * 0.75
     const botH = h - topH
 
-    // Cream top
+    // Cream background
     doc.setFillColor(...CREAM)
     doc.roundedRect(x, y, w, h, 2, 2, "F")
 
@@ -669,148 +669,165 @@ async function saveEdit() {
     doc.setLineWidth(0.4)
     doc.roundedRect(x, y, w, h, 2, 2, "S")
 
-    // Gold inner border (top section only)
-    doc.setDrawColor(...GOLD)
+    // Gold inner border top section
     doc.setLineWidth(0.2)
-    doc.rect(x + 1.5, y + 1.5, w - 3, topH - 1, "S")
+    doc.rect(x + 2, y + 2, w - 4, topH - 2, "S")
+
+    // Crown monogram — GR text with lines
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(11)
+    doc.setTextColor(...GOLD)
+    doc.text("GR", x + w / 2, y + 8, { align: "center" })
+    doc.setLineWidth(0.3)
+    doc.setDrawColor(...GOLD)
+    doc.line(x + w / 2 - 8, y + 9.5, x + w / 2 - 2, y + 9.5)
+    doc.line(x + w / 2 + 2, y + 9.5, x + w / 2 + 8, y + 9.5)
 
     // Hotel name
     doc.setFont("helvetica", "bold")
-    doc.setFontSize(9)
+    doc.setFontSize(10)
     doc.setTextColor(...DARK_GREEN)
-    const name = (hotelData.name || "YOUR HOTEL").toUpperCase()
-    doc.text(name, x + w / 2, y + 8, { align: "center" })
+    doc.text((hotelData.name || "YOUR HOTEL").toUpperCase(), x + w / 2, y + 15, { align: "center" })
 
-    // Gold divider line
+    // Tagline with lines
     doc.setDrawColor(...GOLD)
     doc.setLineWidth(0.2)
-    const divY = y + 10
-    doc.line(x + 6, divY, x + w * 0.3, divY)
-    doc.line(x + w * 0.7, divY, x + w - 6, divY)
+    doc.line(x + 4, y + 18, x + w * 0.28, y + 18)
+    doc.line(x + w * 0.72, y + 18, x + w - 4, y + 18)
+    doc.setFont("helvetica", "normal")
     doc.setFontSize(4.5)
     doc.setTextColor(...GOLD)
-    doc.text("HOSPITALITY REDEFINED", x + w / 2, divY + 0.5, { align: "center" })
+    doc.text("HOSPITALITY REDEFINED", x + w / 2, y + 18.8, { align: "center" })
 
     // ORDER FOOD
     doc.setFont("helvetica", "bold")
-    doc.setFontSize(16)
+    doc.setFontSize(18)
     doc.setTextColor(...DARK_GREEN)
-    doc.text("ORDER FOOD", x + w / 2, y + 18, { align: "center" })
+    doc.text("ORDER FOOD", x + w / 2, y + 27, { align: "center" })
 
     // TO YOUR ROOM
-    doc.setFontSize(11)
+    doc.setFontSize(13)
     doc.setTextColor(...GOLD)
-    doc.text("TO YOUR ROOM", x + w / 2, y + 24, { align: "center" })
+    doc.text("TO YOUR ROOM", x + w / 2, y + 33, { align: "center" })
 
-    // Deco
+    // Deco divider
     doc.setFontSize(6)
     doc.setTextColor(...GOLD)
-    doc.text("— \u2756 —", x + w / 2, y + 28, { align: "center" })
+    doc.text("— \u2756 —", x + w / 2, y + 37, { align: "center" })
 
-    // Scan desc
+    // Description
     doc.setFont("helvetica", "normal")
-    doc.setFontSize(5)
+    doc.setFontSize(5.5)
     doc.setTextColor(60, 74, 60)
-    doc.text("Scan the QR code to browse the menu", x + w / 2, y + 32, { align: "center" })
-    doc.text("and place your order instantly.", x + w / 2, y + 35.5, { align: "center" })
+    doc.text("Scan the QR code to browse the menu", x + w / 2, y + 41, { align: "center" })
+    doc.text("and place your order instantly.", x + w / 2, y + 44.5, { align: "center" })
 
-    // SCAN HERE button
+    // SCAN HERE pill
     doc.setFillColor(...DARK_GREEN)
-    doc.roundedRect(x + w / 2 - 14, y + 38, 28, 6, 3, 3, "F")
+    doc.roundedRect(x + w / 2 - 15, y + 47, 30, 7, 3.5, 3.5, "F")
     doc.setFont("helvetica", "bold")
-    doc.setFontSize(5)
+    doc.setFontSize(5.5)
     doc.setTextColor(255, 255, 255)
-    doc.text("SCAN HERE", x + w / 2, y + 41.8, { align: "center" })
+    doc.text("SCAN HERE", x + w / 2, y + 51.5, { align: "center" })
 
-    // Arrow
+    // Arrow down
     doc.setFillColor(...DARK_GREEN)
-    doc.triangle(x + w / 2 - 2, y + 44, x + w / 2 + 2, y + 44, x + w / 2, y + 47, "F")
+    doc.triangle(x + w / 2 - 2.5, y + 54, x + w / 2 + 2.5, y + 54, x + w / 2, y + 57.5, "F")
 
-    // QR box
-    const qrSize = 32
+    // QR white box
+    const qrSize = 34
     const qrX = x + w / 2 - qrSize / 2
-    const qrY = y + 47
+    const qrY = y + 57
     doc.setFillColor(255, 255, 255)
     doc.setDrawColor(...GOLD)
-    doc.setLineWidth(0.4)
-    doc.roundedRect(qrX - 2, qrY - 2, qrSize + 4, qrSize + 8, 2, 2, "FD")
+    doc.setLineWidth(0.5)
+    doc.roundedRect(qrX - 3, qrY - 2, qrSize + 6, qrSize + 9, 2, 2, "FD")
 
     if (qrDataUrl) {
       doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize)
     }
 
-    // Room label
+    // Room label inside white box
     doc.setFont("helvetica", "italic")
-    doc.setFontSize(5.5)
+    doc.setFontSize(6)
     doc.setTextColor(74, 90, 74)
-    doc.text(`Room ${roomNumber}`, x + w / 2, qrY + qrSize + 4, { align: "center" })
+    doc.text(`Room ${roomNumber}`, x + w / 2, qrY + qrSize + 5, { align: "center" })
 
-    // Side icons — left
+    // Side feature labels — properly spaced
+    const featY1 = y + 68
+    const featY2 = y + 82
+    const leftX = x + 11
+    const rightX = x + w - 11
+
     doc.setFont("helvetica", "bold")
-    doc.setFontSize(4)
+    doc.setFontSize(4.5)
     doc.setTextColor(...GOLD)
-    doc.text("WIDE", x + 7, y + 58, { align: "center" })
-    doc.text("SELECTION", x + 7, y + 61, { align: "center" })
-    doc.text("DELIVERED", x + 7, y + 72, { align: "center" })
-    doc.text("TO YOUR ROOM", x + 7, y + 75, { align: "center" })
 
-    // Side icons — right
-    doc.text("FRESH &", x + w - 7, y + 58, { align: "center" })
-    doc.text("DELICIOUS", x + w - 7, y + 61, { align: "center" })
-    doc.text("SAFE &", x + w - 7, y + 72, { align: "center" })
-    doc.text("CONTACTLESS", x + w - 7, y + 75, { align: "center" })
+    // Left features
+    doc.text("WIDE", leftX, featY1, { align: "center" })
+    doc.text("SELECTION", leftX, featY1 + 4, { align: "center" })
+    doc.text("DELIVERED", leftX, featY2, { align: "center" })
+    doc.text("TO YOUR ROOM", leftX, featY2 + 4, { align: "center" })
+
+    // Right features
+    doc.text("FRESH &", rightX, featY1, { align: "center" })
+    doc.text("DELICIOUS", rightX, featY1 + 4, { align: "center" })
+    doc.text("SAFE &", rightX, featY2, { align: "center" })
+    doc.text("CONTACTLESS", rightX, featY2 + 4, { align: "center" })
 
     // Dark green bottom
     doc.setFillColor(...DARK_GREEN)
     doc.rect(x, y + topH, w, botH, "F")
-    // Bottom corners rounded
-    doc.setFillColor(...DARK_GREEN)
-    doc.roundedRect(x, y + topH + botH - 3, w, 5, 2, 2, "F")
+    // Round bottom corners
+    doc.roundedRect(x, y + topH + botH * 0.5, w, botH * 0.5, 2, 2, "F")
 
     // Bottom inner border
     doc.setDrawColor(...GOLD)
     doc.setLineWidth(0.2)
-    doc.rect(x + 1.5, y + topH + 1.5, w - 3, botH - 3, "S")
+    doc.rect(x + 2, y + topH + 2, w - 4, botH - 4, "S")
 
-    // Steps
-    const stepY = y + topH + 8
-    const positions = [x + w * 0.22, x + w * 0.5, x + w * 0.78]
-    const labels = ["SCAN", "ORDER", "ENJOY"]
-    const circleR = 4
+    // SCAN ORDER ENJOY circles
+    const stepY = y + topH + 10
+    const p1 = x + w * 0.22
+    const p2 = x + w * 0.5
+    const p3 = x + w * 0.78
+    const r = 4.5
 
-    positions.forEach((px, i) => {
+    ;[p1, p2, p3].forEach(px => {
       doc.setDrawColor(...GOLD)
-      doc.setLineWidth(0.3)
-      doc.circle(px, stepY, circleR, "S")
-      doc.setFont("helvetica", "bold")
-      doc.setFontSize(4)
-      doc.setTextColor(255, 255, 255)
-      doc.text(labels[i], px, stepY + circleR + 3, { align: "center" })
+      doc.setLineWidth(0.4)
+      doc.circle(px, stepY, r, "S")
     })
 
-    // Separators between steps
-    doc.setDrawColor(...GOLD)
+    // Lines between circles
     doc.setLineWidth(0.2)
-    doc.line(positions[0] + circleR + 1, stepY, positions[1] - circleR - 1, stepY)
-    doc.line(positions[1] + circleR + 1, stepY, positions[2] - circleR - 1, stepY)
+    doc.line(p1 + r + 1, stepY, p2 - r - 1, stepY)
+    doc.line(p2 + r + 1, stepY, p3 - r - 1, stepY)
+
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(4.5)
+    doc.setTextColor(255, 255, 255)
+    ;[[p1, "SCAN"], [p2, "ORDER"], [p3, "ENJOY"]].forEach(([px, label]) => {
+      doc.text(label, px, stepY + r + 4, { align: "center" })
+    })
 
     // FAST • CONVENIENT • CONTACTLESS
-    doc.setFont("helvetica", "bold")
-    doc.setFontSize(4)
+    doc.setFontSize(4.5)
     doc.setTextColor(...GOLD)
     doc.text("FAST  •  CONVENIENT  •  CONTACTLESS", x + w / 2, y + topH + botH - 9, { align: "center" })
 
     // Powered by box
     doc.setDrawColor(...GOLD)
     doc.setLineWidth(0.2)
-    doc.roundedRect(x + 8, y + topH + botH - 7, w - 16, 5.5, 1, 1, "S")
+    doc.roundedRect(x + 10, y + topH + botH - 7.5, w - 20, 6, 1, 1, "S")
     doc.setFont("helvetica", "normal")
-    doc.setFontSize(4)
-    doc.setTextColor(200, 216, 200)
-    doc.text("Powered by ", x + w / 2 - 3, y + topH + botH - 3.8, { align: "right" })
+    doc.setFontSize(4.5)
+    doc.setTextColor(180, 210, 180)
+    doc.text("Powered by ", x + w / 2 - 1, y + topH + botH - 4, { align: "right" })
     doc.setFont("helvetica", "bolditalic")
+    doc.setFontSize(5)
     doc.setTextColor(255, 255, 255)
-    doc.text("staydine.in", x + w / 2 - 3, y + topH + botH - 3.8)
+    doc.text("staydine.in", x + w / 2, y + topH + botH - 4)
   }
 
   // Generate QR data URLs for all rooms
