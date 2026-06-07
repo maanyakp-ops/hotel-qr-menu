@@ -1573,7 +1573,10 @@ function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
           onClick={() => setShowRevenueBreakdown(true)}
         >
           <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
-            ₹{reportOrders.filter(o => o.status === "delivered").reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}
+            ₹{reportOrders.filter(o => o.status === "delivered").reduce((sum, o) => sum + o.order_items.reduce((s, i) => {
+              const gstAmt = Math.round(i.price * i.quantity * ((i.gst_rate || 0) / 100) * 100) / 100
+              return s + i.price * i.quantity + gstAmt
+            }, 0), 0).toFixed(0)}
           </p>
           <p style={d.metricLabel}>Revenue ⓘ</p>
         </div>
