@@ -436,21 +436,21 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
       fetchMenu(hotel.id)
     }
 
-    async function saveEdit() {
-      await supabase.from("menu_items").update({
-        name: editItem.name,
-        category: editItem.category,
-        price: parseFloat(editItem.price),
-        gst_rate: editingItem.gst_rate || 5,
-        prep_time: parseInt(editItem.prep_time) || 15,
-        description: editItem.description || null,
-        is_special: editItem.is_special || false,
-        is_veg: editItem.is_veg !== false ? true : false,
-        image_url: editItem.image_url || null,
-      }).eq("id", editItem.id)
-      setEditItem(null)
-      fetchMenu(hotel.id)
-    }
+async function saveEdit() {
+  await supabase.from("menu_items").update({
+    name: editItem.name,
+    category: editItem.category,
+    price: parseFloat(editItem.price),
+    gst_rate: editItem.gst_rate || 5,  // ← editItem not editingItem
+    prep_time: parseInt(editItem.prep_time) || 15,
+    description: editItem.description || null,
+    is_special: editItem.is_special || false,
+    is_veg: editItem.is_veg !== false ? true : false,
+    image_url: editItem.image_url || null,
+  }).eq("id", editItem.id)
+  setEditItem(null)
+  fetchMenu(hotel.id)
+}
 
     async function deleteItem(id) {
       if (!confirm("Delete this item?")) return
@@ -624,13 +624,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
         <div style={{ color: "#5a7a9a", fontSize: 11 }}>Dashboard</div>
       </div>
     </div>
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(111,207,151,0.12)", border: "0.5px solid rgba(111,207,151,0.3)", borderRadius: 20, padding: "4px 10px" }}>
-        <span style={d.dot} />
-        <span style={{ color: "#6fcf97", fontSize: 11, fontWeight: 500 }}>Live</span>
-      </div>
-      <button onClick={handleLogout} style={d.logoutBtn}>Logout</button>
-    </div>
+
   </div>
 
 {demoMode && (
