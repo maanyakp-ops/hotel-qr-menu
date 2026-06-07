@@ -102,7 +102,7 @@ export default function Auth({ onLogin, initialMode }) {
         {/* LOGO / BRAND */}
         <div style={s.brand}>
           <div style={s.brandIcon}>🏨</div>
-          <h1 style={s.brandTitle}>MenuQR</h1>
+          <h1 style={s.brandTitle}>StayDine</h1>
           <p style={s.brandSub}>Digital room service for modern hotels</p>
         </div>
 

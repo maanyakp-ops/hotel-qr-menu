@@ -42,7 +42,7 @@
     const [allCustomers, setAllCustomers] = useState([])
     const [customersLoading, setCustomersLoading] = useState(false)
     const [customersLoaded, setCustomersLoaded] = useState(false)
-
+    const [menuSearch, setMenuSearch] = useState("")
   function playOrderSound() {
     const ctx = new (window.AudioContext || window.webkitAudioContext)()
     
@@ -1369,11 +1369,30 @@ function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
   </button>
 </div>
 
-              <p style={d.sectionLabel}>Your Menu ({menuItems.length} items)</p>
+<p style={d.sectionLabel}>Your Menu ({menuItems.length} items)</p>
+<div style={{ position: "relative", marginBottom: 12 }}>
+                <input
+                  style={{ ...d.input, paddingRight: menuSearch ? 36 : 12 }}
+                  placeholder="🔍 Search menu items..."
+                  value={menuSearch}
+                  onChange={e => setMenuSearch(e.target.value)}
+                />
+                {menuSearch && (
+                  <button
+                    onClick={() => setMenuSearch("")}
+                    style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#8a9bb0", fontSize: 16, cursor: "pointer", padding: 0, lineHeight: 1 }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
               {menuItems.length === 0 && <p style={d.empty}>No items yet. Add one above.</p>}
 
               {Object.entries(
-                menuItems.reduce((acc, item) => {
+                menuItems.filter(item =>
+                  item.name.toLowerCase().includes(menuSearch.toLowerCase()) ||
+                  (item.category || "").toLowerCase().includes(menuSearch.toLowerCase())
+                ).reduce((acc, item) => {
                   const cat = item.category || "Uncategorized"
                   if (!acc[cat]) acc[cat] = []
                   acc[cat].push(item)
