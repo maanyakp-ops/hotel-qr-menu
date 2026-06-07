@@ -619,7 +619,6 @@ async function saveEdit() {
     }
 
     const active = orders.filter(o => o.status !== "delivered" && o.status !== "cancelled" && o.status !== "rejected")
-    const active = orders.filter(o => o.status !== "delivered" && o.status !== "cancelled" && o.status !== "rejected")
     const done = orders.filter(o => o.status === "delivered")
     const cancelled = orders.filter(o => o.status === "cancelled" || o.status === "rejected")
     const revenue = orders.filter(o => o.status !== "cancelled" && o.status !== "rejected").reduce((sum, o) => sum + orderGrandTotal(o), 0)
