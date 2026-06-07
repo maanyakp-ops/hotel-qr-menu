@@ -295,7 +295,7 @@ function App() {
   const t = themeConfigs[hotelInfo?.theme || 'dark-gold'] || themeConfigs['dark-gold']
   const fontScale = hotelInfo?.font_size === "small" ? 0.85 : hotelInfo?.font_size === "large" ? 1.2 : 1
   const isRestaurant = hotelInfo?.business_type === "restaurant"
-  
+  const gstEnabled = hotelInfo?.gst_enabled !== false
 
   // GST summary for current cart
   const gstSummary = calcCartGst(cart)
@@ -828,13 +828,13 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
                 <span>Subtotal</span>
                 <span>₹{gstSummary.subtotal}</span>
               </div>
-              {gstSummary.gstLines.map(line => (
+              {gstEnabled && gstSummary.gstLines.map(line => (
                 <div key={line.rate} style={s.cartSummaryGst}>
                   <span>GST @ {line.rate}%</span>
                   <span>₹{line.amount.toFixed(2)}</span>
                 </div>
               ))}
-              {gstSummary.totalGst === 0 && (
+              {gstEnabled && gstSummary.totalGst === 0 && (
                 <div style={s.cartSummaryGst}>
                   <span>GST</span>
                   <span>₹0</span>
@@ -842,7 +842,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
               )}
               <div style={s.cartSummaryGrandTotal}>
                 <span>Grand Total</span>
-                <span>₹{gstSummary.grandTotal}</span>
+                <span>₹{gstEnabled ? gstSummary.grandTotal : gstSummary.subtotal}</span>
               </div>
             </div>
 
@@ -850,7 +850,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
             <input style={s.modalInput} placeholder="Phone number *" type="tel" inputMode="numeric" maxLength={10} value={guestPhone} onChange={e => setGuestPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} />
             <input style={s.modalInput} placeholder="Email (optional)" type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} />
             <textarea style={{ ...s.modalInput, height: 80, resize: "none" }} placeholder="Special instructions — e.g. less spicy, no onion" value={guestInstructions} onChange={e => setGuestInstructions(e.target.value)} /> 
-            <button style={s.modalBtn} onClick={placeOrder}>Confirm Order · ₹{gstSummary.grandTotal}</button>
+            <button style={s.modalBtn} onClick={placeOrder}>Confirm Order · ₹{gstEnabled ? gstSummary.grandTotal : gstSummary.subtotal}</button>
             <button style={s.modalCancel} onClick={() => setShowGuestForm(false)}>Cancel</button>
           </div>
         </div>
@@ -1031,7 +1031,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
             }}
           >My Orders</button>
         )}
-        <p style={s.footerNote}>All prices exclusive of GST · GST added at checkout · Please inform staff of any allergies</p>
+        <p style={s.footerNote}>{gstEnabled ? "All prices exclusive of GST · GST added at checkout · " : ""}Please inform staff of any allergies</p>
       </div>
 
       {/* ── CART BAR WITH GST BREAKDOWN ── */}
@@ -1040,9 +1040,9 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
           <div>
             <p style={s.cartCount}>{cart.reduce((s, i) => s + i.qty, 0)} items · ⏱ ~{maxPrepTime} min</p>
             <p style={s.cartTotal}>₹{gstSummary.grandTotal}</p>
-            <p style={s.cartGstNote}>
+            {gstEnabled && <p style={s.cartGstNote}>
               ₹{gstSummary.subtotal} + GST ₹{gstSummary.totalGst.toFixed(2)}
-            </p>
+            </p>}
           </div>
           <button style={s.placeBtn} onClick={() => setShowGuestForm(true)}>Place Order</button>
         </div>
