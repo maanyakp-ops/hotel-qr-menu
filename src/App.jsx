@@ -369,7 +369,6 @@ function App() {
       .select(`*, order_items!fk_order(quantity, price, gst_rate, menu_items!fk_menu_item(name))`)
       .eq("hotel_id", resolvedHotelId)
       .eq("room_id", resolvedRoom)
-      .neq("status", "hold")           // exclude any legacy hold orders
       .gte("created_at", threeDaysAgo)
       .order("created_at", { ascending: false })
       .limit(10)
@@ -570,7 +569,11 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
             const { grandTotal } = calcOrderGst(order.order_items)
             const time = new Date(order.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
             const date = new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
-            const statusColor = order.status === "delivered" ? "#2e7d32" : order.status === "cancelled" || order.status === "rejected" ? "#c0392b" : order.status === "preparing" || order.status === "on_the_way" ? "#0369a1" : "#b45309"
+            const statusColor = 
+            order.status === "delivered" ? "#2e7d32" : 
+            order.status === "cancelled" || order.status === "rejected" ? "#c0392b" : 
+            order.status === "hold" ? "#C9A84C" :
+            order.status === "preparing" || order.status === "on_the_way" ? "#0369a1" : "#b45309"
             return (
               <div
                 key={order.id}
@@ -596,9 +599,9 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ color: t.textPrimary, fontFamily: t.titleFont, fontSize: 16 }}>₹{grandTotal}</span>
-                  <span style={{ fontSize: 11, color: statusColor, fontWeight: 500, textTransform: "capitalize" }}>
-                    {order.status.replace("_", " ")}
-                  </span>
+<span style={{ fontSize: 11, color: statusColor, fontWeight: 500, textTransform: "capitalize" }}>
+  {order.status === "hold" ? "Confirming..." : order.status.replace("_", " ")}
+</span>
                 </div>
                 <div style={{ color: t.textSecondary, fontSize: 12, marginBottom: 6 }}>
                   {order.order_items.map(i => `${i.menu_items?.name} x${i.quantity}`).join(", ")}

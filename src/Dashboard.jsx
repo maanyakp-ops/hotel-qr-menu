@@ -630,8 +630,8 @@ async function saveEdit() {
       <span style={d.dot} />
       <span style={{ color: "#6fcf97", fontSize: 11, fontWeight: 500 }}>Live</span>
     </div>
-    <a href="tel:+919376133278" style={{ color: "#7eb3f5", fontSize: 12, textDecoration: "none", display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", border: "0.5px solid #7eb3f5", borderRadius: 8 }}>
-      📞 +91 9376 133278
+    <a href="tel:+919370133278" style={{ color: "#7eb3f5", fontSize: 12, textDecoration: "none", display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", border: "0.5px solid #7eb3f5", borderRadius: 8 }}>
+      📞 +91 93701 33278
     </a>
     <button onClick={handleLogout} style={d.logoutBtn}>Logout</button>
   </div>
