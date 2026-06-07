@@ -759,9 +759,12 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
             )}
             {rating > 0 && (
               <button style={{ ...s.confirmBtn, width: "100%" }} onClick={async () => {
-await supabase.from("orders").update({ rating, rating_comment: ratingComment || null }).eq("id", placedOrder.id)
-setRatingSubmitted(true)
-localStorage.setItem(`rated_${placedOrder.id}`, "true")
+                await supabase.from("orders").update({ rating, rating_comment: ratingComment || null }).eq("id", placedOrder.id)
+                setRatingSubmitted(true)
+                localStorage.setItem(`rated_${placedOrder.id}`, "true")
+                if (rating >= 4 && hotelInfo?.google_review_url) {
+                  window.open(hotelInfo.google_review_url, "_blank")
+                }
               }}>Submit Rating</button>
             )}
           </div>

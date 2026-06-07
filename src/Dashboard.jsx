@@ -623,6 +623,242 @@ async function saveEdit() {
     const cancelled = orders.filter(o => o.status === "cancelled" || o.status === "rejected")
     const revenue = orders.filter(o => o.status !== "cancelled" && o.status !== "rejected").reduce((sum, o) => sum + orderGrandTotal(o), 0)
 
+    async function generateQRPdf(rooms, hotelData) {
+  // Dynamically load jsPDF and QRCode
+  await Promise.all([
+    new Promise(resolve => {
+      if (window.jspdf) return resolve()
+      const s = document.createElement("script")
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+      s.onload = resolve
+      document.head.appendChild(s)
+    }),
+    new Promise(resolve => {
+      if (window.QRCode) return resolve()
+      const s = document.createElement("script")
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+      s.onload = resolve
+      document.head.appendChild(s)
+    })
+  ])
+
+  const { jsPDF } = window.jspdf
+  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
+
+  const pageW = 210, pageH = 297
+  const cols = 2, rows = 2
+  const cardW = (pageW - 30) / cols   // ~90mm
+  const cardH = (pageH - 30) / rows   // ~133mm
+  const marginX = 10, marginY = 10
+  const gap = 10
+
+  const CREAM = [232, 223, 200]
+  const DARK_GREEN = [28, 58, 40]
+  const GOLD = [184, 151, 42]
+
+  function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
+    const topH = h * 0.72
+    const botH = h - topH
+
+    // Cream top
+    doc.setFillColor(...CREAM)
+    doc.roundedRect(x, y, w, h, 2, 2, "F")
+
+    // Gold outer border
+    doc.setDrawColor(...GOLD)
+    doc.setLineWidth(0.4)
+    doc.roundedRect(x, y, w, h, 2, 2, "S")
+
+    // Gold inner border (top section only)
+    doc.setDrawColor(...GOLD)
+    doc.setLineWidth(0.2)
+    doc.rect(x + 1.5, y + 1.5, w - 3, topH - 1, "S")
+
+    // Hotel name
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(9)
+    doc.setTextColor(...DARK_GREEN)
+    const name = (hotelData.name || "YOUR HOTEL").toUpperCase()
+    doc.text(name, x + w / 2, y + 8, { align: "center" })
+
+    // Gold divider line
+    doc.setDrawColor(...GOLD)
+    doc.setLineWidth(0.2)
+    const divY = y + 10
+    doc.line(x + 6, divY, x + w * 0.3, divY)
+    doc.line(x + w * 0.7, divY, x + w - 6, divY)
+    doc.setFontSize(4.5)
+    doc.setTextColor(...GOLD)
+    doc.text("HOSPITALITY REDEFINED", x + w / 2, divY + 0.5, { align: "center" })
+
+    // ORDER FOOD
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(16)
+    doc.setTextColor(...DARK_GREEN)
+    doc.text("ORDER FOOD", x + w / 2, y + 18, { align: "center" })
+
+    // TO YOUR ROOM
+    doc.setFontSize(11)
+    doc.setTextColor(...GOLD)
+    doc.text("TO YOUR ROOM", x + w / 2, y + 24, { align: "center" })
+
+    // Deco
+    doc.setFontSize(6)
+    doc.setTextColor(...GOLD)
+    doc.text("— \u2756 —", x + w / 2, y + 28, { align: "center" })
+
+    // Scan desc
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(5)
+    doc.setTextColor(60, 74, 60)
+    doc.text("Scan the QR code to browse the menu", x + w / 2, y + 32, { align: "center" })
+    doc.text("and place your order instantly.", x + w / 2, y + 35.5, { align: "center" })
+
+    // SCAN HERE button
+    doc.setFillColor(...DARK_GREEN)
+    doc.roundedRect(x + w / 2 - 14, y + 38, 28, 6, 3, 3, "F")
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(5)
+    doc.setTextColor(255, 255, 255)
+    doc.text("SCAN HERE", x + w / 2, y + 41.8, { align: "center" })
+
+    // Arrow
+    doc.setFillColor(...DARK_GREEN)
+    doc.triangle(x + w / 2 - 2, y + 44, x + w / 2 + 2, y + 44, x + w / 2, y + 47, "F")
+
+    // QR box
+    const qrSize = 32
+    const qrX = x + w / 2 - qrSize / 2
+    const qrY = y + 47
+    doc.setFillColor(255, 255, 255)
+    doc.setDrawColor(...GOLD)
+    doc.setLineWidth(0.4)
+    doc.roundedRect(qrX - 2, qrY - 2, qrSize + 4, qrSize + 8, 2, 2, "FD")
+
+    if (qrDataUrl) {
+      doc.addImage(qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize)
+    }
+
+    // Room label
+    doc.setFont("helvetica", "italic")
+    doc.setFontSize(5.5)
+    doc.setTextColor(74, 90, 74)
+    doc.text(`Room ${roomNumber}`, x + w / 2, qrY + qrSize + 4, { align: "center" })
+
+    // Side icons — left
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(4)
+    doc.setTextColor(...GOLD)
+    doc.text("WIDE", x + 7, y + 58, { align: "center" })
+    doc.text("SELECTION", x + 7, y + 61, { align: "center" })
+    doc.text("DELIVERED", x + 7, y + 72, { align: "center" })
+    doc.text("TO YOUR ROOM", x + 7, y + 75, { align: "center" })
+
+    // Side icons — right
+    doc.text("FRESH &", x + w - 7, y + 58, { align: "center" })
+    doc.text("DELICIOUS", x + w - 7, y + 61, { align: "center" })
+    doc.text("SAFE &", x + w - 7, y + 72, { align: "center" })
+    doc.text("CONTACTLESS", x + w - 7, y + 75, { align: "center" })
+
+    // Dark green bottom
+    doc.setFillColor(...DARK_GREEN)
+    doc.rect(x, y + topH, w, botH, "F")
+    // Bottom corners rounded
+    doc.setFillColor(...DARK_GREEN)
+    doc.roundedRect(x, y + topH + botH - 3, w, 5, 2, 2, "F")
+
+    // Bottom inner border
+    doc.setDrawColor(...GOLD)
+    doc.setLineWidth(0.2)
+    doc.rect(x + 1.5, y + topH + 1.5, w - 3, botH - 3, "S")
+
+    // Steps
+    const stepY = y + topH + 8
+    const positions = [x + w * 0.22, x + w * 0.5, x + w * 0.78]
+    const labels = ["SCAN", "ORDER", "ENJOY"]
+    const circleR = 4
+
+    positions.forEach((px, i) => {
+      doc.setDrawColor(...GOLD)
+      doc.setLineWidth(0.3)
+      doc.circle(px, stepY, circleR, "S")
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(4)
+      doc.setTextColor(255, 255, 255)
+      doc.text(labels[i], px, stepY + circleR + 3, { align: "center" })
+    })
+
+    // Separators between steps
+    doc.setDrawColor(...GOLD)
+    doc.setLineWidth(0.2)
+    doc.line(positions[0] + circleR + 1, stepY, positions[1] - circleR - 1, stepY)
+    doc.line(positions[1] + circleR + 1, stepY, positions[2] - circleR - 1, stepY)
+
+    // FAST • CONVENIENT • CONTACTLESS
+    doc.setFont("helvetica", "bold")
+    doc.setFontSize(4)
+    doc.setTextColor(...GOLD)
+    doc.text("FAST  •  CONVENIENT  •  CONTACTLESS", x + w / 2, y + topH + botH - 9, { align: "center" })
+
+    // Powered by box
+    doc.setDrawColor(...GOLD)
+    doc.setLineWidth(0.2)
+    doc.roundedRect(x + 8, y + topH + botH - 7, w - 16, 5.5, 1, 1, "S")
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(4)
+    doc.setTextColor(200, 216, 200)
+    doc.text("Powered by ", x + w / 2 - 3, y + topH + botH - 3.8, { align: "right" })
+    doc.setFont("helvetica", "bolditalic")
+    doc.setTextColor(255, 255, 255)
+    doc.text("staydine.in", x + w / 2 - 3, y + topH + botH - 3.8)
+  }
+
+  // Generate QR data URLs for all rooms
+  async function getQRDataUrl(text) {
+    return new Promise(resolve => {
+      const div = document.createElement("div")
+      div.style.position = "absolute"
+      div.style.left = "-9999px"
+      document.body.appendChild(div)
+      new window.QRCode(div, {
+        text, width: 256, height: 256,
+        colorDark: "#1c3a28", colorLight: "#ffffff",
+        correctLevel: window.QRCode.CorrectLevel.M
+      })
+      setTimeout(() => {
+        const img = div.querySelector("img") || div.querySelector("canvas")
+        const dataUrl = img?.src || (img?.toDataURL ? img.toDataURL() : null)
+        document.body.removeChild(div)
+        resolve(dataUrl)
+      }, 300)
+    })
+  }
+
+  let roomIdx = 0
+  let isFirstPage = true
+
+  while (roomIdx < rooms.length) {
+    if (!isFirstPage) doc.addPage()
+    isFirstPage = false
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (roomIdx >= rooms.length) break
+        const roomNumber = rooms[roomIdx]
+        const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotelData.id}/${roomNumber}`
+        const qrDataUrl = await getQRDataUrl(url)
+
+        const x = marginX + c * (cardW + gap)
+        const y = marginY + r * (cardH + gap)
+        drawCard(doc, x, y, cardW, cardH, roomNumber, qrDataUrl)
+        roomIdx++
+      }
+    }
+  }
+
+  doc.save(`${hotelData.name || "hotel"}-qr-codes.pdf`)
+}
+
     if (loading) return <div style={d.center}>Loading...</div>
 
     const tabContentStyle = { animation: "fadeSlide 0.2s ease" }
@@ -1233,181 +1469,66 @@ async function saveEdit() {
           )}
 
           {/* QR CODES TAB */}
+
+{/* QR CODES TAB */}
           {tab === "qr" && (
+  <>
+    {hotel?.status !== "active"
+      ? <p style={d.empty}>Your account is pending approval. QR codes will appear once approved.</p>
+      : (hotel?.room_ranges || []).length === 0 && !hotel?.room_count
+      ? <p style={d.empty}>No rooms assigned yet. Contact support to get your rooms activated.</p>
+      : (() => {
+          const allRooms = []
+          if (hotel?.room_ranges?.length > 0) {
+            hotel.room_ranges.forEach(range => {
+              for (let i = range.start; i <= range.end; i++) allRooms.push(i)
+            })
+          } else {
+            for (let i = 0; i < (hotel?.room_count || 0); i++) {
+              allRooms.push(i + (hotel?.room_start || 101))
+            }
+          }
+          const cappedRooms = allRooms
+          return (
             <>
-              {hotel?.status !== "active"
-  ? <p style={d.empty}>Your account is pending approval. QR codes will appear once approved.</p>
-: (hotel?.room_ranges || []).length === 0 && !hotel?.room_count
-? <p style={d.empty}>No rooms assigned yet. Contact support to get your rooms activated.</p>
-  : (
-    <>
-<p style={d.sectionLabel}>
-  {hotel?.room_ranges?.length > 0
-    ? (hotel.room_ranges || []).reduce((sum, r) => sum + (r.end - r.start + 1), 0)
-    : hotel?.room_count || 0} total {hotel?.business_type === "restaurant" ? "tables" : "rooms"}
-</p>
-
-
-
-<p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 16px" }}>
-  Download QR codes for each {hotel?.business_type === "restaurant" ? "table" : "room"}.
-</p>
-
-{(() => {
-  const allRooms = []
-  if (hotel?.room_ranges?.length > 0) {
-    hotel.room_ranges.forEach(range => {
-      for (let i = range.start; i <= range.end; i++) allRooms.push(i)
-    })
-  } else {
-    for (let i = 0; i < (hotel?.room_count || 0); i++) {
-      allRooms.push(i + (hotel?.room_start || 101))
-    }
-  }
-  const cappedRooms = allRooms 
-  return (
-    <>
-
-      
-{cappedRooms.map(roomNumber => {
-  const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
-  return (
-    <div key={roomNumber} style={{ marginBottom: 32, display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <div style={{
-        width: 480, fontFamily: "'Montserrat', sans-serif",
-        border: "1.5px solid #b8972a", borderRadius: 4, overflow: "hidden", position: "relative"
-      }}>
-        {/* TOP CREAM SECTION */}
-        <div style={{ background: "#e8dfc8", padding: "32px 24px 0", position: "relative" }}>
-          <div style={{ position: "absolute", top: 10, left: 10, right: 10, bottom: 0, border: "1px solid #b8972a", pointerEvents: "none", borderBottom: "none" }} />
-
-          {/* Monogram */}
-          <div style={{ textAlign: "center", marginBottom: 6 }}>
-            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-              <path d="M28 4 L32 12 L40 8 L36 18 L44 16 L38 24 L18 24 L12 16 L20 18 L16 8 L24 12 Z" stroke="#b8972a" strokeWidth="1.2" fill="none"/>
-              <text x="28" y="46" fontFamily="Playfair Display,serif" fontSize="20" fontWeight="700" fill="#b8972a" textAnchor="middle">GR</text>
-              <path d="M10 28 Q28 32 46 28" stroke="#b8972a" strokeWidth="0.8" fill="none"/>
-            </svg>
-          </div>
-
-          {/* Hotel name */}
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 34, fontWeight: 900, color: "#1c3a28", textAlign: "center", lineHeight: 1.05, letterSpacing: 2, marginBottom: 6 }}>
-            {hotel.name?.toUpperCase() || "YOUR HOTEL"}
-          </div>
-
-          {/* Tagline divider */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "center", marginBottom: 14 }}>
-            <div style={{ flex: 1, height: 1, background: "#b8972a", maxWidth: 60 }} />
-            <span style={{ fontSize: 9, letterSpacing: 4, color: "#b8972a", fontWeight: 600 }}>HOSPITALITY REDEFINED</span>
-            <div style={{ flex: 1, height: 1, background: "#b8972a", maxWidth: 60 }} />
-          </div>
-
-          {/* Headlines */}
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 58, fontWeight: 900, color: "#1c3a28", textAlign: "center", lineHeight: 0.95, letterSpacing: 1 }}>ORDER FOOD</div>
-          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, fontWeight: 700, color: "#b8972a", textAlign: "center", lineHeight: 1, letterSpacing: 2, marginBottom: 8 }}>TO YOUR ROOM</div>
-
-          <div style={{ textAlign: "center", color: "#b8972a", fontSize: 16, marginBottom: 10, letterSpacing: 4 }}>— ❖ —</div>
-
-          <p style={{ fontSize: 13, color: "#3a4a3a", textAlign: "center", lineHeight: 1.6, marginBottom: 18 }}>
-            Scan the QR code to browse the menu<br />and place your order instantly.
-          </p>
-
-          {/* Middle row: icons + QR */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-            {/* Left icons */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 20, width: 110 }}>
-              {[
-                { label: "WIDE\nSELECTION", path: <><path d="M6 28 Q18 20 30 28" /><ellipse cx="18" cy="20" rx="12" ry="3" /><path d="M18 8 L18 17" /><circle cx="18" cy="6" r="3" /></> },
-                { label: "DELIVERED\nTO YOUR ROOM", path: <><rect x="4" y="14" width="28" height="12" rx="6" /><circle cx="10" cy="26" r="4" /><circle cx="26" cy="26" r="4" /><path d="M14 20 L22 20" /><path d="M18 10 L18 14" /><path d="M12 10 Q18 6 24 10" /></> }
-              ].map(({ label, path }) => (
-                <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#b8972a" strokeWidth="1.2">{path}</svg>
-                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, color: "#1c3a28", textAlign: "center", lineHeight: 1.4, whiteSpace: "pre-line" }}>{label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* QR box */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div style={{ background: "#1c3a28", color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 2, padding: "8px 28px", borderRadius: 24, position: "relative", zIndex: 2 }}>SCAN HERE</div>
-              <div style={{ width: 0, height: 0, borderLeft: "8px solid transparent", borderRight: "8px solid transparent", borderTop: "10px solid #1c3a28", margin: "0 auto", position: "relative", zIndex: 2 }} />
-              <div style={{ background: "#fff", border: "2px solid #b8972a", borderRadius: 12, padding: 14, marginTop: -2 }}>
-                <QRCode id={`qr-${roomNumber}`} value={url} size={180} fgColor="#1c3a28" bgColor="#ffffff" />
-                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 14, color: "#4a5a4a", textAlign: "center", marginTop: 8, letterSpacing: 1 }}>Room {roomNumber}</div>
-              </div>
-            </div>
-
-            {/* Right icons */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 20, width: 110 }}>
-              {[
-                { label: "FRESH &\nDELICIOUS", path: <><path d="M10 18 Q18 10 26 18" /><path d="M6 22 Q18 14 30 22" /><circle cx="18" cy="8" r="4" /><path d="M12 26 Q18 30 24 26" /></> },
-                { label: "SAFE &\nCONTACTLESS", path: <><path d="M10 16 L10 26 Q10 30 18 30 Q26 30 26 26 L26 16 Z" /><path d="M14 16 L14 12 Q14 6 18 6 Q22 6 22 12 L22 16" /><circle cx="18" cy="22" r="2" fill="#b8972a" /><line x1="18" y1="24" x2="18" y2="27" /></> }
-              ].map(({ label, path }) => (
-                <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#b8972a" strokeWidth="1.2">{path}</svg>
-                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, color: "#1c3a28", textAlign: "center", lineHeight: 1.4, whiteSpace: "pre-line" }}>{label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* BOTTOM DARK GREEN SECTION */}
-        <div style={{ background: "#1c3a28", padding: "20px 24px 16px", position: "relative" }}>
-          <div style={{ position: "absolute", top: 10, left: 10, right: 10, bottom: 10, border: "1px solid #b8972a", borderRadius: 2, pointerEvents: "none" }} />
-
-          {/* Steps */}
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", position: "relative", zIndex: 2, marginBottom: 10 }}>
-            {[
-              { label: "SCAN", icon: <><rect x="5" y="2" width="14" height="20" rx="2" /><rect x="8" y="5" width="8" height="8" rx="1" /><line x1="8" y1="17" x2="16" y2="17" /></> },
-              { label: "ORDER", icon: <><path d="M3 6h18M3 12h18M3 18h12" /><circle cx="19" cy="17" r="3" /><path d="M17.5 17 L19 18.5 L21 16" /></> },
-              { label: "ENJOY", icon: <><circle cx="12" cy="12" r="9" /><path d="M8 13 Q10 16 12 13 Q14 10 16 13" /><circle cx="9" cy="10" r="1.5" fill="#b8972a" /><circle cx="15" cy="10" r="1.5" fill="#b8972a" /></> }
-            ].map(({ label, icon }, i) => (
-              <div key={label} style={{ display: "flex", alignItems: "flex-start" }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flex: 1, minWidth: 100 }}>
-                  <div style={{ width: 42, height: 42, border: "1.5px solid #b8972a", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b8972a" strokeWidth="1.5">{icon}</svg>
+              <p style={d.sectionLabel}>{cappedRooms.length} total rooms</p>
+              <p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 16px" }}>
+                Download all QR codes as a print-ready PDF — 4 per A4 page.
+              </p>
+              <button
+                style={{ ...d.saveBtn, marginBottom: 24, width: "100%", fontSize: 14, padding: 14 }}
+                onClick={() => generateQRPdf(cappedRooms, hotel)}
+              >
+                ⬇ Download All QR Codes (PDF)
+              </button>
+              <p style={d.sectionLabel}>Preview</p>
+              {cappedRooms.slice(0, 4).map(roomNumber => {
+                const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
+                return (
+                  <div key={roomNumber} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+                    <div style={d.qrInfo}>
+                      <p style={d.qrRoom}>Room {roomNumber}</p>
+                      <p style={d.qrUrl}>{url}</p>
+                    </div>
+                    <div style={d.qrBox}>
+                      <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
+                    </div>
                   </div>
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, color: "#fff" }}>{label}</div>
-                </div>
-                {i < 2 && <div style={{ width: 1, background: "#b8972a", opacity: 0.5, height: 42, marginTop: 0, alignSelf: "flex-start" }} />}
-              </div>
-            ))}
-          </div>
-
-          {/* Fast • Convenient • Contactless */}
-          <div style={{ display: "flex", justifyContent: "center", gap: 10, alignItems: "center", marginBottom: 12, position: "relative", zIndex: 2 }}>
-            {["FAST", "•", "CONVENIENT", "•", "CONTACTLESS"].map((t, i) => (
-              <span key={i} style={{ fontSize: t === "•" ? 14 : 10, fontWeight: t === "•" ? 400 : 700, letterSpacing: t === "•" ? 0 : 2, color: "#b8972a" }}>{t}</span>
-            ))}
-          </div>
-
-          {/* Powered by box */}
-          <div style={{ border: "1px solid #b8972a", borderRadius: 6, padding: "8px 20px", textAlign: "center", margin: "0 30px", position: "relative", zIndex: 2 }}>
-            <div style={{ position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", background: "#1c3a28", padding: "0 6px", color: "#b8972a", fontSize: 10 }}>❖</div>
-            <span style={{ fontSize: 12, color: "#c8d8c8" }}>Powered by </span>
-            <span style={{ fontSize: 14, color: "#fff", fontWeight: 700, fontStyle: "italic" }}>staydine.in</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Download button outside poster */}
-      <button style={{ marginTop: 12, background: "#1c3a28", color: "#b8972a", border: "none", borderRadius: 8, padding: "10px 28px", fontSize: 12, fontWeight: 700, letterSpacing: 1, cursor: "pointer" }}
-        onClick={() => downloadQR(roomNumber)}>
-        ⬇ Download QR
-      </button>
-    </div>
-  )
-})}
-    </>
-  )
-})()}
-
-</>
-)
-}
-</>
+                )
+              })}
+              {cappedRooms.length > 4 && (
+                <p style={{ fontSize: 12, color: "#8a9bb0", textAlign: "center", marginTop: 8 }}>
+                  + {cappedRooms.length - 4} more rooms in the PDF
+                </p>
+              )}
+            </>
+          )
+        })()
+    }
+  </>
 )}
+
+          {/* REPORTS TAB */}
 
           {/* REPORTS TAB */}
           {tab === "reports" && (
