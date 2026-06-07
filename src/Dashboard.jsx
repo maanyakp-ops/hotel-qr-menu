@@ -378,7 +378,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
     
       let query = supabase
     .from("orders")
-    .select(`*, order_items!fk_order(quantity, price, menu_item_id, menu_items!fk_menu_item(name))`)
+    .select(`*, order_items!fk_order(quantity, price, gst_rate, menu_item_id, menu_items!fk_menu_item(name))`)
     .eq("hotel_id", hotelId)
     .neq("status", "hold")
     .order("created_at", { ascending: false })
@@ -502,7 +502,7 @@ async function saveEdit() {
     end.setHours(23, 59, 59, 999)
     const { data } = await supabase
     .from("orders")
-    .select(`*, delivered_at, order_items!fk_order(quantity, price, menu_item_id, menu_items!fk_menu_item(name, prep_time))`)
+    .select(`*, delivered_at, order_items!fk_order(quantity, price, gst_rate, menu_item_id, menu_items!fk_menu_item(name, prep_time))`)
       .eq("hotel_id", hotel.id)
       .gte("created_at", start.toISOString())
       .lte("created_at", end.toISOString())
@@ -604,11 +604,25 @@ async function saveEdit() {
       setTimeout(() => setThemeSaved(false), 2500)
     }
     // ────────────────────────────────────────────────────────────────
+    function itemTotal(item) {
+      const base = item.price * item.quantity
+      const gst = base * ((item.gst_rate || 0) / 100)
+      return Math.round((base + gst) * 100) / 100
+    }
 
+    function orderGrandTotal(order) {
+      return Math.round(order.order_items.reduce((s, i) => s + itemTotal(i), 0) * 100) / 100
+    }
+
+    function orderBaseTotal(order) {
+      return order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+    }
+
+    const active = orders.filter(o => o.status !== "delivered" && o.status !== "cancelled" && o.status !== "rejected")
     const active = orders.filter(o => o.status !== "delivered" && o.status !== "cancelled" && o.status !== "rejected")
     const done = orders.filter(o => o.status === "delivered")
     const cancelled = orders.filter(o => o.status === "cancelled" || o.status === "rejected")
-    const revenue = orders.filter(o => o.status !== "cancelled" && o.status !== "rejected").reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)
+    const revenue = orders.filter(o => o.status !== "cancelled" && o.status !== "rejected").reduce((sum, o) => sum + orderGrandTotal(o), 0)
 
     if (loading) return <div style={d.center}>Loading...</div>
 
@@ -675,8 +689,8 @@ async function saveEdit() {
       })
       const cgst = totalGst / 2
       const sgst = totalGst / 2
-      const baseRevenue = revenue - totalGst
-      const pat = baseRevenue
+      const netRevenue = revenue - totalGst
+      const pat = netRevenue
 
       return (
         <div
@@ -689,12 +703,16 @@ async function saveEdit() {
           >
             <p style={{ fontSize: 15, fontWeight: 700, color: "#1c2b3a", margin: "0 0 16px" }}>Revenue Breakdown</p>
 
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-              <span style={{ fontSize: 13, color: "#8a9bb0" }}>Gross Revenue</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>₹{revenue.toFixed(2)}</span>
-            </div>
+<div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+  <span style={{ fontSize: 13, color: "#8a9bb0" }}>Gross Revenue (incl. GST)</span>
+  <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>₹{revenue.toFixed(2)}</span>
+</div>
+<div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+  <span style={{ fontSize: 13, color: "#8a9bb0" }}>Net Revenue (excl. GST)</span>
+  <span style={{ fontSize: 13, fontWeight: 600, color: "#2e7d32" }}>₹{netRevenue.toFixed(2)}</span>
+</div>
 
-            <div style={{ borderTop: "1px dashed #e2e8f0", margin: "10px 0" }} />
+<div style={{ borderTop: "1px dashed #e2e8f0", margin: "10px 0" }} />
 
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
               <span style={{ fontSize: 13, color: "#8a9bb0" }}>CGST (payable)</span>
@@ -834,7 +852,8 @@ async function saveEdit() {
                 <>
                   <p style={d.sectionLabel}>Active Orders</p>
   {active.map(order => {
-    const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+    const orderTotal = orderGrandTotal(order)
+    const orderBase = orderBaseTotal(order)
     const mins = Math.floor((Date.now() - new Date(order.created_at)) / 60000)
     return (
   <div
@@ -879,10 +898,15 @@ async function saveEdit() {
           </div>
         )}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
-            <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total</span>
-            ₹{orderTotal}
-          </span>
+        <div>
+            <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
+              <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
+              ₹{orderTotal}
+            </span>
+            {orderTotal !== orderBase && (
+              <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>Base: ₹{orderBase} + GST: ₹{(orderTotal - orderBase).toFixed(2)}</p>
+            )}
+          </div>
           <div style={d.actions}>
             {order.status === "pending" && (
               <>
@@ -909,13 +933,14 @@ async function saveEdit() {
                 <>
                   <p style={d.sectionLabel}>Delivered</p>
   {done.map(order => {
-    const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+    const orderTotal = orderGrandTotal(order)
+    const orderBase = orderBaseTotal(order)
     return (
   <div key={order.id} style={{ ...d.card, opacity: 0.6, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
         <div style={d.cardHeader}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
-              🚪 {hotel?.business_type === "restaurant" ? "Table" : "Room"} {order.room_id}
+              🚪 Room {order.room_id}
             </div>
             {order.guest_name && (
               <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 0" }}>
@@ -926,10 +951,15 @@ async function saveEdit() {
           <span style={d.badgeDone}>✓ Delivered</span>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-          <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
-            <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total</span>
-            ₹{orderTotal}
-          </span>
+          <div>
+            <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
+              <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
+              ₹{orderTotal}
+            </span>
+            {orderTotal !== orderBase && (
+              <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>Base: ₹{orderBase} + GST: ₹{(orderTotal - orderBase).toFixed(2)}</p>
+            )}
+          </div>
           {order.rating && (
             <div style={{ textAlign: "right" }}>
               <span style={{ color: "#f5a623", fontSize: 15 }}>
@@ -1240,21 +1270,136 @@ async function saveEdit() {
     <>
 
       
-      {cappedRooms.map(roomNumber => {
-        const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
-        return (
-          <div key={roomNumber} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
-            <div style={d.qrInfo}>
-              <p style={d.qrRoom}>{hotel?.business_type === "restaurant" ? "Table" : "Room"} {roomNumber}</p>
-              <p style={d.qrUrl}>{url}</p>
+{cappedRooms.map(roomNumber => {
+  const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
+  return (
+    <div key={roomNumber} style={{ marginBottom: 32, display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div style={{
+        width: 480, fontFamily: "'Montserrat', sans-serif",
+        border: "1.5px solid #b8972a", borderRadius: 4, overflow: "hidden", position: "relative"
+      }}>
+        {/* TOP CREAM SECTION */}
+        <div style={{ background: "#e8dfc8", padding: "32px 24px 0", position: "relative" }}>
+          <div style={{ position: "absolute", top: 10, left: 10, right: 10, bottom: 0, border: "1px solid #b8972a", pointerEvents: "none", borderBottom: "none" }} />
+
+          {/* Monogram */}
+          <div style={{ textAlign: "center", marginBottom: 6 }}>
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <path d="M28 4 L32 12 L40 8 L36 18 L44 16 L38 24 L18 24 L12 16 L20 18 L16 8 L24 12 Z" stroke="#b8972a" strokeWidth="1.2" fill="none"/>
+              <text x="28" y="46" fontFamily="Playfair Display,serif" fontSize="20" fontWeight="700" fill="#b8972a" textAnchor="middle">GR</text>
+              <path d="M10 28 Q28 32 46 28" stroke="#b8972a" strokeWidth="0.8" fill="none"/>
+            </svg>
+          </div>
+
+          {/* Hotel name */}
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 34, fontWeight: 900, color: "#1c3a28", textAlign: "center", lineHeight: 1.05, letterSpacing: 2, marginBottom: 6 }}>
+            {hotel.name?.toUpperCase() || "YOUR HOTEL"}
+          </div>
+
+          {/* Tagline divider */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, justifyContent: "center", marginBottom: 14 }}>
+            <div style={{ flex: 1, height: 1, background: "#b8972a", maxWidth: 60 }} />
+            <span style={{ fontSize: 9, letterSpacing: 4, color: "#b8972a", fontWeight: 600 }}>HOSPITALITY REDEFINED</span>
+            <div style={{ flex: 1, height: 1, background: "#b8972a", maxWidth: 60 }} />
+          </div>
+
+          {/* Headlines */}
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 58, fontWeight: 900, color: "#1c3a28", textAlign: "center", lineHeight: 0.95, letterSpacing: 1 }}>ORDER FOOD</div>
+          <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 42, fontWeight: 700, color: "#b8972a", textAlign: "center", lineHeight: 1, letterSpacing: 2, marginBottom: 8 }}>TO YOUR ROOM</div>
+
+          <div style={{ textAlign: "center", color: "#b8972a", fontSize: 16, marginBottom: 10, letterSpacing: 4 }}>— ❖ —</div>
+
+          <p style={{ fontSize: 13, color: "#3a4a3a", textAlign: "center", lineHeight: 1.6, marginBottom: 18 }}>
+            Scan the QR code to browse the menu<br />and place your order instantly.
+          </p>
+
+          {/* Middle row: icons + QR */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+            {/* Left icons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 20, width: 110 }}>
+              {[
+                { label: "WIDE\nSELECTION", path: <><path d="M6 28 Q18 20 30 28" /><ellipse cx="18" cy="20" rx="12" ry="3" /><path d="M18 8 L18 17" /><circle cx="18" cy="6" r="3" /></> },
+                { label: "DELIVERED\nTO YOUR ROOM", path: <><rect x="4" y="14" width="28" height="12" rx="6" /><circle cx="10" cy="26" r="4" /><circle cx="26" cy="26" r="4" /><path d="M14 20 L22 20" /><path d="M18 10 L18 14" /><path d="M12 10 Q18 6 24 10" /></> }
+              ].map(({ label, path }) => (
+                <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#b8972a" strokeWidth="1.2">{path}</svg>
+                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, color: "#1c3a28", textAlign: "center", lineHeight: 1.4, whiteSpace: "pre-line" }}>{label}</div>
+                </div>
+              ))}
             </div>
-            <div style={d.qrBox}>
-              <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
-              <button style={d.downloadBtn} onClick={() => downloadQR(roomNumber)}>Download</button>
+
+            {/* QR box */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div style={{ background: "#1c3a28", color: "#fff", fontSize: 11, fontWeight: 800, letterSpacing: 2, padding: "8px 28px", borderRadius: 24, position: "relative", zIndex: 2 }}>SCAN HERE</div>
+              <div style={{ width: 0, height: 0, borderLeft: "8px solid transparent", borderRight: "8px solid transparent", borderTop: "10px solid #1c3a28", margin: "0 auto", position: "relative", zIndex: 2 }} />
+              <div style={{ background: "#fff", border: "2px solid #b8972a", borderRadius: 12, padding: 14, marginTop: -2 }}>
+                <QRCode id={`qr-${roomNumber}`} value={url} size={180} fgColor="#1c3a28" bgColor="#ffffff" />
+                <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 14, color: "#4a5a4a", textAlign: "center", marginTop: 8, letterSpacing: 1 }}>Room {roomNumber}</div>
+              </div>
+            </div>
+
+            {/* Right icons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 20, width: 110 }}>
+              {[
+                { label: "FRESH &\nDELICIOUS", path: <><path d="M10 18 Q18 10 26 18" /><path d="M6 22 Q18 14 30 22" /><circle cx="18" cy="8" r="4" /><path d="M12 26 Q18 30 24 26" /></> },
+                { label: "SAFE &\nCONTACTLESS", path: <><path d="M10 16 L10 26 Q10 30 18 30 Q26 30 26 26 L26 16 Z" /><path d="M14 16 L14 12 Q14 6 18 6 Q22 6 22 12 L22 16" /><circle cx="18" cy="22" r="2" fill="#b8972a" /><line x1="18" y1="24" x2="18" y2="27" /></> }
+              ].map(({ label, path }) => (
+                <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" stroke="#b8972a" strokeWidth="1.2">{path}</svg>
+                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, color: "#1c3a28", textAlign: "center", lineHeight: 1.4, whiteSpace: "pre-line" }}>{label}</div>
+                </div>
+              ))}
             </div>
           </div>
-        )
-      })}
+        </div>
+
+        {/* BOTTOM DARK GREEN SECTION */}
+        <div style={{ background: "#1c3a28", padding: "20px 24px 16px", position: "relative" }}>
+          <div style={{ position: "absolute", top: 10, left: 10, right: 10, bottom: 10, border: "1px solid #b8972a", borderRadius: 2, pointerEvents: "none" }} />
+
+          {/* Steps */}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", position: "relative", zIndex: 2, marginBottom: 10 }}>
+            {[
+              { label: "SCAN", icon: <><rect x="5" y="2" width="14" height="20" rx="2" /><rect x="8" y="5" width="8" height="8" rx="1" /><line x1="8" y1="17" x2="16" y2="17" /></> },
+              { label: "ORDER", icon: <><path d="M3 6h18M3 12h18M3 18h12" /><circle cx="19" cy="17" r="3" /><path d="M17.5 17 L19 18.5 L21 16" /></> },
+              { label: "ENJOY", icon: <><circle cx="12" cy="12" r="9" /><path d="M8 13 Q10 16 12 13 Q14 10 16 13" /><circle cx="9" cy="10" r="1.5" fill="#b8972a" /><circle cx="15" cy="10" r="1.5" fill="#b8972a" /></> }
+            ].map(({ label, icon }, i) => (
+              <div key={label} style={{ display: "flex", alignItems: "flex-start" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flex: 1, minWidth: 100 }}>
+                  <div style={{ width: 42, height: 42, border: "1.5px solid #b8972a", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b8972a" strokeWidth="1.5">{icon}</svg>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, color: "#fff" }}>{label}</div>
+                </div>
+                {i < 2 && <div style={{ width: 1, background: "#b8972a", opacity: 0.5, height: 42, marginTop: 0, alignSelf: "flex-start" }} />}
+              </div>
+            ))}
+          </div>
+
+          {/* Fast • Convenient • Contactless */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 10, alignItems: "center", marginBottom: 12, position: "relative", zIndex: 2 }}>
+            {["FAST", "•", "CONVENIENT", "•", "CONTACTLESS"].map((t, i) => (
+              <span key={i} style={{ fontSize: t === "•" ? 14 : 10, fontWeight: t === "•" ? 400 : 700, letterSpacing: t === "•" ? 0 : 2, color: "#b8972a" }}>{t}</span>
+            ))}
+          </div>
+
+          {/* Powered by box */}
+          <div style={{ border: "1px solid #b8972a", borderRadius: 6, padding: "8px 20px", textAlign: "center", margin: "0 30px", position: "relative", zIndex: 2 }}>
+            <div style={{ position: "absolute", top: -8, left: "50%", transform: "translateX(-50%)", background: "#1c3a28", padding: "0 6px", color: "#b8972a", fontSize: 10 }}>❖</div>
+            <span style={{ fontSize: 12, color: "#c8d8c8" }}>Powered by </span>
+            <span style={{ fontSize: 14, color: "#fff", fontWeight: 700, fontStyle: "italic" }}>staydine.in</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Download button outside poster */}
+      <button style={{ marginTop: 12, background: "#1c3a28", color: "#b8972a", border: "none", borderRadius: 8, padding: "10px 28px", fontSize: 12, fontWeight: 700, letterSpacing: 1, cursor: "pointer" }}
+        onClick={() => downloadQR(roomNumber)}>
+        ⬇ Download QR
+      </button>
+    </div>
+  )
+})}
     </>
   )
 })()}
@@ -1616,7 +1761,8 @@ async function saveEdit() {
       <p style={{ ...d.sectionLabel, marginTop: 24 }}>All Orders ({reportOrders.length})</p>
       {reportOrders.length === 0 && <p style={d.empty}>No orders for this date.</p>}
       {reportOrders.map(order => {
-        const orderTotal = order.order_items.reduce((s, i) => s + i.price * i.quantity, 0)
+        const orderTotal = orderGrandTotal(order)
+        const orderBase = orderBaseTotal(order)
         const time = new Date(order.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
         return (
           <div key={order.id} style={{ ...d.card, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
@@ -1665,10 +1811,15 @@ async function saveEdit() {
               )}
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
-                <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total</span>
-                ₹{orderTotal}
-              </span>
+            <div>
+                <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
+                  <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
+                  ₹{orderTotal}
+                </span>
+                {orderTotal !== orderBase && (
+                  <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>Base: ₹{orderBase} + GST: ₹{(orderTotal - orderBase).toFixed(2)}</p>
+                )}
+              </div>
               {order.rating && (
                 <div style={{ textAlign: "right" }}>
                   <span style={{ color: "#f5a623", fontSize: 15 }}>
