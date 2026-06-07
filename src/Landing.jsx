@@ -148,31 +148,7 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Pricing */}
-      <div style={l.section}>
-        <p style={l.eyebrow}>Pricing</p>
-        <h2 style={l.sectionTitle}>Simple, honest pricing</h2>
-        <p style={l.pricingSubtitle}>No hidden fees. No per-order commissions. Cancel anytime.</p>
-        <div style={l.pricingCardWrap}>
-          <div style={{ ...l.pricingCard, ...l.pricingCardFeatured }}>
-            <p style={l.planName}>Standard Plan</p>
-            <div style={l.priceRow}>
-              <span style={l.price}>₹499</span>
-              <span style={l.pricePer}>/month</span>
-            </div>
-            <p style={l.priceNote}>Up to 10 rooms · Cancel anytime</p>
-            <div style={l.divider} />
-            {["QR codes for up to 10 rooms", "Unlimited orders", "Live staff dashboard", "Instant sound notifications", "Full menu management", "Chef's Specials feature", "Complete order history", "Priority support"].map((f, i) => (
-              <div key={i} style={l.checkRow}>
-                <span style={l.check}>✓</span>
-                <span style={l.checkText}>{f}</span>
-              </div>
-            ))}
-            <a href="/signup" style={l.pricingBtn}>Get Started →</a>
-            <p style={l.pricingNote}>Apply today · Set up within 24 hours</p>
-          </div>
-        </div>
-      </div>
+  
 
       {/* WhatsApp CTA */}
       <div style={l.whatsappSection}>
