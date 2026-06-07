@@ -300,6 +300,14 @@ function App() {
   // GST summary for current cart
   const gstSummary = calcCartGst(cart)
 
+ 
+useEffect(() => {
+  const hash = window.location.hash
+  if (hash.includes("type=recovery")) {
+    setView("reset-password")
+  }
+}, [])
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -530,6 +538,10 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
   const filteredItems = vegOnly ? menuItems.filter(i => i.is_veg !== false) : menuItems
 
   if (!authChecked) return <div style={s.center}>Loading...</div>
+
+  if (view === "reset-password") {
+  return <Auth onLogin={() => setView("dashboard")} initialMode="reset" />
+}
 
   if (view === "dashboard") {
     if (!session) return <Auth onLogin={() => setView("dashboard")} />
