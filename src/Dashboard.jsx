@@ -616,21 +616,26 @@ async function saveEdit() {
 
     return (
       <div style={{ ...d.page, background: darkMode ? "#0f1923" : "#f4f6f9", color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
-  <div style={{ ...d.topbar, background: darkMode ? "#0a1219" : "#1c2b3a" }}>
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: "#2d3f52", display: "flex", alignItems: "center", justifyContent: "center", color: "#7eb3f5", fontSize: 16 }}>🏨</div>
-      <div>
-        <div style={{ color: "#e8f0f8", fontSize: 14, fontWeight: 500 }}>{isAdmin ? "⚡ Admin Panel" : hotel?.name || "Dashboard"}</div>
-        <div style={{ color: "#5a7a9a", fontSize: 11 }}>Dashboard</div>
-      </div>
-
-      <a href="tel:+919370133278" style={{ color: "#7eb3f5", fontSize: 12, textDecoration: "none", display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", border: "0.5px solid #7eb3f5", borderRadius: 8 }}>
-      📞 +91 93701 33278
-    </a>
-    
-    <button onClick={handleLogout} style={d.logoutBtn}>Logout</button>
+<div style={{ ...d.topbar, background: darkMode ? "#0a1219" : "#1c2b3a", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+    <div style={{ width: 32, height: 32, borderRadius: 8, background: "#2d3f52", display: "flex", alignItems: "center", justifyContent: "center", color: "#7eb3f5", fontSize: 16 }}>🏨</div>
+    <div>
+      <div style={{ color: "#e8f0f8", fontSize: 14, fontWeight: 500 }}>{isAdmin ? "⚡ Admin Panel" : hotel?.name || "Dashboard"}</div>
+      <div style={{ color: "#5a7a9a", fontSize: 11 }}>Dashboard</div>
     </div>
   </div>
+
+  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 5, background: "rgba(111,207,151,0.12)", border: "0.5px solid rgba(111,207,151,0.3)", borderRadius: 20, padding: "4px 10px" }}>
+      <span style={d.dot} />
+      <span style={{ color: "#6fcf97", fontSize: 11, fontWeight: 500 }}>Live</span>
+    </div>
+    <a href="tel:+919376133278" style={{ color: "#7eb3f5", fontSize: 12, textDecoration: "none", display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", border: "0.5px solid #7eb3f5", borderRadius: 8 }}>
+      📞 +91 9376 133278
+    </a>
+    <button onClick={handleLogout} style={d.logoutBtn}>Logout</button>
+  </div>
+</div>
   
 
 {demoMode && (
