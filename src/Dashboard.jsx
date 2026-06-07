@@ -843,7 +843,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
         <div style={d.cardHeader}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
-              🚪 Room {order.room_id}
+              🚪 {hotel?.business_type === "restaurant" ? "Table" : "Room"} {order.room_id}
             </div>
             {order.guest_name && (
               <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 2px", display: "flex", alignItems: "center", gap: 4 }}>
@@ -910,7 +910,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
         <div style={d.cardHeader}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
-              🚪 Room {order.room_id}
+              🚪 {hotel?.business_type === "restaurant" ? "Table" : "Room"} {order.room_id}
             </div>
             {order.guest_name && (
               <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 0" }}>
@@ -952,7 +952,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
         <div style={d.cardHeader}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
-              🚪 Room {order.room_id}
+              🚪 {hotel?.business_type === "restaurant" ? "Table" : "Room"} {order.room_id}
             </div>
             {order.guest_name && (
               <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 0" }}>
@@ -1210,14 +1210,14 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
 <p style={d.sectionLabel}>
   {hotel?.room_ranges?.length > 0
     ? (hotel.room_ranges || []).reduce((sum, r) => sum + (r.end - r.start + 1), 0)
-    : hotel?.room_count || 0} total rooms
+    : hotel?.room_count || 0} total {hotel?.business_type === "restaurant" ? "tables" : "rooms"}
 </p>
 
 
 
-      <p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 16px" }}>
-        Download QR codes for each room.
-      </p>
+<p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 16px" }}>
+  Download QR codes for each {hotel?.business_type === "restaurant" ? "table" : "room"}.
+</p>
 
 {(() => {
   const allRooms = []
@@ -1240,7 +1240,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
         return (
           <div key={roomNumber} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
             <div style={d.qrInfo}>
-              <p style={d.qrRoom}>Room {roomNumber}</p>
+              <p style={d.qrRoom}>{hotel?.business_type === "restaurant" ? "Table" : "Room"} {roomNumber}</p>
               <p style={d.qrUrl}>{url}</p>
             </div>
             <div style={d.qrBox}>
@@ -1389,7 +1389,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
       })()}
 
       {/* ROOM CHECKOUT SUMMARY */}
-      <p style={{ ...d.sectionLabel, marginTop: 24 }}>Room Checkout Summary</p>
+      <p style={{ ...d.sectionLabel, marginTop: 24 }}>{hotel?.business_type === "restaurant" ? "Table Summary" : "Room Checkout Summary"}</p>
       <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 12px" }}>
         Search by guest phone or room number.
       </p>
@@ -1618,7 +1618,7 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
             <div style={d.cardHeader}>
               <div>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
-                  🚪 Room {order.room_id}
+                  🚪 {hotel?.business_type === "restaurant" ? "Table" : "Room"} {order.room_id}
                 </div>
                 {order.guest_name && (
                   <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 2px" }}>
@@ -1838,6 +1838,8 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
   )}
 
           {/* SETTINGS TAB */}
+
+          
   {tab === "settings" && (
     <div style={tabContentStyle}>
       <p style={d.sectionLabel}>Dashboard Appearance</p>
@@ -1853,6 +1855,25 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
       <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#fff", position: "absolute", top: 3, left: darkMode ? 23 : 3, transition: "left 0.2s" }} />
     </div>
   </div>
+
+  <p style={d.sectionLabel}>Business Type</p>
+<div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+  <button
+    style={hotel?.business_type !== "restaurant" ? { ...d.saveBtn, flex: 1 } : { ...d.toggleBtn, flex: 1 }}
+    onClick={async () => {
+      await supabase.from("hotels").update({ business_type: "hotel" }).eq("id", hotel.id)
+      setHotel(prev => ({ ...prev, business_type: "hotel" }))
+    }}
+  >🏨 Hotel</button>
+  <button
+    style={hotel?.business_type === "restaurant" ? { ...d.saveBtn, flex: 1 } : { ...d.toggleBtn, flex: 1 }}
+    onClick={async () => {
+      await supabase.from("hotels").update({ business_type: "restaurant" }).eq("id", hotel.id)
+      setHotel(prev => ({ ...prev, business_type: "restaurant" }))
+    }}
+  >🍽️ Restaurant</button>
+</div>
+
               <p style={d.sectionLabel}>Menu Theme</p>
               <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
                 Choose how your menu looks to guests. Changes apply immediately.
@@ -1916,9 +1937,11 @@ const sub = supabase.channel("orders-channel-" + hotelData.id)
       {hotel?.font_size === "small" ? "Small" : hotel?.font_size === "large" ? "Large" : "Medium"}
     </span>
   </div>
-  <p style={{ ...d.sectionLabel, marginTop: 28 }}>Room Ranges</p>
+<p style={{ ...d.sectionLabel, marginTop: 28 }}>{hotel?.business_type === "restaurant" ? "Table Ranges" : "Room Ranges"}</p>
 <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
-  Add room ranges for each floor. Example: Floor 1: 101-110, Floor 2: 201-210
+  {hotel?.business_type === "restaurant" 
+    ? "Add table ranges. Example: Section A: 1-10, Section B: 11-20" 
+    : "Add room ranges for each floor. Example: Floor 1: 101-110, Floor 2: 201-210"}
 </p>
 
 {(hotel?.room_ranges || []).map((range, idx) => (

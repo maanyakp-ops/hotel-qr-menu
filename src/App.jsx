@@ -294,6 +294,7 @@ function App() {
   const s = getStyles(hotelInfo?.theme || 'dark-gold')
   const t = themeConfigs[hotelInfo?.theme || 'dark-gold'] || themeConfigs['dark-gold']
   const fontScale = hotelInfo?.font_size === "small" ? 0.85 : hotelInfo?.font_size === "large" ? 1.2 : 1
+  const isRestaurant = hotelInfo?.business_type === "restaurant"
   
 
   // GST summary for current cart
@@ -559,7 +560,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
           <h2 style={{ color: t.textPrimary, fontFamily: t.titleFont, fontSize: 24, fontWeight: 300, margin: 0 }}>
            My Orders
           </h2>
-          <p style={{ color: t.textSecondary, fontSize: 12, margin: "4px 0 0" }}>Room {resolvedRoom}</p>
+          <p style={{ color: t.textSecondary, fontSize: 12, margin: "4px 0 0" }}>{isRestaurant ? "Table" : "Room"} {resolvedRoom}</p>
         </div>
         <div style={{ padding: "1rem" }}>
           {roomOrders.length === 0 && (
@@ -632,7 +633,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
   {orderStatus === "cancelled" ? "Your order has been cancelled." :
    orderStatus === "rejected" ? (placedOrder?.reject_reason ? `Rejected: ${placedOrder.reject_reason}` : "Sorry, the hotel couldn't accept your order.") :
    orderStatus === "delivered" ? `We have delivered to Room ${resolvedRoom}.` :
-   `We'll deliver to Room ${resolvedRoom} shortly.`}
+   `We'll bring your order to ${isRestaurant ? "Table" : "Room"} ${resolvedRoom} shortly.`}
 </p>
 
         {orderStatus !== "cancelled" && orderStatus !== "rejected" && (
@@ -851,12 +852,12 @@ localStorage.setItem(`rated_${placedOrder.id}`, "true")
 
       <div style={s.hero}>
         <div style={s.heroGoldBar} />
-        <div style={s.heroBadge}>Room Service</div>
-        <h1 style={s.heroTitle}>{hotelInfo?.name || "Hotel"}</h1>
-        <p style={s.heroSub}>Room {resolvedRoom} &nbsp;·&nbsp; Available 24/7</p>
+<div style={s.heroBadge}>{isRestaurant ? "Table Service" : "Room Service"}</div>
+<h1 style={s.heroTitle}>{hotelInfo?.name || "Hotel"}</h1>
+<p style={s.heroSub}>{isRestaurant ? "Table" : "Room"} {resolvedRoom} &nbsp;·&nbsp; {isRestaurant ? "Order at your table" : "Available 24/7"}</p>
         {hotelInfo?.contact_phone && (
           <p style={{ fontSize: 11, color: t.accent, letterSpacing: 2, margin: "8px 0 0", fontFamily: t.bodyFont }}>
-            📞 Reception: {hotelInfo.contact_phone}
+            📞 {isRestaurant ? "Contact" : "Reception"}: {hotelInfo.contact_phone}
           </p>
         )}
         <div style={s.heroOrnament}>✦ &nbsp; ✦ &nbsp; ✦</div>
