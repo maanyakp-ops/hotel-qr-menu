@@ -673,31 +673,22 @@ function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
     doc.setLineWidth(0.2)
     doc.rect(x + 2, y + 2, w - 4, topH - 2, "S")
 
-    // GR monogram
-    doc.setFont("helvetica", "bold")
-    doc.setFontSize(10)
-    doc.setTextColor(...GOLD)
-    doc.text("GR", x + w / 2, y + 7, { align: "center" })
-    doc.setLineWidth(0.3)
-    doc.setDrawColor(...GOLD)
-    doc.line(x + w / 2 - 8, y + 8.5, x + w / 2 - 2.5, y + 8.5)
-    doc.line(x + w / 2 + 2.5, y + 8.5, x + w / 2 + 8, y + 8.5)
 
     // Hotel name
     doc.setFont("helvetica", "bold")
     doc.setFontSize(9)
     doc.setTextColor(...DARK_GREEN)
-    doc.text((hotelData.name || "YOUR HOTEL").toUpperCase(), x + w / 2, y + 13, { align: "center" })
+    doc.text((hotelData.name || "YOUR HOTEL").toUpperCase(), x + w / 2, y + 7, { align: "center" })
 
     // Tagline with side lines
     doc.setDrawColor(...GOLD)
     doc.setLineWidth(0.2)
-    doc.line(x + 4, y + 16, x + w * 0.26, y + 16)
-    doc.line(x + w * 0.74, y + 16, x + w - 4, y + 16)
+    doc.line(x + 4, y + 10, x + w * 0.26, y + 16)
+    doc.line(x + w * 0.74, y + 10, x + w - 4, y + 10)
     doc.setFont("helvetica", "normal")
     doc.setFontSize(4)
     doc.setTextColor(...GOLD)
-    doc.text("HOSPITALITY REDEFINED", x + w / 2, y + 16.8, { align: "center" })
+    doc.text("HOSPITALITY REDEFINED", x + w / 2, y + 10.8, { align: "center" })
 
     // ORDER FOOD
     doc.setFont("helvetica", "bold")
@@ -854,20 +845,20 @@ function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
     // FAST • CONVENIENT • CONTACTLESS
     doc.setFontSize(4)
     doc.setTextColor(...GOLD)
-    doc.text("FAST  •  CONVENIENT  •  CONTACTLESS", x + w / 2, y + topH + botH - 8, { align: "center" })
+    doc.text("FAST  •  CONVENIENT  •  CONTACTLESS", x + w / 2, y + topH + botH - 11, { align: "center" })
 
     // Powered by box
     doc.setDrawColor(...GOLD)
     doc.setLineWidth(0.2)
-    doc.roundedRect(x + 10, y + topH + botH - 6.5, w - 20, 5.5, 1, 1, "S")
+    doc.roundedRect(x + 10, y + topH + botH - 8.5, w - 20, 5.5, 1, 1, "S")
     doc.setFont("helvetica", "normal")
     doc.setFontSize(4)
     doc.setTextColor(180, 210, 180)
-    doc.text("Powered by ", x + w / 2 - 1, y + topH + botH - 3.5, { align: "right" })
+    doc.text("Powered by ", x + w / 2 - 1, y + topH + botH - 5.5, { align: "right" })
     doc.setFont("helvetica", "bolditalic")
     doc.setFontSize(4.5)
     doc.setTextColor(255, 255, 255)
-    doc.text("staydine.in", x + w / 2, y + topH + botH - 3.5)
+    doc.text("staydine.in", x + w / 2, y + topH + botH - 5.5)
   }
 
   // Generate QR data URLs for all rooms
