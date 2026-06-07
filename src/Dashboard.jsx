@@ -992,7 +992,7 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
         <div style={d.cardHeader}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
-              🚪 {hotel?.business_type === "restaurant" ? "Table" : "Room"} {order.room_id}
+              {String(order.room_id).startsWith("T") ? "🍽️ Table" : "🚪 Room"} {String(order.room_id).startsWith("T") ? String(order.room_id).slice(1) : order.room_id}
             </div>
             {order.guest_name && (
               <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 2px", display: "flex", alignItems: "center", gap: 4 }}>
@@ -1112,7 +1112,7 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
         <div style={d.cardHeader}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
-              🚪 {hotel?.business_type === "restaurant" ? "Table" : "Room"} {order.room_id}
+              {String(order.room_id).startsWith("T") ? "🍽️ Table" : "🚪 Room"} {String(order.room_id).startsWith("T") ? String(order.room_id).slice(1) : order.room_id}
             </div>
             {order.guest_name && (
               <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 0" }}>
@@ -1380,55 +1380,79 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
           {/* QR CODES TAB */}
 
 {/* QR CODES TAB */}
-          {tab === "qr" && (
+{tab === "qr" && (
   <>
     {hotel?.status !== "active"
-      ? <p style={d.empty}>Your account is pending approval. QR codes will appear once approved.</p>
-      : (hotel?.room_ranges || []).length === 0 && !hotel?.room_count
-      ? <p style={d.empty}>No rooms assigned yet. Contact support to get your rooms activated.</p>
+      ? <p style={d.empty}>Your account is pending approval.</p>
       : (() => {
+          // Build room list
           const allRooms = []
           if (hotel?.room_ranges?.length > 0) {
             hotel.room_ranges.forEach(range => {
-              for (let i = range.start; i <= range.end; i++) allRooms.push(i)
+              for (let i = range.start; i <= range.end; i++) allRooms.push(String(i))
             })
-          } else {
-            for (let i = 0; i < (hotel?.room_count || 0); i++) {
-              allRooms.push(i + (hotel?.room_start || 101))
+          } else if (hotel?.room_count) {
+            for (let i = 0; i < hotel.room_count; i++) {
+              allRooms.push(String(i + (hotel?.room_start || 101)))
             }
           }
-          const cappedRooms = allRooms
+
+          // Build table list with T prefix
+          const allTables = []
+          ;(hotel?.table_ranges || []).forEach(range => {
+            for (let i = range.start; i <= range.end; i++) allTables.push(`T${i}`)
+          })
+
+          const allQRs = [...allRooms, ...allTables]
+          if (allQRs.length === 0) return <p style={d.empty}>No rooms or tables configured yet. Add them in Settings.</p>
+
           return (
             <>
-              <p style={d.sectionLabel}>{cappedRooms.length} total rooms</p>
-              <p style={{ fontSize: 12, color: "#8a9bb0", margin: "0 0 16px" }}>
-                Download all QR codes as a print-ready PDF — 4 per A4 page.
-              </p>
               <button
-                style={{ ...d.saveBtn, marginBottom: 24, width: "100%", fontSize: 14, padding: 14 }}
-                onClick={() => generateQRPdf(cappedRooms, hotel)}
+                style={{ ...d.saveBtn, margin: "16px 0", width: "100%", fontSize: 14, padding: 14 }}
+                onClick={() => generateQRPdf(allQRs, hotel)}
               >
-                ⬇ Download All QR Codes (PDF)
+                ⬇ Download All QR Codes as PDF
               </button>
-              <p style={d.sectionLabel}>Preview</p>
-              {cappedRooms.slice(0, 4).map(roomNumber => {
-                const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotel.id}/${roomNumber}`
-                return (
-                  <div key={roomNumber} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
-                    <div style={d.qrInfo}>
-                      <p style={d.qrRoom}>Room {roomNumber}</p>
-                      <p style={d.qrUrl}>{url}</p>
-                    </div>
-                    <div style={d.qrBox}>
-                      <QRCode id={`qr-${roomNumber}`} value={url} size={80} />
-                    </div>
-                  </div>
-                )
-              })}
-              {cappedRooms.length > 4 && (
-                <p style={{ fontSize: 12, color: "#8a9bb0", textAlign: "center", marginTop: 8 }}>
-                  + {cappedRooms.length - 4} more rooms in the PDF
-                </p>
+
+              {allRooms.length > 0 && (
+                <>
+                  <p style={d.sectionLabel}>🚪 Rooms ({allRooms.length})</p>
+                  {allRooms.map(roomId => {
+                    const url = `https://staydine.in/menu/${hotel.id}/${roomId}`
+                    return (
+                      <div key={roomId} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+                        <div style={d.qrInfo}>
+                          <p style={d.qrRoom}>Room {roomId}</p>
+                          <p style={d.qrUrl}>{url}</p>
+                        </div>
+                        <div style={d.qrBox}>
+                          <QRCode id={`qr-${roomId}`} value={url} size={80} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </>
+              )}
+
+              {allTables.length > 0 && (
+                <>
+                  <p style={{ ...d.sectionLabel, marginTop: 24 }}>🍽️ Tables ({allTables.length})</p>
+                  {allTables.map(tableId => {
+                    const url = `https://staydine.in/menu/${hotel.id}/${tableId}`
+                    return (
+                      <div key={tableId} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+                        <div style={d.qrInfo}>
+                          <p style={d.qrRoom}>Table {tableId.slice(1)}</p>
+                          <p style={d.qrUrl}>{url}</p>
+                        </div>
+                        <div style={d.qrBox}>
+                          <QRCode id={`qr-${tableId}`} value={url} size={80} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </>
               )}
             </>
           )
@@ -1804,7 +1828,7 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
             <div style={d.cardHeader}>
               <div>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f4f6f9", borderRadius: 20, padding: "4px 12px", fontSize: 13, fontWeight: 500, color: "#1c2b3a" }}>
-                  🚪 {hotel?.business_type === "restaurant" ? "Table" : "Room"} {order.room_id}
+                  {String(order.room_id).startsWith("T") ? "🍽️ Table" : "🚪 Room"} {String(order.room_id).startsWith("T") ? String(order.room_id).slice(1) : order.room_id}
                 </div>
                 {order.guest_name && (
                   <p style={{ fontSize: 12, color: "#8a9bb0", margin: "6px 0 2px" }}>
@@ -2222,6 +2246,75 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
 >
   Save Room Ranges
 </button>
+
+<p style={{ ...d.sectionLabel, marginTop: 28 }}>Table Ranges</p>
+<p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
+  Add table ranges for your restaurant area. Tables get a "T" prefix (T1, T2...).
+</p>
+
+{(hotel?.table_ranges || []).map((range, idx) => (
+  <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
+    <div style={{ flex: 1, display: "flex", gap: 8 }}>
+      <input
+        style={{ ...d.input, flex: 1 }}
+        placeholder="Label (e.g. Main Hall)"
+        value={range.label || ""}
+        onChange={e => {
+          const updated = [...(hotel.table_ranges || [])]
+          updated[idx].label = e.target.value
+          setHotel(prev => ({ ...prev, table_ranges: updated }))
+        }}
+      />
+      <input
+        style={{ ...d.input, flex: 1 }}
+        type="number"
+        placeholder="Start (e.g. 1)"
+        value={range.start}
+        onChange={e => {
+          const updated = [...(hotel.table_ranges || [])]
+          updated[idx].start = parseInt(e.target.value) || 1
+          setHotel(prev => ({ ...prev, table_ranges: updated }))
+        }}
+      />
+      <input
+        style={{ ...d.input, flex: 1 }}
+        type="number"
+        placeholder="End (e.g. 20)"
+        value={range.end}
+        onChange={e => {
+          const updated = [...(hotel.table_ranges || [])]
+          updated[idx].end = parseInt(e.target.value) || 10
+          setHotel(prev => ({ ...prev, table_ranges: updated }))
+        }}
+      />
+    </div>
+    <button
+      style={{ ...d.btnDelete, background: "#c0392b", color: "#fff", padding: "8px 12px", fontSize: 12 }}
+      onClick={async () => {
+        const updated = (hotel.table_ranges || []).filter((_, i) => i !== idx)
+        await supabase.from("hotels").update({ table_ranges: updated }).eq("id", hotel.id)
+        setHotel(prev => ({ ...prev, table_ranges: updated }))
+      }}
+    >Remove</button>
+  </div>
+))}
+
+<button
+  style={{ ...d.addBtn, marginBottom: 12 }}
+  onClick={() => {
+    const updated = [...(hotel?.table_ranges || []), { label: "", start: 1, end: 10 }]
+    setHotel(prev => ({ ...prev, table_ranges: updated }))
+  }}
+>+ Add Table Range</button>
+
+<button
+  style={{ ...d.saveBtn, marginBottom: 24 }}
+  onClick={async () => {
+    await supabase.from("hotels").update({ table_ranges: hotel.table_ranges }).eq("id", hotel.id)
+    setThemeSaved(true)
+    setTimeout(() => setThemeSaved(false), 2500)
+  }}
+>Save Table Ranges</button>
 
 <p style={{ ...d.sectionLabel, marginTop: 28 }}>Hotel Details for Bill</p>
 <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
