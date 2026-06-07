@@ -2,10 +2,15 @@ import { useState } from "react"
 import { supabase } from "./supabase"
 import { useEffect } from "react"
 
+
+
+
 export default function Auth({ onLogin, initialMode }) {
   const [mode, setMode] = useState(initialMode || "login")
+  const [newPassword, setNewPassword] = useState("")
   const [step1, setStep1] = useState({ email: "", password: "", hotelName: "" })
   const [details, setDetails] = useState({
+    
     business_type: "hotel",
     owner_name: "",
     address: "",
@@ -16,6 +21,14 @@ export default function Auth({ onLogin, initialMode }) {
     contact_phone: "",
     room_count: "",
   })
+
+  useEffect(() => {
+  const hash = window.location.hash
+  if (hash.includes("type=recovery")) {
+    setMode("reset")
+  }
+}, [])
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -116,6 +129,22 @@ export default function Auth({ onLogin, initialMode }) {
             <input style={s.input} placeholder="Password" type="password" value={step1.password}
               onChange={e => setStep1(p => ({ ...p, password: e.target.value }))}
               onKeyDown={e => e.key === "Enter" && handleLogin()} />
+              <p style={{ textAlign: "right", margin: "-4px 0 0" }}>
+  <span
+    style={{ fontSize: 11, color: "#C9A84C", cursor: "pointer" }}
+    onClick={async () => {
+      if (!step1.email) { setError("Enter your email first."); return }
+      const { error } = await supabase.auth.resetPasswordForEmail(step1.email, {
+        redirectTo: window.location.origin
+      })
+      if (error) setError(error.message)
+      else setError("")
+      alert("Password reset email sent! Check your inbox.")
+    }}
+  >
+    Forgot password?
+  </span>
+</p>
             <button style={s.btn} onClick={handleLogin} disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </button>
@@ -127,6 +156,36 @@ export default function Auth({ onLogin, initialMode }) {
             </p>
           </>
         )}
+
+        {mode === "reset" && (
+  <>
+    <p style={s.heading}>Set New Password</p>
+    {error && <p style={s.error}>{error}</p>}
+    <input
+      style={s.input}
+      placeholder="New password (min 6 characters)"
+      type="password"
+      value={newPassword}
+      onChange={e => setNewPassword(e.target.value)}
+    />
+    <button
+      style={s.btn}
+      onClick={async () => {
+        if (newPassword.length < 6) { setError("Password must be at least 6 characters."); return }
+        setLoading(true)
+        const { error } = await supabase.auth.updateUser({ password: newPassword })
+        if (error) { setError(error.message); setLoading(false); return }
+        alert("Password updated successfully!")
+        window.location.hash = ""
+        setMode("login")
+        setLoading(false)
+      }}
+      disabled={loading}
+    >
+      {loading ? "Updating..." : "Update Password"}
+    </button>
+  </>
+)}
 
         {/* SIGNUP STEP 1 — Basic details */}
         {mode === "signup" && (
