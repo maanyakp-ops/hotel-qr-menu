@@ -623,9 +623,15 @@ async function saveEdit() {
         <div style={{ color: "#e8f0f8", fontSize: 14, fontWeight: 500 }}>{isAdmin ? "⚡ Admin Panel" : hotel?.name || "Dashboard"}</div>
         <div style={{ color: "#5a7a9a", fontSize: 11 }}>Dashboard</div>
       </div>
-    </div>
 
+      <a href="tel:+919370133278" style={{ color: "#7eb3f5", fontSize: 12, textDecoration: "none", display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", border: "0.5px solid #7eb3f5", borderRadius: 8 }}>
+      📞 +91 93701 33278
+    </a>
+    
+    <button onClick={handleLogout} style={d.logoutBtn}>Logout</button>
+    </div>
   </div>
+  
 
 {demoMode && (
   <div style={{ background: "#fff3e0", border: "1px solid #fcd34d", padding: "10px 14px", margin: "0 14px 8px", borderRadius: 8, fontSize: 12, color: "#b45309" }}>
