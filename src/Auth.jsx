@@ -135,7 +135,7 @@ export default function Auth({ onLogin, initialMode }) {
     onClick={async () => {
       if (!step1.email) { setError("Enter your email first."); return }
       const { error } = await supabase.auth.resetPasswordForEmail(step1.email, {
-        redirectTo: "https://hotel-qr-menu-gamma.vercel.app/"
+        redirectTo: `${window.location.origin}/auth`
       })
       if (error) setError(error.message)
       else setError("")

@@ -12,7 +12,12 @@ const Demo = lazy(() => import("./Demo"))
 function AuthPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const initialMode = location.pathname === "/signup" ? "signup" : "login"
+  
+  // Check for password recovery hash
+  const hash = window.location.hash
+  const isReset = hash.includes("type=recovery")
+  
+  const initialMode = isReset ? "reset" : location.pathname === "/signup" ? "signup" : "login"
   return <Auth onLogin={() => navigate("/dashboard")} initialMode={initialMode} />
 }
 
@@ -21,11 +26,22 @@ function DashboardPage() {
   return <Dashboard onBack={() => navigate("/")} />
 }
 
+function RootPage() {
+  const navigate = useNavigate()
+  const hash = window.location.hash
+  
+  if (hash.includes("type=recovery")) {
+    return <Auth onLogin={() => navigate("/dashboard")} initialMode="reset" />
+  }
+  
+  return <Landing />
+}
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<RootPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/signup" element={<AuthPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
