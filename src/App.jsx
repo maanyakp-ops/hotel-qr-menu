@@ -823,8 +823,8 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
     to   { opacity: 1; }
   }
   @keyframes slideUp {
-    from { transform: translateY(100%); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
+    from { opacity: 0; bottom: -80px; }
+    to   { opacity: 1; bottom: 0; }
   }
   @keyframes heroIn {
     from { opacity: 0; transform: translateY(-12px); }
