@@ -700,8 +700,9 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
   doc.setFont("helvetica", "bold")
   doc.setFontSize(7)
   doc.setTextColor(28, 58, 40)
-  const displayNum = String(roomNumber).replace(/^[a-zA-Z]+/, "")
-  const label = hotelData.business_type === "restaurant" ? `Table ${displayNum}` : `Room ${displayNum}`
+const displayNum = String(roomNumber).replace(/^[a-zA-Z]+/, "")
+const isTable = String(roomNumber).match(/^[a-zA-Z]/)
+const label = isTable ? `Table ${displayNum}` : `Room ${roomNumber}`
   doc.text(label, x + w / 2, y + h * 0.72, { align: "center" })
 }
 
