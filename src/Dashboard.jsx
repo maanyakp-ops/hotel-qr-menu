@@ -1027,7 +1027,7 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
             <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
-              <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
+            <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
               ₹{orderTotal}
             </span>
             {orderTotal !== orderBase && (
@@ -1080,7 +1080,7 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
           <div>
             <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
-              <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
+            <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
               ₹{orderTotal}
             </span>
             {orderTotal !== orderBase && (

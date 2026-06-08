@@ -1,5 +1,5 @@
 {
-    "name": "Hotel Menu Manager",
+    "name": "StayDine",
     "short_name": "HotelMenu",
     "description": "QR based hotel room service management",
     "start_url": "/",
