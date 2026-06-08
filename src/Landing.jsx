@@ -170,7 +170,7 @@ export default function Landing() {
 
       {/* Footer */}
       <div style={l.footer}>
-        <span style={l.footerLogo}>Hotel<span style={l.logoPlus}>+</span></span>
+        <span style={l.footerLogo}>staydine.in</span>
         <p style={l.footerText}>The simplest room service system in India &nbsp;·&nbsp; Made in India 🇮🇳</p>
         
       </div>
