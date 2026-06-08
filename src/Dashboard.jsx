@@ -735,7 +735,7 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
       for (let c = 0; c < cols; c++) {
         if (roomIdx >= rooms.length) break
         const roomNumber = rooms[roomIdx]
-        const url = `https://hotel-qr-menu-gamma.vercel.app/menu/${hotelData.id}/${roomNumber}`
+        const url = `${window.location.origin}/menu/${hotel.id}/${roomNumber}`
         const qrDataUrl = await getQRDataUrl(url)
 
         const x = marginX + c * (cardW + gap)
