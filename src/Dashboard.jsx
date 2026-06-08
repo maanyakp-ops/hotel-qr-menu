@@ -1424,19 +1424,19 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
                 <>
                   <p style={d.sectionLabel}>🚪 Rooms ({cappedRooms.length})</p>
                   {cappedRooms.map(roomId => {
-                    const url = `https://staydine.in/menu/${hotel.id}/${roomNumber}`
-                    return (
-                      <div key={roomId} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
-                        <div style={d.qrInfo}>
-                          <p style={d.qrRoom}>{hotel?.business_type === "restaurant" ? "Table" : "Room"} {roomNumber}</p>
-                          <p style={d.qrUrl}>{url}</p>
-                        </div>
-                        <div style={d.qrBox}>
-                          <QRCode id={`qr-${roomId}`} value={url} size={80} />
-                        </div>
-                      </div>
-                    )
-                  })}
+  const url = `https://staydine.in/menu/${hotel.id}/${roomId}`
+  return (
+    <div key={roomId} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+      <div style={d.qrInfo}>
+        <p style={d.qrRoom}>Room {roomId}</p>
+        <p style={d.qrUrl}>{url}</p>
+      </div>
+      <div style={d.qrBox}>
+        <QRCode id={`qr-${roomId}`} value={url} size={80} />
+      </div>
+    </div>
+  )
+})}
                 </>
               )}
 
@@ -1444,19 +1444,20 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
                 <>
                   <p style={{ ...d.sectionLabel, marginTop: 24 }}>🍽️ Tables ({cappedTables.length})</p>
                   {cappedTables.map(tableId => {
-                    const url = `https://staydine.in/menu/${hotel.id}/${roomNumber}`
-                    return (
-                      <div key={tableId} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
-                        <div style={d.qrInfo}>
-                          <p style={d.qrRoom}>{hotel?.business_type === "restaurant" ? "Table" : "Room"} {roomNumber}</p>
-                          <p style={d.qrUrl}>{url}</p>
-                        </div>
-                        <div style={d.qrBox}>
-                          <QRCode id={`qr-${tableId}`} value={url} size={80} />
-                        </div>
-                      </div>
-                    )
-                  })}
+  const url = `https://staydine.in/menu/${hotel.id}/${tableId}`
+  const displayNum = String(tableId).replace(/^[a-zA-Z]+/, "")
+  return (
+    <div key={tableId} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+      <div style={d.qrInfo}>
+        <p style={d.qrRoom}>Table {displayNum}</p>
+        <p style={d.qrUrl}>{url}</p>
+      </div>
+      <div style={d.qrBox}>
+        <QRCode id={`qr-${tableId}`} value={url} size={80} />
+      </div>
+    </div>
+  )
+})}
                 </>
               )}
             </>
