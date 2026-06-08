@@ -700,7 +700,7 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
   doc.setFont("helvetica", "bold")
   doc.setFontSize(7)
   doc.setTextColor(28, 58, 40)
-  doc.text(`Room ${roomNumber}`, x + w / 2, y + h * 0.72, { align: "center" })
+  doc.text(`${hotelData.business_type === "restaurant" ? "Table" : "Room"} ${roomNumber}`, x + w / 2, y + h * 0.72, { align: "center" })
 }
 
   // Generate QR data URLs for all rooms
@@ -1422,11 +1422,11 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
                 <>
                   <p style={d.sectionLabel}>🚪 Rooms ({cappedRooms.length})</p>
                   {cappedRooms.map(roomId => {
-                    const url = `https://staydine.in/menu/${hotel.id}/${roomId}`
+                    const url = `https://staydine.in/menu/${hotel.id}/${roomNumber}`
                     return (
                       <div key={roomId} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
                         <div style={d.qrInfo}>
-                          <p style={d.qrRoom}>Room {roomId}</p>
+                          <p style={d.qrRoom}>{hotel?.business_type === "restaurant" ? "Table" : "Room"} {roomNumber}</p>
                           <p style={d.qrUrl}>{url}</p>
                         </div>
                         <div style={d.qrBox}>
@@ -1442,11 +1442,11 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
                 <>
                   <p style={{ ...d.sectionLabel, marginTop: 24 }}>🍽️ Tables ({cappedTables.length})</p>
                   {cappedTables.map(tableId => {
-                    const url = `https://staydine.in/menu/${hotel.id}/${tableId}`
+                    const url = `https://staydine.in/menu/${hotel.id}/${roomNumber}`
                     return (
                       <div key={tableId} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
                         <div style={d.qrInfo}>
-                          <p style={d.qrRoom}>Table {tableId.slice(1)}</p>
+                          <p style={d.qrRoom}>{hotel?.business_type === "restaurant" ? "Table" : "Room"} {roomNumber}</p>
                           <p style={d.qrUrl}>{url}</p>
                         </div>
                         <div style={d.qrBox}>
