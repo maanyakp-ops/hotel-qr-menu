@@ -579,7 +579,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
           {roomOrders.length === 0 && (
             <p style={{ color: t.textSecondary, textAlign: "center", marginTop: 40 }}>No orders found.</p>
           )}
-          {roomOrders.map(order => {
+          {roomOrders.map((order, idx) => {
             const { grandTotal } = calcOrderGst(order.order_items)
             const time = new Date(order.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })
             const date = new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
@@ -591,6 +591,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
             return (
               <div
                 key={order.id}
+                
                 onClick={() => {
                   setPlacedOrder({ ...order, items: order.order_items.map(i => ({ ...i, name: i.menu_items?.name, qty: i.quantity })), prepTime: 15 })
                   setOrderStatus(order.status)
@@ -609,7 +610,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
                   setShowOrdersList(false)
                   watchOrderStatus(order.id)
                 }}
-                style={{ background: t.heroBg, border: `1px solid ${t.heroBorder}`, borderRadius: 12, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}
+                style={{ background: t.heroBg, border: `1px solid ${t.heroBorder}`, borderRadius: 12, padding: "14px 16px", marginBottom: 10, cursor: "pointer", animation: `fadeUp 0.3s ease ${idx * 0.07}s both` }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ color: t.textPrimary, fontFamily: t.titleFont, fontSize: 16 }}>₹{grandTotal}</span>
@@ -811,6 +812,55 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
   // ─── MAIN MENU VIEW ──────────────────────────────────────────────────────
   return (
     <div style={s.page}>
+
+    <style>{`
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  @keyframes heroIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes popIn {
+    0%   { transform: scale(0.85); opacity: 0; }
+    70%  { transform: scale(1.05); }
+    100% { transform: scale(1);    opacity: 1; }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position:  200% center; }
+  }
+  .menu-item-enter {
+    animation: fadeUp 0.35s ease both;
+  }
+  .cart-bar-enter {
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .hero-enter {
+    animation: heroIn 0.5s ease both;
+  }
+  .tab-content {
+    animation: fadeIn 0.2s ease both;
+  }
+  .add-btn-hover:active {
+    transform: scale(0.93);
+    transition: transform 0.1s;
+  }
+  .qty-btn-press:active {
+    transform: scale(0.88);
+    transition: transform 0.08s;
+  }
+`}</style> 
+
       {/* ── GUEST FORM MODAL WITH CART SUMMARY ── */}
       {showGuestForm && (
         <div style={s.modalOverlay}>
@@ -870,7 +920,8 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
         </div>
       )}
 
-      <div style={s.hero}>
+      <div style={s.hero} className="hero-enter">
+        
         <div style={s.heroGoldBar} />
 <div style={s.heroBadge}>{isRestaurant ? "Table Service" : "Room Service"}</div>
 <h1 style={s.heroTitle}>{hotelInfo?.name || "Hotel"}</h1>
@@ -967,7 +1018,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
         </div>
       )}
 
-      <div style={s.body}>
+      <div style={s.body} className="tab-content" key={activeTab}>
         {menuItems.length === 0 && (
           <div style={s.emptyState}>
             <p style={s.emptyIcon}>🍽️</p>
@@ -983,10 +1034,10 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
               <span style={s.specialsTitle}>Our Specials</span>
               <span style={s.specialsGold}>✦</span>
             </div>
-            {menuItems.filter(i => i.is_special).map(item => {
-              const cartItem = cart.find(i => i.id === item.id)
-              return (
-                <div key={item.id} style={s.specialItem}>
+            {menuItems.filter(i => i.is_special).map((item, idx) => {
+  const cartItem = cart.find(i => i.id === item.id)
+  return (
+    <div key={item.id} style={{ ...s.specialItem, animation: `fadeUp 0.35s ease ${idx * 0.06}s both` }}>
                   <div style={s.specialBadge}>Chef's Special</div>
                   {item.image_url && (
                   <img src={item.image_url} style={{ width: 88, height: 88, minHeight: 88, borderRadius: 4, objectFit: "cover", flexShrink: 0 }} />
@@ -1011,7 +1062,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
                         <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
                       </div>
                     ) : (
-                      <button style={{ ...s.addBtn, fontSize: 10 }} onClick={() => addToCart(item)}>ADD</button>
+                      <button className="add-btn-hover" style={{ ...s.addBtn, fontSize: 10, transition: "transform 0.1s" }} onClick={() => addToCart(item)}>ADD</button>
                     )}
                   </div>
                 </div>
@@ -1024,10 +1075,10 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
 {(menuSearchGuest
           ? filteredItems.filter(i => i.name.toLowerCase().includes(menuSearchGuest.toLowerCase()) || i.category.toLowerCase().includes(menuSearchGuest.toLowerCase()))
           : filteredItems.filter(i => i.category === activeTab)
-        ).map(item => {
-          const cartItem = cart.find(i => i.id === item.id)
+        ).map((item, idx) => {
+        const cartItem = cart.find(i => i.id === item.id)
           return (
-            <div key={item.id} style={s.menuItem}>
+            <div key={item.id} style={{ ...s.menuItem, animation: `fadeUp 0.35s ease ${idx * 0.05}s both` }}>
               {item.image_url && (
               <img src={item.image_url} style={{ width: 88, height: 88, borderRadius: 4, objectFit: "cover", flexShrink: 0, aspectRatio: "1/1" }} />
               )}
@@ -1046,12 +1097,12 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
                   <span style={s.outOfStock}>Out of Stock</span>
                 ) : cartItem ? (
                   <div style={s.qtyRow}>
-                    <button style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
+                    <button className="qty-btn-press" style={s.qtyBtn} onClick={() => removeFromCart(item)}>−</button>
                     <span style={s.qtyNum}>{cartItem.qty}</span>
-                    <button style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
+                    <button className="qty-btn-press" style={s.qtyBtn} onClick={() => addToCart(item)}>+</button>
                   </div>
                 ) : (
-                  <button style={{ ...s.addBtn, fontSize: 10 }} onClick={() => addToCart(item)}>ADD</button>
+                  <button className="add-btn-hover" style={{ ...s.addBtn, fontSize: 10, transition: "transform 0.1s" }} onClick={() => addToCart(item)}>ADD</button>
                 )}
               </div>
             </div>
@@ -1077,7 +1128,7 @@ async function startHoldCountdown(orderId, startSeconds = 20) {
 
       {/* ── CART BAR WITH GST BREAKDOWN ── */}
       {cart.length > 0 && (
-        <div style={s.cartBar}>
+      <div style={s.cartBar} className="cart-bar-enter">
           <div>
             <p style={s.cartCount}>{cart.reduce((s, i) => s + i.qty, 0)} items · ⏱ ~{maxPrepTime} min</p>
             <p style={s.cartTotal}>₹{gstSummary.grandTotal}</p>
