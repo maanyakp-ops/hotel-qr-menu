@@ -604,11 +604,9 @@ async function saveEdit() {
       setTimeout(() => setThemeSaved(false), 2500)
     }
     // ────────────────────────────────────────────────────────────────
-    const gstEnabled = hotel?.gst_enabled !== false
-
     function itemTotal(item) {
       const base = item.price * item.quantity
-      const gst = gstEnabled ? base * ((item.gst_rate || 0) / 100) : 0
+      const gst = base * ((item.gst_rate || 0) / 100)
       return Math.round((base + gst) * 100) / 100
     }
 
@@ -1027,7 +1025,7 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
             <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
-            <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
+              <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
               ₹{orderTotal}
             </span>
             {orderTotal !== orderBase && (
@@ -1080,7 +1078,7 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
           <div>
             <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
-            <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
+              <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
               ₹{orderTotal}
             </span>
             {orderTotal !== orderBase && (
@@ -2092,37 +2090,7 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
     }}
   >🍽️ Restaurant</button>
 </div>
-<p style={d.sectionLabel}>GST Settings</p>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: darkMode ? "#1c2b3a" : "#fff", border: "0.5px solid #e2e8f0", borderRadius: 12, padding: "14px 16px", marginBottom: 16 }}>
-        <div>
-          <p style={{ fontSize: 14, fontWeight: 500, color: darkMode ? "#e8f0f8" : "#1c2b3a", margin: "0 0 3px" }}>GST Registered Business</p>
-          <p style={{ fontSize: 12, color: "#8a9bb0", margin: 0 }}>
-            {hotel?.gst_enabled !== false ? "GST is applied on all orders" : "No GST applied — prices shown as-is"}
-          </p>
-        </div>
-        <div
-          onClick={async () => {
-            const next = hotel?.gst_enabled === false ? true : false
-            await supabase.from("hotels").update({ gst_enabled: next }).eq("id", hotel.id)
-            setHotel(prev => ({ ...prev, gst_enabled: next }))
-          }}
-          style={{ width: 44, height: 24, borderRadius: 20, background: hotel?.gst_enabled !== false ? "#7eb3f5" : "#e2e8f0", cursor: "pointer", position: "relative", transition: "background 0.2s" }}
-        >
-          <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#fff", position: "absolute", top: 3, left: hotel?.gst_enabled !== false ? 23 : 3, transition: "left 0.2s" }} />
-        </div>
-      </div>
-      {hotel?.gst_enabled !== false && (
-        <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-8px 0 20px", padding: "8px 12px", background: "#fffbeb", borderRadius: 8, border: "1px solid #fcd34d" }}>
-          ⚠ Make sure your GST number is added in Hotel Details below before collecting GST from guests.
-        </p>
-      )}
-      {hotel?.gst_enabled === false && (
-        <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-8px 0 20px", padding: "8px 12px", background: "#f0fff4", borderRadius: 8, border: "1px solid #a5d6a7" }}>
-          ✓ GST disabled — guests will see and pay base prices only. Revenue = PAT.
-        </p>
-      )}
 
-      <p style={d.sectionLabel}>Menu Theme</p>
               <p style={d.sectionLabel}>Menu Theme</p>
               <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>
                 Choose how your menu looks to guests. Changes apply immediately.
@@ -2429,7 +2397,6 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
   )}
 </div>
 
-{hotel?.gst_enabled !== false && <>
 <p style={{ ...d.sectionLabel, marginTop: 28 }}>GST Rates By Category</p>
 <p style={{ fontSize: 12, color: "#8a9bb0", margin: "-4px 0 16px" }}>Set default GST % per category.</p>
 <div style={d.form}>
@@ -2451,7 +2418,6 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
     setTimeout(() => setThemeSaved(false), 2500)
   }}>Save GST Rates</button>
 </div>
-</>}
 
 
             </div>
