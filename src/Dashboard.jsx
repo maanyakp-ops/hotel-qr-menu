@@ -700,7 +700,9 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
   doc.setFont("helvetica", "bold")
   doc.setFontSize(7)
   doc.setTextColor(28, 58, 40)
-  doc.text(`${hotelData.business_type === "restaurant" ? "Table" : "Room"} ${roomNumber}`, x + w / 2, y + h * 0.72, { align: "center" })
+  const displayNum = String(roomNumber).replace(/^[a-zA-Z]+/, "")
+  const label = hotelData.business_type === "restaurant" ? `Table ${displayNum}` : `Room ${displayNum}`
+  doc.text(label, x + w / 2, y + h * 0.72, { align: "center" })
 }
 
   // Generate QR data URLs for all rooms
