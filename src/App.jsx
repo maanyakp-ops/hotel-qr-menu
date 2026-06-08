@@ -224,11 +224,11 @@ function orderItemGst(item) {
 }
 
 /** Summarise GST breakdown from cart: { subtotal, gstLines: [{rate, amount}], totalGst, grandTotal } */
-function calcCartGst(cart) {
+function calcCartGst(cart, gstEnabled = true) {
   const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0)
   const byRate = {}
   cart.forEach(i => {
-    const rate = i.gst_rate || 0
+    const rate = gstEnabled ? (i.gst_rate || 0) : 0
     if (!byRate[rate]) byRate[rate] = 0
     byRate[rate] += Math.round(i.price * i.qty * (rate / 100) * 100) / 100
   })
@@ -298,7 +298,7 @@ function App() {
   const gstEnabled = hotelInfo?.gst_enabled !== false
   const [menuSearchGuest, setMenuSearchGuest] = useState("")
   // GST summary for current cart
-  const gstSummary = calcCartGst(cart)
+  const gstSummary = calcCartGst(cart, hotelInfo?.gst_enabled !== false)
 
  
 useEffect(() => {
