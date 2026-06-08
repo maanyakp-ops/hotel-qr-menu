@@ -1,42 +1,42 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@300;400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1c2b3a" />
+    <title>StayDine</title>
+
     <link rel="icon" type="image/png" href="/staydine.png" />
     <link rel="apple-touch-icon" href="/staydine.png" />
-    <title>StayDine</title>
+    <link rel="manifest" href="/manifest.json" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { background: #1c1c1e; }
     </style>
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#1c2b3a" />
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>StayDine</title>
+
     <script>
-    if (window.location.hash.includes('type=recovery')) {
-     sessionStorage.setItem('passwordReset', 'true')
-    }
-  </script>
+      if (window.location.hash.includes('type=recovery')) {
+        sessionStorage.setItem('passwordReset', 'true')
+      }
+    </script>
   </head>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script type="text/javascript">
-  function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-      pageLanguage: 'en',
-      includedLanguages: 'hi,en',
-      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-      autoDisplay: false
-    }, 'google_translate_element');
-  }
-</script>
-<script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+          pageLanguage: 'en',
+          includedLanguages: 'hi,en',
+          layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+          autoDisplay: false
+        }, 'google_translate_element');
+      }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </body>
 </html>
