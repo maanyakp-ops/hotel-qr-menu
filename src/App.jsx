@@ -795,12 +795,78 @@ doc.save(`${hotelData.name || "hotel"}-qr-codes.pdf`)
     <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>{active.length}</p>
     <p style={d.metricLabel}>Active now</p>
   </div>
-  <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
+  <div
+    style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0", cursor: "pointer", position: "relative" }}
+    onClick={() => setShowRevenueBreakdown(true)}
+  >
     <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>₹{(revenue / 1000).toFixed(1)}k</p>
-    <p style={d.metricLabel}>Revenue</p>
+    <p style={d.metricLabel}>Revenue ⓘ</p>
   </div>
 
-  
+  {showRevenueBreakdown && (() => {
+    const gstOrders = orders.filter(o => o.status !== "cancelled" && o.status !== "rejected")
+    let totalGst = 0
+    gstOrders.forEach(order => {
+      order.order_items.forEach(item => {
+        const itemTotal = item.price * item.quantity
+        const menuItem = menuItems.find(m => m.id === item.menu_item_id)
+        const gstRate = menuItem?.gst_rate || 5
+        totalGst += (itemTotal * gstRate) / 100
+      })
+    })
+    const cgst = totalGst / 2
+    const sgst = totalGst / 2
+    const netRevenue = revenue - totalGst
+    const pat = netRevenue
+    return (
+      <div
+        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }}
+        onClick={() => setShowRevenueBreakdown(false)}
+      >
+        <div
+          style={{ background: "#fff", borderRadius: 16, padding: 24, width: 300, boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}
+          onClick={e => e.stopPropagation()}
+        >
+          <p style={{ fontSize: 15, fontWeight: 700, color: "#1c2b3a", margin: "0 0 16px" }}>Revenue Breakdown</p>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: 13, color: "#8a9bb0" }}>Gross Revenue (incl. GST)</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#1c2b3a" }}>₹{revenue.toFixed(2)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+            <span style={{ fontSize: 13, color: "#8a9bb0" }}>Net Revenue (excl. GST)</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#2e7d32" }}>₹{netRevenue.toFixed(2)}</span>
+          </div>
+          <div style={{ borderTop: "1px dashed #e2e8f0", margin: "10px 0" }} />
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ fontSize: 13, color: "#8a9bb0" }}>CGST (payable)</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: "#c0392b" }}>- ₹{cgst.toFixed(2)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ fontSize: 13, color: "#8a9bb0" }}>SGST (payable)</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: "#c0392b" }}>- ₹{sgst.toFixed(2)}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ fontSize: 13, color: "#8a9bb0" }}>Total GST</span>
+            <span style={{ fontSize: 13, fontWeight: 500, color: "#c0392b" }}>- ₹{totalGst.toFixed(2)}</span>
+          </div>
+          <div style={{ borderTop: "2px solid #1c2b3a", margin: "10px 0" }} />
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#1c2b3a" }}>PAT (Post-GST)</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#2e7d32" }}>₹{pat.toFixed(2)}</span>
+          </div>
+          <p style={{ fontSize: 10, color: "#8a9bb0", margin: "12px 0 0", textAlign: "center" }}>
+            Based on GST % set per menu item · Today's orders only
+          </p>
+          <button
+            style={{ marginTop: 16, width: "100%", background: "#1c2b3a", color: "#7eb3f5", border: "none", borderRadius: 8, padding: "10px", fontSize: 13, fontWeight: 500, cursor: "pointer" }}
+            onClick={() => setShowRevenueBreakdown(false)}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    )
+  })()}
   <div style={{ ...d.metric, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
     <p style={{ ...d.metricVal, color: darkMode ? "#e8f0f8" : "#1c2b3a" }}>
       {orders.filter(o => o.rating).length > 0
@@ -952,7 +1018,13 @@ style={{
       )}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <div>
-      <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>₹{orderTotal}</span>
+          <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
+          <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
+            ₹{orderTotal}
+          </span>
+          {orderTotal !== orderBase && (
+            <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>Base: ₹{orderBase} + GST: ₹{(orderTotal - orderBase).toFixed(2)}</p>
+          )}
         </div>
         <div style={d.actions}>
           {order.status === "pending" && (
@@ -998,8 +1070,14 @@ style={{
         <span style={d.badgeDone}>✓ Delivered</span>
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-        <div>
-        <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>₹{orderTotal}</span>
+      <div>
+          <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
+          <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
+            ₹{orderTotal}
+          </span>
+          {orderTotal !== orderBase && (
+            <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>Base: ₹{orderBase} + GST: ₹{(orderTotal - orderBase).toFixed(2)}</p>
+          )}
         </div>
         {order.rating && (
           <div style={{ textAlign: "right" }}>
@@ -1647,24 +1725,10 @@ style={{
                         </div>
                       `
                     }).join("")}
-                    ${(() => {
-                      const baseTotal = roomSummaryOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)
-                      const gstTotal = roomSummaryOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + Math.round(i.price * i.quantity * ((i.gst_rate || 0) / 100) * 100) / 100, 0), 0)
-                      const grandTotal = baseTotal + gstTotal
-                      return `
-                        ${gstTotal > 0 ? `
-                        <div class="item-row" style="margin-top:8px;border-top:1px dashed #ccc;padding-top:8px">
-                          <span>Subtotal</span><span>₹${baseTotal.toFixed(2)}</span>
-                        </div>
-                        <div class="item-row">
-                          <span>CGST + SGST</span><span>₹${gstTotal.toFixed(2)}</span>
-                        </div>` : ''}
-                        <div class="grand-total">
-                          <span>GRAND TOTAL</span>
-                          <span>₹${grandTotal.toFixed(2)}</span>
-                        </div>
-                      `
-                    })()}
+                    <div class="grand-total">
+                      <span>GRAND TOTAL</span>
+                      <span>₹${roomSummaryOrders.reduce((sum, o) => sum + o.order_items.reduce((s, i) => s + i.price * i.quantity, 0), 0)}</span>
+                    </div>
                     <div class="footer">
                       Thank you for staying with us!<br>
                       ${hotel?.name || ""} · All prices inclusive of taxes
@@ -1737,7 +1801,13 @@ style={{
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-          <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>₹{orderTotal}</span>
+              <span style={{ fontSize: 15, fontWeight: 500, color: "#1c2b3a" }}>
+                <span style={{ fontSize: 12, color: "#8a9bb0", fontWeight: 400, marginRight: 4 }}>Total (incl. GST)</span>
+                ₹{orderTotal}
+              </span>
+              {orderTotal !== orderBase && (
+                <p style={{ fontSize: 11, color: "#8a9bb0", margin: "2px 0 0" }}>Base: ₹{orderBase} + GST: ₹{(orderTotal - orderBase).toFixed(2)}</p>
+              )}
             </div>
             {order.rating && (
               <div style={{ textAlign: "right" }}>
