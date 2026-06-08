@@ -1379,7 +1379,6 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
 
           {/* QR CODES TAB */}
 
-{/* QR CODES TAB */}
 {tab === "qr" && (
   <>
     {hotel?.status !== "active"
@@ -1403,7 +1402,11 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
             for (let i = range.start; i <= range.end; i++) allTables.push(`T${i}`)
           })
 
-          const allQRs = [...allRooms, ...allTables]
+          // Cap by paid slots — AFTER both lists are built
+          const cappedRooms = allRooms.slice(0, hotel?.paid_rooms || 0)
+          const cappedTables = allTables.slice(0, hotel?.paid_tables || 0)
+
+          const allQRs = [...cappedRooms, ...cappedTables]
           if (allQRs.length === 0) return <p style={d.empty}>No rooms or tables configured yet. Add them in Settings.</p>
 
           return (
@@ -1415,10 +1418,10 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
                 ⬇ Download All QR Codes as PDF
               </button>
 
-              {allRooms.length > 0 && (
+              {cappedRooms.length > 0 && (
                 <>
-                  <p style={d.sectionLabel}>🚪 Rooms ({allRooms.length})</p>
-                  {allRooms.map(roomId => {
+                  <p style={d.sectionLabel}>🚪 Rooms ({cappedRooms.length})</p>
+                  {cappedRooms.map(roomId => {
                     const url = `https://staydine.in/menu/${hotel.id}/${roomId}`
                     return (
                       <div key={roomId} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
@@ -1435,10 +1438,10 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
                 </>
               )}
 
-              {allTables.length > 0 && (
+              {cappedTables.length > 0 && (
                 <>
-                  <p style={{ ...d.sectionLabel, marginTop: 24 }}>🍽️ Tables ({allTables.length})</p>
-                  {allTables.map(tableId => {
+                  <p style={{ ...d.sectionLabel, marginTop: 24 }}>🍽️ Tables ({cappedTables.length})</p>
+                  {cappedTables.map(tableId => {
                     const url = `https://staydine.in/menu/${hotel.id}/${tableId}`
                     return (
                       <div key={tableId} style={{ ...d.qrCard, background: darkMode ? "#111f2c" : "#fff", border: darkMode ? "0.5px solid #1c2b3a" : "0.5px solid #e2e8f0" }}>
@@ -1460,8 +1463,7 @@ async function drawCard(doc, x, y, w, h, roomNumber, qrDataUrl) {
     }
   </>
 )}
-
-          {/* REPORTS TAB */}
+  
 
           {/* REPORTS TAB */}
           {tab === "reports" && (
@@ -2556,13 +2558,39 @@ onChange={e => setHotel(prev => ({ ...prev, contact_phone: e.target.value }))}
                   </div>
 
 <div style={d.adminRow}>
-  <span style={d.adminLabel}>Total rooms</span>
+  <span style={d.adminLabel}>Physical rooms</span>
   <input
     style={d.roomInput}
     type="number"
     defaultValue={h.room_count || 0}
     onBlur={async e => {
       await supabase.from("hotels").update({ room_count: parseInt(e.target.value) }).eq("id", h.id)
+      fetchAllHotels()
+    }}
+  />
+</div>
+
+<div style={d.adminRow}>
+  <span style={d.adminLabel}>Paid room slots</span>
+  <input
+    style={d.roomInput}
+    type="number"
+    defaultValue={h.paid_rooms || 0}
+    onBlur={async e => {
+      await supabase.from("hotels").update({ paid_rooms: parseInt(e.target.value) }).eq("id", h.id)
+      fetchAllHotels()
+    }}
+  />
+</div>
+
+<div style={d.adminRow}>
+  <span style={d.adminLabel}>Paid table slots</span>
+  <input
+    style={d.roomInput}
+    type="number"
+    defaultValue={h.paid_tables || 0}
+    onBlur={async e => {
+      await supabase.from("hotels").update({ paid_tables: parseInt(e.target.value) }).eq("id", h.id)
       fetchAllHotels()
     }}
   />
