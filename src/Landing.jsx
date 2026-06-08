@@ -85,7 +85,7 @@ export default function Landing() {
         <div style={l.painInner}>
           <div style={l.painCard}>
             <p style={l.painEmoji}>😤</p>
-            <p style={l.painTitle}>Before Hotel+</p>
+            <p style={l.painTitle}>Before staydine.in</p>
             <ul style={l.painList}>
               <li>Phone rings at 2am for a water bottle</li>
               <li>Staff mishears orders over the phone</li>
@@ -96,7 +96,7 @@ export default function Landing() {
           <div style={l.painArrow}>→</div>
           <div style={{ ...l.painCard, ...l.solCard }}>
             <p style={l.painEmoji}>✨</p>
-            <p style={{ ...l.painTitle, color: "#C9A84C" }}>After Hotel+</p>
+            <p style={{ ...l.painTitle, color: "#C9A84C" }}>After staydine.in+</p>
             <ul style={l.painList}>
               <li>Guests order from their phone, no calls</li>
               <li>Every order perfectly recorded</li>
